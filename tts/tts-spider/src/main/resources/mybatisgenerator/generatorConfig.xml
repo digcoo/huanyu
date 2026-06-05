@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration
+        PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+        "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+<generatorConfiguration>
+        <classPathEntry
+                location="/Users/junifer/Documents/lib/repository/mysql/mysql-connector-java/5.1.42/mysql-connector-java-5.1.42.jar"/>
+        <context id="mySql" targetRuntime="MyBatis3">
+        <commentGenerator>
+            <property name="suppressAllComments" value="true"/>
+        </commentGenerator>
+
+        <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+                        connectionURL="jdbc:mysql://localhost:3306/tts" userId="root" password="duyp123456"/>
+
+        <javaModelGenerator targetPackage="com.yh.bigdata.tts.common.model" targetProject="tts-common">
+            <property name="enableSubPackages" value="false"/>
+            <property name="trimStrings" value="true"/>
+        </javaModelGenerator>
+
+        <sqlMapGenerator targetPackage="mapper" targetProject="tts-common">
+            <property name="enableSubPackages" value="false"/>
+        </sqlMapGenerator>
+
+        <javaClientGenerator targetPackage="com.yh.bigdata.tts.common.dao" targetProject="tts-common" type="XMLMAPPER">
+            <property name="enableSubPackages" value="false"/>
+        </javaClientGenerator>
+
+            <!--<table tableName="auth_group" domainObjectName="AuthGroup"-->
+                <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                <!--selectByExampleQueryId="true" >-->
+            <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+            <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="auth_perm" domainObjectName="AuthPerm"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="auth_role" domainObjectName="AuthRole"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="auth_role_group_rel" domainObjectName="AuthRoleGroupRel"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="auth_role_perm_rel" domainObjectName="AuthRolePermRel"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="auth_role_task_rel" domainObjectName="AuthRoleTaskRel"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="auth_user" domainObjectName="AuthUser"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="auth_user_group_rel" domainObjectName="AuthUserGroupRel"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--=========================================================-->
+
+            <!--<table tableName="cluster" domainObjectName="Cluster"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+
+            <!--<table tableName="execution_record" domainObjectName="ExecutionRecord"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+
+            <!--<table tableName="job_new" domainObjectName="JobNew"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+
+            <!--<table tableName="job_depend_new" domainObjectName="JobDependNew"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="job_execution_rel" domainObjectName="JobExecutionRel"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="job_level" domainObjectName="JobLevel"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="job_record" domainObjectName="JobRecord"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="job_topic" domainObjectName="JobTopic"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+            <!--<table tableName="server" domainObjectName="Server"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+            <!--<table tableName="task_new" domainObjectName="TaskNew"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+
+
+            <!--<table tableName="task_depend" domainObjectName="TaskDepend"-->
+                   <!--enableCountByExample="false" enableUpdateByExample="false"-->
+                   <!--enableDeleteByExample="false" enableSelectByExample="false"-->
+                   <!--selectByExampleQueryId="true" >-->
+                <!--&lt;!&ndash;<columnRenamingRule searchString="^D_"-->
+                <!--replaceString=""/>&ndash;&gt;-->
+            <!--</table>-->
+            <table tableName="capital" domainObjectName="StockCapital"
+                   enableCountByExample="false" enableUpdateByExample="false"
+                   enableDeleteByExample="false" enableSelectByExample="false"
+                   selectByExampleQueryId="true" >
+                <!--<columnRenamingRule searchString="^D_"
+                replaceString=""/>-->
+            </table>
+
+    </context>
+</generatorConfiguration>

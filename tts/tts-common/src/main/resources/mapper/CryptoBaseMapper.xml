@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.CryptoBaseMapper" >
+  <resultMap id="BaseResultMap" type="com.yh.bigdata.tts.common.model.CryptoBase" >
+    <result column="symbol" property="symbol" jdbcType="VARCHAR" />
+    <result column="close" property="close" jdbcType="DOUBLE" />
+    <result column="open" property="open" jdbcType="DOUBLE" />
+    <result column="high" property="high" jdbcType="DOUBLE" />
+    <result column="low" property="low" jdbcType="DOUBLE" />
+    <result column="last_close" property="lastClose" jdbcType="DOUBLE" />
+    <result column="volume" property="volume" jdbcType="BIGINT" />
+    <result column="amount" property="amount" jdbcType="DOUBLE" />
+    <result column="day" property="day" jdbcType="DATE" />
+  </resultMap>
+
+    <sql id="Base_Column_List" >
+        symbol, `close`, open, high, low, last_close, volume, amount, day
+    </sql>
+
+    <sql id="Insert_Base_Column_List" >
+        symbol, `close`, open, high, low, last_close, volume, amount, day, create_time, update_time
+    </sql>
+
+    <sql id="Table_Name"> crypto_base </sql>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" >
+    select <include refid="Base_Column_List" /> from <include refid="Table_Name"/>
+        where symbol = #{symbol}
+    </select>
+
+  <insert id="insert" parameterType="com.yh.bigdata.tts.common.model.StockBase" >
+    insert into <include refid="Table_Name" />
+     ( <include refid="Insert_Base_Column_List" /> )
+    values (#{symbol}, #{close}, #{open}, #{high}, #{low}, #{lastClose}, #{volume}, #{amount}, #{day}, now(), now())
+  </insert>
+
+ <update id="updateByPrimaryKeySelective" parameterType="com.yh.bigdata.tts.common.model.StockBase" >
+    update <include refid="Table_Name"/>
+     set update_time = now()
+    	<if test="close != null">
+        	, 'close' = #{close}
+        </if>
+        <if test="open != null">
+        	, open = #{open}
+        </if>
+    	<if test="high != null">
+        	, high = #{high}
+        </if>
+    	<if test="low != null">
+        	, low = #{low}
+        </if>
+    	<if test="lastClose != null">
+        	, last_close = #{lastClose}
+        </if>
+    	<if test="volume != null">
+        	, volume = #{volume}
+        </if>
+    	<if test="amount != null">
+        	, amount = #{amount}
+        </if>
+    	<if test="day != null">
+        	, day = #{day}
+        </if>
+    where symbol = #{symbol}
+  </update>
+
+  <select id="selectAll" resultMap="BaseResultMap" >
+  	select
+      <include refid="Base_Column_List" />
+  	 from <include refid="Table_Name"/>
+  </select>
+
+  <select id="selectByPageQuery" resultMap="BaseResultMap" parameterType="com.yh.bigdata.tts.common.param.CryptoPageQuery">
+    select <include refid="Base_Column_List" />
+    	from <include refid="Table_Name"/>
+    	<where>
+	    	<if test="symbol != null">
+                and symbol = #{symbol}
+	    	</if>
+    	</where>
+  </select>
+  
+</mapper>

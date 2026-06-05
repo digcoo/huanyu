@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<project
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.yh.bigdata</groupId>
+		<artifactId>tts</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>tts-spider</artifactId>
+	<name>tts-spider</name>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.yh.bigdata</groupId>
+			<artifactId>tts-common</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.26</version>
+			<scope>provided</scope>
+		</dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<java.version>11</java.version>
+		<maven.test.skip>true</maven.test.skip>
+	</properties>
+
+	<build>
+	 	<defaultGoal>compile</defaultGoal>
+        <sourceDirectory>src/main/java</sourceDirectory>
+        <finalName>tts-spider</finalName>
+		<plugins>
+		 	<plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <fork>true</fork>
+                    <mainClass>com.yh.bigdata.tts.spider.CryptoApplicationStarter</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+		</plugins>
+	</build>
+	
+</project>

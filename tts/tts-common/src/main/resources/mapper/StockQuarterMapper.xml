@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.StockQuarterMapper" >
+  <resultMap id="BaseResultMap" type="com.yh.bigdata.tts.common.model.StockQuarter" >
+    <result column="day" property="day" jdbcType="DATE" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="open" property="open" jdbcType="DOUBLE" />
+    <result column="high" property="high" jdbcType="DOUBLE" />
+    <result column="low" property="low" jdbcType="DOUBLE" />
+    <result column="trade" property="trade" jdbcType="DOUBLE" />
+    <result column="last_trade" property="lastTrade" jdbcType="DOUBLE" />
+    <result column="percent" property="percent" jdbcType="DOUBLE" />
+    <result column="volume" property="volume" jdbcType="BIGINT" />
+    <result column="amount" property="amount" jdbcType="DOUBLE" />
+    <result column="ma5" property="ma5" jdbcType="DOUBLE" />
+    <result column="ma10" property="ma10" jdbcType="DOUBLE" />
+    <result column="ma20" property="ma20" jdbcType="DOUBLE" />
+    <result column="ma30" property="ma30" jdbcType="DOUBLE" />
+    <result column="dea" property="dea" jdbcType="DOUBLE" />
+    <result column="dif" property="dif" jdbcType="DOUBLE" />
+    <result column="macd" property="macd" jdbcType="DOUBLE" />
+    <result column="cross_params" property="crossParams" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    code, day, name, open, high, low, trade, last_trade, percent, volume, amount, ma5, ma10, ma20, ma30, dea, dif, macd, cross_params
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" >
+    select * from quarterk where code = #{code} and day = #{day}
+  </select>
+  <delete id="deleteByPrimaryKey" >
+    delete from quarterk where code = #{code} and day = #{day}
+  </delete>
+  <insert id="insert" parameterType="com.yh.bigdata.tts.common.model.StockYear" >
+    insert into quarterk (code, day, name, open, high, low, trade, last_trade, percent, volume, amount, ma5, ma10, ma20, ma30, dea, dif, macd, cross_params, create_time, update_time)
+    values (#{code}, #{day}, #{name}, #{open}, #{high}, #{low}, #{trade}, #{lastTrade}, #{percent}, #{volume}, #{amount}, #{ma5}, #{ma10}, #{ma20}, #{ma30}, #{dea}, #{dif}, #{macd}, #{crossParams}, now(), now())
+  </insert>
+  
+  <update id="updateByPrimaryKey" parameterType="com.yh.bigdata.tts.common.model.StockYear" >
+   update quarterk set update_time = now()
+        <if test="name != null">
+           , name = #{name}
+        </if>   
+        <if test="open != null">
+           , open = #{open}
+        </if>  
+        <if test="high != null">
+           , high = #{high}
+        </if>  
+        <if test="low != null">
+           , low = #{low}
+        </if>
+        <if test="trade != null">
+           , trade = #{trade}
+        </if>                    
+        <if test="lastTrade != null">
+           , last_trade = #{lastTrade}
+        </if>                     
+        <if test="percent != null">
+           , percent = #{percent}
+        </if> 
+        <if test="volume != null">
+           , volume = #{volume}
+        </if>        
+        <if test="amount != null">
+           , amount = #{amount}
+        </if>
+        <if test="ma5 != null">
+           , ma5 = #{ma5}
+        </if>
+        <if test="ma10 != null">
+           , ma10 = #{ma10}
+        </if>
+        <if test="ma20 != null">
+           , ma20 = #{ma20}
+        </if>
+        <if test="ma30 != null">
+           , ma30 = #{ma30}
+        </if>
+        <if test="dea != null">
+           , dea = #{dea}
+        </if>
+        <if test="dif != null">
+            , dif = #{dif}
+        </if>
+        <if test="macd != null">
+           , macd = #{macd}
+        </if>
+        <if test="crossParams != null">
+           , cross_params = #{crossParams}
+        </if>       
+         where code = #{code} and day = #{day}
+  </update>
+
+
+  <select id="selectByPageQuery" resultMap="BaseResultMap" parameterType="com.yh.bigdata.tts.common.param.StockPageQuery">
+    select * from quarterk
+    <where>
+	    <if test="code != null and code != '' ">
+	  		and code = #{code}
+	   	</if>
+   	</where>
+  </select>
+
+  <select id="selectLastTradeYear" resultType="java.lang.String">
+    select max(day) from quarterk where code = 'sh600000'
+	   	<if test="fromDay != null and fromDay != '' ">
+			<![CDATA[  
+	   			and day < #{fromDay}
+		 	]]>
+	   	</if>
+  </select>
+  
+      
+  <select id="selectLatestTradeYear" resultMap="BaseResultMap" >
+   	select d.* from quarterk d where 
+   	<![CDATA[
+   		d.code = #{code} and d.day < #{fromDay}
+  	 ]]>
+	  order by d.day desc
+   		 limit 1		
+  </select>
+  
+        
+  <select id="selectLatestYearList" resultMap="BaseResultMap" >
+   	select y.code, y.day, y.open, y.trade, y.last_trade, y.high, y.low, y.ma5, y.ma10, y.ma20, y.ma30, y.dea, y.dif, y.macd from quarterk y
+		 <where>
+		    <if test="code != null and code != '' ">
+		  		and y.code = #{code}
+		   	</if>
+		    <if test="nyears != null ">
+		       	<![CDATA[ 
+				and (select count(*) from quarterk where code=y.code and day > y.day) < #{nyears}
+			 	]]>
+		    </if>
+	    </where>
+  </select>
+  
+  
+  <select id="selectAll" resultMap="BaseResultMap" >
+  	select
+      <include refid="Base_Column_List" /> 
+  	 from quarterk s
+  	  <where>
+	    <if test="codes != null and codes.size() > 0 ">
+	  		and s.code in 
+  			<foreach collection="codes" item="item" open="(" close=")" separator=",">
+     			#{item}
+     		</foreach>
+	   	</if>
+   	</where>
+ 	</select>
+</mapper>

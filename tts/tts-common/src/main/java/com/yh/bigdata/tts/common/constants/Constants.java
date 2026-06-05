@@ -1,0 +1,21 @@
+package com.yh.bigdata.tts.common.constants;
+
+public final class Constants {
+	public final static String STOCK_LIST_KEY = "stock_list";
+	public final static String DAY_MAP_KEY = "day_map";
+	public final static String WEEK_MAP_KEY = "week_map";
+	public final static String MONTH_MAP_KEY = "month_map";
+	public final static String QUARTER_MAP_KEY = "quarter_map";
+	public final static String YEAR_MAP_KEY = "year_map";
+	public final static String MIN15_MAP_KEY = "min15_map";
+	public final static String MIN30_MAP_KEY = "min30_map";
+	public final static String MIN60_MAP_KEY = "min60_map";
+	
+	public static String COOKIE_XUEQIU = "cookiesu=831767186347006; device_id=6bd24223fbe6543d27576e1031eb57c0; xq_a_token=20458f74230aee45906ecb90d8c70ff43daa3837; xqat=20458f74230aee45906ecb90d8c70ff43daa3837; xq_r_token=fa5fac8aea31fef0733c31a1c3670554e9365bda; xq_id_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ1aWQiOi0xLCJpc3MiOiJ1YyIsImV4cCI6MTc4MTA1NDU5NiwiY3RtIjoxNzc5MDAyMDg1ODU1LCJjaWQiOiJkOWQwbjRBWnVwIn0.n1ZcIow2gMC0YUhpmZEvCrOz2u25X83B9RLlH6Gss9baokVO2w1mzlQp3Bjgt0Xmdyv5iNj6xzU7KN4rLIK7wvDUMi6VbCEnI-0Ymgz3qk-txYs9zw-D_KymxAuEc-tT7_SNDFEY-hXB1XTzvBawfZFSd8C54rh2NCHGmDb4-SO3yNpWIS0Ou0qf7HeTcCDYOhtShweM1nGWsq9H7tdql7YpnK573pcXyUCM0Ubg31jlFgl9be_T0acEA2rsnR_klRheDILCGBA4RmgjVPYROwOY-_56xN9JosspCcPIcAMoabvQbGC9JhH52Qm2ODLM1LcUFvt0AQ20mKx3ohBRaQ; u=831767186347006; acw_tc=3ccdc17517790021336615485ec815c9a0e0e337d49c0666bb441fe22d3ab9; Hm_lvt_1db88642e346389874251b5a1eded6e3=1779002139; HMACCOUNT=C4508D19150D8948; Hm_lpvt_1db88642e346389874251b5a1eded6e3=1779002149; is_overseas=0; ssxmod_itna=1-YqfhDKD5Yvkx8DyD4qeu4YFlpDuGMD3Mx0dGM42DIqGQGcD8OD0pUgfeFRfAAIwxaD7uh51bi_0tDlarOYDUxqiaDI_eQt59oQRx4tLnCGX3MFQBiTPfTQ72RPaeLFZpnLT756Zq1KjW1mW4DHxi8iZ5o34iiDBeD5xDTDWeDGDD3Q4iTDieDj7ov18oDb=xdhD0kihoDW6oDE7Ezeappi4GCTDDCDGIhDQI3OzDDB1iR5BW44=kvKIkYxqD11ngCF4G1fD0HenZxFRLyGsiA1zZC2Uemff3DvxDkh7oDoxa0umgA2UYG38dqDoeAo1D5i0N4EePGxdY4qBNYo45QxeiYeY=MGek2QkxDi2rrUPnGeyPNS1Xl=qbGe7ivDPu6nxYbmdIDsjrzBwmPe_72YmmPjGP42Q3Ryi_mAItiG5lD4nxE/pImm=bbjBrt3D; ssxmod_itna2=1-YqfhDKD5Yvkx8DyD4qeu4YFlpDuGMD3Mx0dGM42DIqGQGcD8OD0pUgfeFRfAAIwxaD7uh51bi_DoDirSDoviw/lOp1Z/Pm744rI/ZGD";
+
+    public static final String BINANCE_API_KEY = "5M484PYTkoMzrdQQEI3ysjx83qpVeX5qHTll7SvQfLPz66qIHb92nbjZBqczccR2";
+    public static final String BINANCE_SECRET_KEY = "KDoTweAHTqckRUQgss1TevRWsCoqcuCNlM9AtCBCc7Rxzsf1NUER7Brgkhfg1QZh";
+
+    public static final double BASE_LINE_LOW_SPACE_RATE = 0.1;
+
+}
