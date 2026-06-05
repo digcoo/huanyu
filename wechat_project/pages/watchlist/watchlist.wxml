@@ -1,0 +1,17 @@
+<view class="page">
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <text class="page-title">自选池</text>
+      <text class="page-sub">交易验证 · 策略回溯</text>
+    </view>
+  </view>
+
+  <view class="placeholder" style="margin-top: {{statusBarHeight + 80}}px">
+    <view class="placeholder-icon">☆</view>
+    <text class="placeholder-title">自选区 · 开发中</text>
+    <text class="placeholder-desc">多市场分仓视图 · 自选时间戳标记 · 策略效能仪表盘</text>
+    <text class="placeholder-hint">在首页右滑卡片即可加入自选</text>
+  </view>
+
+  <bottom-nav active="watchlist" />
+</view>

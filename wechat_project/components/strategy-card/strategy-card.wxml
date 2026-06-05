@@ -1,0 +1,59 @@
+<wxs src="../../utils/chart.wxs" module="c" />
+
+<view class="card-wrapper">
+  <view class="action-bg ignore {{actionHint === 'ignore' ? 'visible' : ''}}">
+    <text class="action-icon">✕</text>
+    <text class="action-text">忽略</text>
+  </view>
+  <view class="action-bg watchlist {{actionHint === 'watchlist' ? 'visible' : ''}}">
+    <text class="action-icon">★</text>
+    <text class="action-text">自选</text>
+  </view>
+
+  <view
+    class="strategy-card {{swiping ? 'swiping' : ''}}"
+    style="transform: translateX({{offsetX}}px)"
+    bindtouchstart="onTouchStart"
+    bindtouchmove="onTouchMove"
+    bindtouchend="onTouchEnd"
+    bindtap="onTap"
+  >
+    <view class="card-header">
+      <view class="stock-info">
+        <text class="stock-name">{{item.name}}</text>
+        <text class="stock-code">{{item.code}}</text>
+      </view>
+      <view class="price-info">
+        <text class="stock-price">{{item.price}}</text>
+        <text class="stock-change {{item.changePct >= 0 ? 'up' : 'down'}}">
+          {{item.changePct >= 0 ? '+' : ''}}{{item.changePct}}%
+        </text>
+      </view>
+    </view>
+
+    <view class="tags">
+      <text wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag" class="tag">{{tag}}</text>
+    </view>
+
+    <mini-kline
+      wx:if="{{item.chartKlines.length}}"
+      klines="{{item.chartKlines}}"
+      label="{{c.periodLabel(activePeriod)}}"
+      size="card"
+      maxBars="{{c.maxBars(activePeriod)}}"
+      flipped="{{flipped}}"
+      resonance="{{item.resonance}}"
+    />
+    <view wx:else class="chart-empty">K线加载中...</view>
+
+    <view class="summary">
+      <view class="summary-icon">💡</view>
+      <text class="summary-text">{{item.summary}}</text>
+    </view>
+
+    <view class="swipe-hint">
+      <text class="hint-left">← 忽略</text>
+      <text class="hint-right">自选 →</text>
+    </view>
+  </view>
+</view>

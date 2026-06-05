@@ -1,0 +1,15 @@
+var LABELS = { year: '年K', month: '月K', week: '周K', day: '日K' };
+var MAX = { year: 50, month: 50, week: 50, day: 50 };
+
+function periodLabel(period) {
+  return LABELS[period] || '周K';
+}
+
+function maxBars(period) {
+  return MAX[period] || 50;
+}
+
+module.exports = {
+  periodLabel: periodLabel,
+  maxBars: maxBars
+};

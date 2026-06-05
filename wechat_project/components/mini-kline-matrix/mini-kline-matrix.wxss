@@ -1,0 +1,51 @@
+.matrix {
+  margin-top: 16rpx;
+}
+
+.matrix-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.matrix-title {
+  font-size: 20rpx;
+  color: #5c6578;
+  letter-spacing: 2rpx;
+  text-transform: uppercase;
+}
+
+.resonance-badge {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  background: rgba(255, 255, 255, 0.04);
+  color: #8b95a8;
+}
+
+.resonance-badge.strong {
+  color: #0ecb81;
+  background: rgba(14, 203, 129, 0.12);
+}
+
+.resonance-badge.medium {
+  color: #ff9500;
+  background: rgba(255, 149, 0, 0.12);
+}
+
+.resonance-badge.weak {
+  color: #6b7280;
+  background: rgba(107, 114, 128, 0.12);
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.grid-cell {
+  width: calc(50% - 4rpx);
+  min-height: 150rpx;
+}

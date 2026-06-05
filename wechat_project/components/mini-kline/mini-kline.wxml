@@ -1,0 +1,53 @@
+<view class="mini-kline {{resonance}} size-{{size}} {{flipped ? 'is-flipped' : ''}}">
+  <view class="label-row" wx:if="{{label}}">
+    <text class="label">{{label}}</text>
+    <view class="ma-legend" wx:if="{{maLegend}}">
+      <text class="ma ma7">MA7</text>
+      <text class="ma ma25">MA25</text>
+    </view>
+  </view>
+  <view class="chart-wrap">
+    <view class="grid-lines">
+      <view class="grid-line" wx:for="{{[0,1,2,3,4]}}" wx:key="*this"></view>
+    </view>
+    <view class="ma-layer" wx:if="{{ma7Points.length}}">
+      <view
+        wx:for="{{ma7Points}}"
+        wx:key="index"
+        class="ma-dot ma7"
+        style="left: {{item.x}}%; top: {{item.y}}%;"
+      ></view>
+    </view>
+    <view class="ma-layer" wx:if="{{ma25Points.length}}">
+      <view
+        wx:for="{{ma25Points}}"
+        wx:key="index"
+        class="ma-dot ma25"
+        style="left: {{item.x}}%; top: {{item.y}}%;"
+      ></view>
+    </view>
+    <view class="css-chart" wx:if="{{bars.length}}">
+      <view
+        wx:for="{{bars}}"
+        wx:key="index"
+        class="candle-slot"
+        style="left: {{item.left}}%; width: {{item.width}}%;"
+      >
+        <view
+          wx:if="{{item.showUpperWick}}"
+          class="wick {{item.dirClass}}"
+          style="top: {{item.upperWickTop}}%; height: {{item.upperWickH}}%;"
+        ></view>
+        <view
+          class="body {{item.dirClass}}"
+          style="top: {{item.bodyTop}}%; height: {{item.bodyH}}%;"
+        ></view>
+        <view
+          wx:if="{{item.showLowerWick}}"
+          class="wick {{item.dirClass}}"
+          style="top: {{item.lowerWickTop}}%; height: {{item.lowerWickH}}%;"
+        ></view>
+      </view>
+    </view>
+  </view>
+</view>

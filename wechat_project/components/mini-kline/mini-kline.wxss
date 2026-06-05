@@ -1,0 +1,155 @@
+/* 币安 Pro · 纯 CSS 渲染（避免 scroll-view 内 canvas 悬浮） */
+.mini-kline {
+  display: flex;
+  flex-direction: column;
+  background: #1e2026;
+  border-radius: 8rpx;
+  overflow: hidden;
+  border: 1rpx solid #2b2f36;
+  min-height: 150rpx;
+}
+
+.mini-kline.strong {
+  border-color: rgba(14, 203, 129, 0.35);
+}
+
+.mini-kline.medium {
+  border-color: rgba(240, 185, 11, 0.3);
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4rpx 8rpx 2rpx;
+}
+
+.label {
+  font-size: 18rpx;
+  color: #848e9c;
+  letter-spacing: 0.5rpx;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.ma-legend {
+  display: flex;
+  gap: 12rpx;
+}
+
+.ma {
+  font-size: 16rpx;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.ma7 { color: #f0b90b; }
+.ma25 { color: #e040fb; }
+
+.chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 120rpx;
+  margin: 0;
+  background: #1e2026;
+  overflow: hidden;
+}
+
+.grid-lines {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2rpx 0;
+  pointer-events: none;
+}
+
+.grid-line {
+  height: 1rpx;
+  background: rgba(43, 47, 54, 0.7);
+}
+
+.ma-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ma-dot {
+  position: absolute;
+  width: 4rpx;
+  height: 4rpx;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.ma-dot.ma7 { background: #f0b90b; }
+.ma-dot.ma25 { background: #e040fb; }
+
+.css-chart {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.candle-slot {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+
+.wick {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  opacity: 0.85;
+}
+
+.wick.bull { background: #0ecb81; }
+.wick.bear { background: #f6465d; }
+
+.body {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-radius: 0;
+}
+
+.body.bull { background: #0ecb81; }
+.body.bear { background: #f6465d; }
+
+/* 卡片主图：大尺寸清晰 K 线 */
+.mini-kline.size-card,
+.mini-kline.size-wide {
+  min-height: auto;
+  margin-top: 16rpx;
+  border-radius: 10rpx;
+}
+
+.mini-kline.size-card .chart-wrap,
+.mini-kline.size-wide .chart-wrap {
+  height: 280rpx;
+  margin: 0;
+}
+
+.mini-kline.size-card .wick,
+.mini-kline.size-wide .wick {
+  width: 1px;
+}
+
+.mini-kline.size-card .body,
+.mini-kline.size-wide .body {
+  min-height: 4rpx;
+  border-radius: 0;
+}
+
+.mini-kline.size-card .ma-dot,
+.mini-kline.size-wide .ma-dot {
+  width: 6rpx;
+  height: 6rpx;
+}
+
+.mini-kline.is-flipped .chart-wrap {
+  transform: scaleX(-1);
+}

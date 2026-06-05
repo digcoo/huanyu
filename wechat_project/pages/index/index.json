@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "market-tabs": "../../components/market-tabs/market-tabs",
+    "index-chart": "../../components/index-chart/index-chart",
+    "strategy-card": "../../components/strategy-card/strategy-card",
+    "period-switcher": "../../components/period-switcher/period-switcher",
+    "bottom-nav": "../../components/bottom-nav/bottom-nav"
+  },
+  "navigationStyle": "custom"
+}

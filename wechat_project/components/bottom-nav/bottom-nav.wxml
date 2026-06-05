@@ -1,0 +1,22 @@
+<view class="bottom-nav">
+  <view
+    class="nav-item {{active === 'index' ? 'active' : ''}}"
+    data-page="index"
+    bindtap="onNavTap"
+  >
+    <view class="nav-icon-wrap">
+      <text class="nav-icon">◈</text>
+    </view>
+    <text class="nav-label">策略</text>
+  </view>
+  <view
+    class="nav-item {{active === 'watchlist' ? 'active' : ''}}"
+    data-page="watchlist"
+    bindtap="onNavTap"
+  >
+    <view class="nav-icon-wrap">
+      <text class="nav-icon">☆</text>
+    </view>
+    <text class="nav-label">自选</text>
+  </view>
+</view>

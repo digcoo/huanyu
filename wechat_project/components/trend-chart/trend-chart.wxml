@@ -1,0 +1,23 @@
+<view class="trend-chart">
+  <view class="chart-area" style="height: {{height}}rpx;">
+    <view class="grid-lines">
+      <view class="grid-line" wx:for="{{[0,1,2,3]}}" wx:key="*this"></view>
+    </view>
+    <view wx:for="{{lines}}" wx:key="name" wx:for-item="line" class="line-layer">
+      <view
+        wx:for="{{line.points}}"
+        wx:key="index"
+        wx:for-item="pt"
+        class="line-dot"
+        style="left: {{pt.x}}%; top: {{pt.y}}%; background: {{line.color}};"
+      ></view>
+    </view>
+  </view>
+  <view class="legend">
+    <view wx:for="{{lines}}" wx:key="name" class="legend-item">
+      <view class="legend-dot" style="background: {{item.color}}"></view>
+      <text class="legend-name">{{item.name}}</text>
+      <text class="legend-val">{{item.last.value}}{{item.unit}}</text>
+    </view>
+  </view>
+</view>

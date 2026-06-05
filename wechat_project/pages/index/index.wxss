@@ -1,0 +1,188 @@
+.page {
+  min-height: 100vh;
+  background: #0a0e17;
+  padding-bottom: calc(100rpx + env(safe-area-inset-bottom));
+}
+
+.header {
+  background: #0a0e17;
+}
+
+.nav-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 32rpx 8rpx;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.brand-logo {
+  font-size: 44rpx;
+  color: #00d4ff;
+  text-shadow: 0 0 20rpx rgba(0, 212, 255, 0.5);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #e8edf5;
+  letter-spacing: 4rpx;
+}
+
+.brand-sub {
+  font-size: 20rpx;
+  color: #5c6578;
+  letter-spacing: 2rpx;
+}
+
+.nav-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8rpx 20rpx;
+  background: rgba(0, 212, 255, 0.08);
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(0, 212, 255, 0.15);
+}
+
+.stat-num {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #00d4ff;
+}
+
+.stat-label {
+  font-size: 18rpx;
+  color: #5c6578;
+}
+
+.market-panel {
+  margin: 0 24rpx 8rpx;
+  border: 1rpx solid #2b2f36;
+  border-radius: 8rpx;
+  overflow: hidden;
+  background: #1e2026;
+}
+
+.market-panel .index-chart {
+  padding: 0;
+  background: transparent;
+}
+
+.market-panel .index-tabs {
+  padding: 8rpx 8rpx 0;
+  background: #0a0e17;
+}
+
+.market-panel .mini-kline.size-card {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.period-sticky {
+  position: sticky;
+  z-index: 200;
+  padding: 8rpx 24rpx;
+  background: #0a0e17;
+  border-bottom: 1rpx solid #2b2f36;
+}
+
+.period-sticky .period-switcher {
+  padding: 0;
+  margin: 0;
+}
+
+.period-sticky .period-tabs {
+  background: #1e2026;
+  border: 1rpx solid #2b2f36;
+  border-radius: 8rpx;
+}
+
+.period-sticky .period-toolbar {
+  gap: 8rpx;
+}
+
+.period-sticky .flip-btn {
+  height: 56rpx;
+  width: 56rpx;
+}
+
+.recommend-list {
+  padding: 0 24rpx;
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20rpx 8rpx 12rpx;
+}
+
+.list-title {
+  display: block;
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #e8edf5;
+}
+
+.list-subtitle {
+  display: block;
+  font-size: 22rpx;
+  color: #5c6578;
+  margin-top: 6rpx;
+}
+
+.list-badge {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: #0a0e17;
+  background: linear-gradient(135deg, #00d4ff, #0099cc);
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  letter-spacing: 2rpx;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80rpx 0;
+}
+
+.empty-icon {
+  font-size: 64rpx;
+  margin-bottom: 16rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #8b95a8;
+}
+
+.empty-hint {
+  font-size: 22rpx;
+  color: #5c6578;
+  margin-top: 8rpx;
+}
+
+.list-footer {
+  text-align: center;
+  padding: 24rpx 0 16rpx;
+}
+
+.list-footer text {
+  font-size: 20rpx;
+  color: #3d4556;
+}

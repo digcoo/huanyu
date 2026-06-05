@@ -1,0 +1,67 @@
+.trend-chart {
+  width: 100%;
+}
+
+.chart-area {
+  position: relative;
+  background: #161a1e;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.grid-lines {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8rpx 0;
+}
+
+.grid-line {
+  height: 1rpx;
+  background: rgba(43, 47, 54, 0.8);
+}
+
+.line-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.line-dot {
+  position: absolute;
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx 20rpx;
+  margin-top: 12rpx;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.legend-dot {
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+}
+
+.legend-name {
+  font-size: 20rpx;
+  color: #848e9c;
+}
+
+.legend-val {
+  font-size: 20rpx;
+  color: #e8edf5;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}

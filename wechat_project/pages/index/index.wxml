@@ -1,0 +1,72 @@
+<view class="page">
+  <!-- 顶部固定区域 -->
+  <view class="header" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <view class="brand">
+        <text class="brand-logo">◈</text>
+        <view class="brand-text">
+          <text class="brand-name">Atlas</text>
+          <text class="brand-sub">寰宇全息投研助手</text>
+        </view>
+      </view>
+      <view class="nav-stats">
+        <text class="stat-num">{{recommendations.length}}</text>
+        <text class="stat-label">推荐</text>
+      </view>
+    </view>
+
+    <market-tabs
+      markets="{{markets}}"
+      activeMarket="{{activeMarket}}"
+      bind:change="onMarketChange"
+    />
+
+    <view class="market-panel">
+      <index-chart indices="{{indices}}" activePeriod="{{activePeriod}}" flipped="{{klineFlipped}}" />
+    </view>
+  </view>
+
+  <!-- 周期切换：滚动时吸顶 -->
+  <view class="period-sticky" style="top: {{statusBarHeight}}px">
+    <period-switcher
+      activePeriod="{{activePeriod}}"
+      flipped="{{klineFlipped}}"
+      bind:change="onPeriodChange"
+      bind:flip="onFlipKline"
+    />
+  </view>
+
+  <!-- 策略推荐列表 -->
+  <view class="recommend-list">
+    <view class="list-header">
+      <view>
+        <text class="list-title">策略推荐</text>
+        <text class="list-subtitle">基于多周期共振 · 智能打标 · 实时更新</text>
+      </view>
+      <view class="list-badge">HIGH</view>
+    </view>
+
+    <view wx:if="{{recommendations.length === 0}}" class="empty-state">
+      <text class="empty-icon">📭</text>
+      <text class="empty-text">该市场暂无推荐</text>
+      <text class="empty-hint">切换其他市场查看更多标的</text>
+    </view>
+
+    <strategy-card
+      wx:for="{{recommendations}}"
+      wx:key="id"
+      item="{{item}}"
+      activePeriod="{{activePeriod}}"
+      flipped="{{klineFlipped}}"
+      bind:watchlist="onAddWatchlist"
+      bind:ignore="onIgnore"
+      bind:tap="onCardTap"
+    />
+
+    <view class="list-footer">
+      <text>— 左滑忽略 · 右滑自选 · 点击查看详情 —</text>
+    </view>
+  </view>
+
+  <bottom-nav active="index" />
+</view>
