@@ -1,6 +1,5 @@
 package com.yh.bigdata.tts.spider.scheduler;
 
-import com.yh.bigdata.tts.spider.service.StockService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +7,6 @@ import org.springframework.stereotype.Component;
 
 import com.yh.bigdata.tts.spider.crawler.StockBaseCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockDayXueQiuCrawler;
-import com.yh.bigdata.tts.spider.xueqiu.StockMin30XueQiuCrawler;
-import com.yh.bigdata.tts.spider.xueqiu.StockMin60XueQiuCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockMonthXueQiuCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockQuarterXueQiuCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockWeekXueQiuCrawler;
@@ -46,16 +43,6 @@ public class DayAllSpiderScheduler {
 	@Autowired
 	StockYearXueQiuCrawler stockYearCrawler;
 
-	@Autowired
-	StockMin30XueQiuCrawler stockMin30Crawler;
-
-	@Autowired
-	StockMin60XueQiuCrawler stockMin60Crawler;
-
-    @Autowired
-    StockService stockService;
-
-
 //	@Scheduled(cron="${day.all.spider.cron}")
 	public void run() {
 
@@ -66,8 +53,6 @@ public class DayAllSpiderScheduler {
 //				return;
 //			}
 			stockBaseCrawler.run();
-            stockService.deleteAllMin30s();
-			stockMin30Crawler.run(null, 24);
 			stockDayCrawler.run(null, 40);
 			stockWeekCrawler.run(null, 8);
 			stockMonthCrawler.run(null, 2);

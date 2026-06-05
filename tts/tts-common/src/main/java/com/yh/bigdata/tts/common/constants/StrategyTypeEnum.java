@@ -35,15 +35,6 @@ public enum StrategyTypeEnum {
     // 趋势上升策略
     CROSS_BAND_PRESSURE("cross_band_pressure", "突破波段: 关键阻力位", 9),
 
-    // 短线震荡策略
-    CROSS_BAND_STEP_HIGH_ZAOPAN("cross_band_step_high_zaopan", "波段之上: 突破波段step-high", 9),
-	CROSS_BAND_STEP_HIGH_REALTIME("cross_band_step_high_realtime", "波段之上: 突破波段step-high", 9),
-	CROSS_LAST_ZAOPAN_MIN30_HIGH("cross_last_zaopan_min30_high", "波段之上: 早盘震荡上移", 9),
-
-    // 新低翻红
-    NEW_BOTTOM_RED("new_bottom_red", "新低翻红", 9),
-
-
     ;
 
 	private final String code;

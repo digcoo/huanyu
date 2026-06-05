@@ -39,14 +39,12 @@ public class MyApplicationLoader {
         try {
             long start = System.currentTimeMillis();
             List<StockBase> stocks = stockService.findAllStocks();
-            List<StockMin30> stockMin30s = stockService.findAllStockMin30s(null);
             List<StockDay> stockDays = stockService.findAllStockDays(null);
             List<StockWeek> stockWeeks = stockService.findAllStockWeeks(null);
             List<StockMonth> stockMonths = stockService.findAllStockMonths(null);
             List<StockYear> stockYears = stockService.findAllStockYears(null);
             List<StockQuarter> stockQuarters = stockService.findAllStockQuarters(null);
 
-            RealtimeStockCache.min30Map = TradeConvertHelper.parseSortMapList(stockMin30s, PeriodTypeEnum.MIN30);
             RealtimeStockCache.dayMap = TradeConvertHelper.parseSortMapList(stockDays, PeriodTypeEnum.DAY);
             RealtimeStockCache.weekMap = TradeConvertHelper.parseSortMapList(stockWeeks, PeriodTypeEnum.WEEK);
             RealtimeStockCache.monthMap = TradeConvertHelper.parseSortMapList(stockMonths, PeriodTypeEnum.MONTH);
@@ -58,13 +56,6 @@ public class MyApplicationLoader {
             RealtimeStockCache.filterStockMap = filterStocks.stream().collect(Collectors.toMap(StockBase::getCode, p -> {
                 return p;
             }));
-
-            //预加载当日分时数据
-//			String nowTime = DateFormatUtils.format(Calendar.getInstance(), DateUtil.TIME_FORMAT_HH_MM);
-//			if (nowTime.compareTo("09:30") > 0
-//					&& nowTime.compareTo("15:00") < 0 && SinaHttpUtils.isTradeOfCurrentDay()) {
-//				new PreLoadMinSpider().run();
-//			}
 
             log.info("MyApplicationLoader strat cost = {}s", (System.currentTimeMillis() - start) / 1000);
 

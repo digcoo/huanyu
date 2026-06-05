@@ -14,8 +14,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum PeriodTypeEnum {
-//	MIN30("30m", "30m","30分钟", 0.015, 0.015,0.01, 0.01),
-	MIN30("30m", "30m","30分钟", 0.01, 0.025, 0.015, 0.02, 0.01),
 	DAY("day", "1d", "日", 0.02, 0.025,0.015, 0.02, 0.01),
 	WEEK("week", "1w", "周", 0.025, 0.05, 0.015, 0.02, 0.01),
 	MONTH("month", "1M", "月", 0.045, 0.08, 0.015, 0.02, 0.01),

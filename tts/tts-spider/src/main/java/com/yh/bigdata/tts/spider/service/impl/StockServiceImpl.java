@@ -9,16 +9,12 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.yh.bigdata.tts.common.dao.StockBaseMapper;
 import com.yh.bigdata.tts.common.dao.StockDayMapper;
-import com.yh.bigdata.tts.common.dao.StockMin30Mapper;
-import com.yh.bigdata.tts.common.dao.StockMin60Mapper;
 import com.yh.bigdata.tts.common.dao.StockMonthMapper;
 import com.yh.bigdata.tts.common.dao.StockQuarterMapper;
 import com.yh.bigdata.tts.common.dao.StockWeekMapper;
 import com.yh.bigdata.tts.common.dao.StockYearMapper;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockDay;
-import com.yh.bigdata.tts.common.model.StockMin30;
-import com.yh.bigdata.tts.common.model.StockMin60;
 import com.yh.bigdata.tts.common.model.StockMonth;
 import com.yh.bigdata.tts.common.model.StockQuarter;
 import com.yh.bigdata.tts.common.model.StockWeek;
@@ -49,12 +45,6 @@ public class StockServiceImpl implements StockService {
 
     @Autowired
     StockYearMapper stockYearMapper;
-
-    @Autowired
-    StockMin30Mapper stockMin30Mapper;
-
-    @Autowired
-    StockMin60Mapper stockMin60Mapper;
 
 	@Override
 	public Page<StockBase> findByPageQuery(StockPageQuery pageQuery) {
@@ -153,21 +143,6 @@ public class StockServiceImpl implements StockService {
 		return stockYearMapper.selectLatestYearList(null, nyears);
 	}
 
-    @Override
-    public void deleteAllMin30s() {
-        stockMin30Mapper.deleteAll();
-    }
-
-	@Override
-	public List<StockMin30> selectLatestMin30List(int nmin30s) {
-		return stockMin30Mapper.selectLatestMin30List(null, nmin30s);
-	}
-
-	@Override
-	public List<StockMin60> selectLatestMin60List(int nmin60s) {
-		return stockMin60Mapper.selectLatestMin60List(null, nmin60s);
-	}
-	
 	@Override
 	public List<StockBase> findAllStocks() {
 		return stockBaseMapper.selectAll();
@@ -219,19 +194,6 @@ public class StockServiceImpl implements StockService {
 	public StockBase findStockBaseByName(String name) {
 		return stockBaseMapper.selectByName(name);
 	}
-
-	@Override
-	public List<StockMin30> findAllStockMin30s(List<String> codes) {
-		return stockMin30Mapper.selectAll(codes);
-
-	}
-
-
-	@Override
-	public List<StockMin60> findAllStockMin60s(List<String> codes) {
-		return stockMin60Mapper.selectAll(codes);
-	}
-
 
 	@Override
 	public List<StockDay> findAllStockDays(List<String> codes) {

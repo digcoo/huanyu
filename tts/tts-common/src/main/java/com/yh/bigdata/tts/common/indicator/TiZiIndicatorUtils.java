@@ -233,8 +233,8 @@ public final class TiZiIndicatorUtils {
 //            System.out.println("梯子：" + tiZiPoint.getTrade().getDay());
 //        }
 
-        PeriodTypeEnum trendPeriodType = PeriodTypeEnum.DAY;
-        PeriodTypeEnum opPeriodType = PeriodTypeEnum.MIN30;
+        PeriodTypeEnum trendPeriodType = PeriodTypeEnum.WEEK;
+        PeriodTypeEnum opPeriodType = PeriodTypeEnum.DAY;
 
         List<Trade> trendTrades = XueQiuUtils.getXueQiuJson("sh603311", trendPeriodType.getCode());
         List<Trade> opTrades = XueQiuUtils.getXueQiuJson("sh603311", opPeriodType.getCode());

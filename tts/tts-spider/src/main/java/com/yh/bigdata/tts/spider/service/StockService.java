@@ -5,8 +5,6 @@ import java.util.List;
 import com.github.pagehelper.Page;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockDay;
-import com.yh.bigdata.tts.common.model.StockMin30;
-import com.yh.bigdata.tts.common.model.StockMin60;
 import com.yh.bigdata.tts.common.model.StockMonth;
 import com.yh.bigdata.tts.common.model.StockQuarter;
 import com.yh.bigdata.tts.common.model.StockWeek;
@@ -60,24 +58,16 @@ public interface StockService {
 
 	List<StockYear> findLatestYearList(int nyears);
 
-	List<StockMin30> selectLatestMin30List(int nmin30s);
-	
-	List<StockMin60> selectLatestMin60List(int nmin60s);
-
 	List<StockBase> findAllStocks();
 
 	StockBase findStockBase(String code);
 	
 	StockBase findStockBaseByName(String name);
 
-	List<StockMin30> findAllStockMin30s(List<String> codes);
-	List<StockMin60> findAllStockMin60s(List<String> codes);
 	List<StockDay> findAllStockDays(List<String> codes);
 	List<StockWeek> findAllStockWeeks(List<String> codes);
 	List<StockMonth> findAllStockMonths(List<String> codes);
 	List<StockYear> findAllStockYears(List<String> codes);
 	List<StockQuarter> findAllStockQuarters(List<String> codes);
-
-    void deleteAllMin30s();
 
 }

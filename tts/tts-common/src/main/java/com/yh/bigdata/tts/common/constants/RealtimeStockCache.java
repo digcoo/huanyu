@@ -19,8 +19,6 @@ public class RealtimeStockCache {
 
 //	public static List<StockBase> filterStocks = null;
 	public static Map<String, StockBase> filterStockMap = Maps.newConcurrentMap();
-	public static Map<String, List> min30Map = Maps.newConcurrentMap();
-	public static Map<String, List> min60Map = Maps.newConcurrentMap();
 	public static Map<String, List> dayMap = Maps.newConcurrentMap();
 	public static Map<String, List> weekMap = Maps.newConcurrentMap();
 	public static Map<String, List> monthMap = Maps.newConcurrentMap();
@@ -53,9 +51,6 @@ public class RealtimeStockCache {
 			break;
 		case DAY:
 			trades = RealtimeStockCache.dayMap.get(code);
-			break;
-		case MIN30:
-			trades = RealtimeStockCache.min30Map.get(code);
 			break;
 		default:
 			break;
@@ -114,6 +109,6 @@ public class RealtimeStockCache {
 	}
 
     public static long getCurrentWindow() {
-        return System.currentTimeMillis() / (30 * 60 * 1000);
+        return System.currentTimeMillis() / (60 * 60 * 1000);
     }
 }

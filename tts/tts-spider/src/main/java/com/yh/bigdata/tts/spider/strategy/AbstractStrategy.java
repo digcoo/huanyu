@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.spider.response.CheckResult;
-import com.yh.bigdata.tts.spider.strategy.group.min30.SignalMin30ToolsWrapper;
 import com.yh.bigdata.tts.spider.strategy.tools.*;
 
 import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
@@ -110,14 +109,7 @@ public abstract class AbstractStrategy {
         return true;
     }
     public boolean checkSignal(StockBase stockBase, List<PeriodTypeEnum> trendPeriodTypes, PeriodTypeEnum opPeriodType, CheckResult checkResult, QueryContextParam queryContextParam) {
-        return checkSubSignal(stockBase, trendPeriodTypes, opPeriodType, checkResult, queryContextParam)
-//                && TrendToolsWrapper.checkNoPressureTrend(stockBase, List.of(PeriodTypeEnum.DAY), checkResult, false)
-//                && TrendToolsWrapper.checkMA5OverMA20Trend(stockBase, List.of(PeriodTypeEnum.DAY), checkResult)
-//                && TrendToolsWrapper.checkRedTrend(stockBase, List.of(PeriodTypeEnum.DAY), checkResult)
-
-                && SignalMin30ToolsWrapper.checkCrossZaoPanMin30HighSignal(stockBase, trendPeriodTypes, checkResult)
-
-                ;
+        return checkSubSignal(stockBase, trendPeriodTypes, opPeriodType, checkResult, queryContextParam);
     }
 
 
