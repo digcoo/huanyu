@@ -2,6 +2,7 @@ const {
   loadHistory,
   enrichRecord,
   attachChartKlines,
+  attachChartKlinesAsync,
   computeSummary,
   filterRecords
 } = require('../../utils/history');
@@ -62,22 +63,33 @@ Page({
   refreshList() {
     const app = getApp();
     const period = this.data.activePeriod;
-    const raw = attachChartKlines(loadHistory().map(enrichRecord), period);
-    const summary = computeSummary(raw);
     const activeFilter = this.data.activeFilter;
-    const filtered = filterRecords(raw, activeFilter);
-    const isEmpty = raw.length === 0;
-    const navHeight = this.data.statusBarHeight + 56;
-    const contentTop = navHeight + (isEmpty ? 0 : 52);
+    const enriched = loadHistory().map(enrichRecord);
+    const self = this;
 
-    this.setData({
-      summary: summary,
-      items: filtered,
-      isEmpty: isEmpty,
-      filterEmpty: raw.length > 0 && filtered.length === 0,
-      watchlistCount: app.globalData.watchlist.length,
-      contentTop: contentTop
-    });
+    function renderList(raw) {
+      const summary = computeSummary(raw);
+      const filtered = filterRecords(raw, activeFilter);
+      const isEmpty = raw.length === 0;
+      const navHeight = self.data.statusBarHeight + 56;
+      const contentTop = navHeight + (isEmpty ? 0 : 52);
+
+      self.setData({
+        summary: summary,
+        items: filtered,
+        isEmpty: isEmpty,
+        filterEmpty: raw.length > 0 && filtered.length === 0,
+        watchlistCount: app.globalData.watchlist.length,
+        contentTop: contentTop
+      });
+    }
+
+    if (config.useMock) {
+      renderList(attachChartKlines(enriched, period));
+      return;
+    }
+
+    attachChartKlinesAsync(enriched, period).then(renderList);
   },
 
   onPeriodChange(e) {

@@ -3,6 +3,7 @@
  */
 
 const { buildStrategyRecommendations } = require('./mock');
+const adapter = require('./adapter');
 
 const STAGE_MAP = {
   expansion: { id: 'expansion', label: '快速扩张', desc: '营收高增长，资本开支加大，现金流紧但结构健康', color: '#0ecb81' },
@@ -605,8 +606,6 @@ function buildDetailFromStock(base, overrides) {
     keyMetrics: overrides.keyMetrics || buildKeyMetrics(base, seed, radar)
   });
 }
-
-const adapter = require('./adapter');
 
 module.exports = {
   getDetailById: getDetailById,

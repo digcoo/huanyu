@@ -23,6 +23,7 @@ function loadDetail(id, period) {
     var compassRes = results[2];
 
     if (!detailRes.ok || !detailRes.data) {
+      if (config.fallbackOnError) return detailMock.getDetailById(id);
       return null;
     }
 
@@ -53,6 +54,9 @@ function loadDetail(id, period) {
       compass: compass,
       keyMetrics: d.keyMetrics
     });
+  }).catch(function () {
+    if (config.fallbackOnError) return detailMock.getDetailById(id);
+    return null;
   });
 }
 

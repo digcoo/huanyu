@@ -1,4 +1,7 @@
 const { buildStrategyRecommendations } = require('./mock');
+const config = require('./config');
+const stockApi = require('./stock-api');
+const adapter = require('./adapter');
 
 function findBaseItem(id) {
   const all = buildStrategyRecommendations();
@@ -37,6 +40,33 @@ function rehydrateItem(item) {
   return Object.assign({}, base, item, { klines: base.klines });
 }
 
+function rehydrateItemAsync(item, period) {
+  period = period || 'week';
+  if (!item || !item.id) return Promise.resolve(item);
+  if (config.useMock) {
+    return Promise.resolve(rehydrateItem(item));
+  }
+  if (item.klines && item.klines[period]) {
+    return Promise.resolve(item);
+  }
+  return stockApi.fetchKlines(item.code, period).then(function (bars) {
+    var klines = adapter.barsToKlines(bars);
+    var merged = Object.assign({}, item, {
+      klines: Object.assign({}, item.klines || {})
+    });
+    merged.klines[period] = klines;
+    return merged;
+  }).catch(function () {
+    return rehydrateItem(item);
+  });
+}
+
+function rehydrateListAsync(list, period) {
+  return Promise.all((list || []).map(function (item) {
+    return rehydrateItemAsync(item, period);
+  }));
+}
+
 function loadWatchlist() {
   try {
     const stored = wx.getStorageSync('watchlist');
@@ -58,9 +88,11 @@ function saveWatchlist(list) {
 }
 
 module.exports = {
-  findBaseItem,
-  toStoredItem,
-  rehydrateItem,
-  loadWatchlist,
-  saveWatchlist
+  findBaseItem: findBaseItem,
+  toStoredItem: toStoredItem,
+  rehydrateItem: rehydrateItem,
+  rehydrateItemAsync: rehydrateItemAsync,
+  rehydrateListAsync: rehydrateListAsync,
+  loadWatchlist: loadWatchlist,
+  saveWatchlist: saveWatchlist
 };

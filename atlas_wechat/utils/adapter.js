@@ -67,6 +67,7 @@ function mapSearchItem(item, strategy) {
   var code = normalizeCode(item.code);
   return {
     id: makeStockId(strategy, item.market || 'cn', code),
+    strategy: strategy,
     code: code,
     name: item.name,
     market: item.market || 'cn',

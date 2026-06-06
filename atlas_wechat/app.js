@@ -63,9 +63,11 @@ App({
     const item = this.globalData.watchlist.find(function (w) { return w.id === id; });
     if (!item) return false;
 
-    const { archiveRecord } = require('./utils/history');
-    archiveRecord(item, removeReason || 'manual');
-    this.globalData.history = require('./utils/history').loadHistory();
+    const self = this;
+    const { archiveRecordAsync } = require('./utils/history');
+    archiveRecordAsync(item, removeReason || 'manual').then(function () {
+      self.globalData.history = require('./utils/history').loadHistory();
+    });
 
     this.globalData.watchlist = this.globalData.watchlist.filter(function (w) { return w.id !== id; });
     const { saveWatchlist } = require('./utils/watchlist');

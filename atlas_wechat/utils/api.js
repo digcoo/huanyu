@@ -44,15 +44,15 @@ function request(options) {
 }
 
 function get(path, data, header) {
-  return request({ path: path, method: 'GET', data: data, header: header });
+  return request({ path: path, method: 'GET', data: data, header: withAuth(header) });
 }
 
 function post(path, data, header) {
-  return request({ path: path, method: 'POST', data: data, header: header });
+  return request({ path: path, method: 'POST', data: data, header: withAuth(header) });
 }
 
 function del(path, data, header) {
-  return request({ path: path, method: 'DELETE', data: data, header: header });
+  return request({ path: path, method: 'DELETE', data: data, header: withAuth(header) });
 }
 
 function withAuth(header) {

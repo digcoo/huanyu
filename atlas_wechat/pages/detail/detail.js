@@ -1,5 +1,5 @@
-const detailMock = require('../../utils/detail-mock');
-const getDetailById = detailMock.getDetailById;
+const detailApi = require('../../utils/detail-api');
+const config = require('../../utils/config');
 const auth = require('../../utils/auth');
 
 function mapChartKlines(detail, period) {
@@ -29,24 +29,29 @@ Page({
     const savedPeriod = wx.getStorageSync('activePeriod') || 'week';
     const klineFlipped = !!wx.getStorageSync('klineFlipped');
     const id = options.id || '';
+    const self = this;
 
     this.setData({
       statusBarHeight: sys.statusBarHeight || 20,
       activePeriod: savedPeriod,
-      klineFlipped
+      klineFlipped,
+      loading: true,
+      notFound: false
     });
 
-    const detail = getDetailById(id);
-    if (!detail) {
-      this.setData({ loading: false, notFound: true });
-      return;
-    }
-
-    this.setData({
-      detail,
-      chartKlines: mapChartKlines(detail, savedPeriod),
-      loading: false,
-      notFound: false
+    detailApi.loadDetail(id, savedPeriod).then(function (detail) {
+      if (!detail) {
+        self.setData({ loading: false, notFound: true });
+        return;
+      }
+      self.setData({
+        detail: detail,
+        chartKlines: mapChartKlines(detail, savedPeriod),
+        loading: false,
+        notFound: false
+      });
+    }).catch(function () {
+      self.setData({ loading: false, notFound: true });
     });
   },
 
@@ -64,9 +69,25 @@ Page({
   onPeriodChange(e) {
     const period = e.detail.period;
     wx.setStorageSync('activePeriod', period);
-    this.setData({
-      activePeriod: period,
-      chartKlines: mapChartKlines(this.data.detail, period)
+    const detail = this.data.detail;
+    if (!detail) return;
+
+    if (config.useMock || (detail.klines && detail.klines[period])) {
+      this.setData({
+        activePeriod: period,
+        chartKlines: mapChartKlines(detail, period)
+      });
+      return;
+    }
+
+    const self = this;
+    detailApi.loadKlinesForPeriod(detail.id, period).then(function (klines) {
+      detail.klines[period] = klines;
+      self.setData({
+        activePeriod: period,
+        detail: detail,
+        chartKlines: klines.slice()
+      });
     });
   },
 

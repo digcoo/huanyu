@@ -3,7 +3,8 @@
  * Phase 0：useMock=true 保持可独立预览；联调 backend 时改为 false
  */
 module.exports = {
-  useMock: true,
+  useMock: false,
+  fallbackOnError: true,
   baseUrl: 'http://127.0.0.1:9010/tts',
   apiTimeout: 15000,
 

@@ -1,7 +1,8 @@
 const { MARKETS, STRATEGIES } = require('../../utils/mock');
-const { findStockById } = require('../../utils/search');
+const { findStockByIdAsync } = require('../../utils/search');
 const auth = require('../../utils/auth');
 const config = require('../../utils/config');
+const { rehydrateListAsync } = require('../../utils/watchlist');
 
 function mapChartKlines(list, period) {
   return list.map(function (item) {
@@ -120,35 +121,46 @@ Page({
     const period = wx.getStorageSync('activePeriod') || this.data.activePeriod;
     const klineFlipped = !!wx.getStorageSync('klineFlipped');
     const raw = app.getWatchlist();
-    const marketTabs = buildMarketTabs(raw);
-    let activeMarket = this.data.activeMarket;
+    const self = this;
 
-    if (activeMarket !== 'all' && !marketTabs.some(function (t) { return t.id === activeMarket; })) {
-      activeMarket = 'all';
+    function renderList(hydrated) {
+      const marketTabs = buildMarketTabs(hydrated);
+      let activeMarket = self.data.activeMarket;
+
+      if (activeMarket !== 'all' && !marketTabs.some(function (t) { return t.id === activeMarket; })) {
+        activeMarket = 'all';
+      }
+
+      const mapped = mapChartKlines(hydrated, period);
+      const enriched = enrichItems(mapped);
+      const filtered = activeMarket === 'all'
+        ? enriched
+        : enriched.filter(function (item) { return item.market === activeMarket; });
+
+      const isEmpty = hydrated.length === 0;
+
+      self.setData({
+        activePeriod: period,
+        klineFlipped: klineFlipped,
+        marketTabs: marketTabs,
+        activeMarket: activeMarket,
+        items: filtered,
+        totalCount: hydrated.length,
+        watchlistCount: hydrated.length,
+        isEmpty: isEmpty,
+        filterEmpty: hydrated.length > 0 && filtered.length === 0,
+        watchlistIds: hydrated.map(function (item) { return item.id; })
+      }, function () {
+        self.measureNavHeight();
+      });
     }
 
-    const mapped = mapChartKlines(raw, period);
-    const enriched = enrichItems(mapped);
-    const filtered = activeMarket === 'all'
-      ? enriched
-      : enriched.filter(function (item) { return item.market === activeMarket; });
+    if (config.useMock) {
+      renderList(raw);
+      return;
+    }
 
-    const isEmpty = raw.length === 0;
-
-    this.setData({
-      activePeriod: period,
-      klineFlipped,
-      marketTabs,
-      activeMarket,
-      items: filtered,
-      totalCount: raw.length,
-      watchlistCount: raw.length,
-      isEmpty: isEmpty,
-      filterEmpty: raw.length > 0 && filtered.length === 0,
-      watchlistIds: raw.map(function (item) { return item.id; })
-    }, function () {
-      this.measureNavHeight();
-    }.bind(this));
+    rehydrateListAsync(raw, period).then(renderList);
   },
 
   onPeriodChange(e) {
@@ -234,29 +246,29 @@ Page({
   onSearchAddWatchlist(e) {
     const item = e.detail && e.detail.item;
     if (!item || !item.id) return;
-    const full = findStockById(item.id);
-    if (!full) return;
     const app = getApp();
     const self = this;
-    app.addToWatchlist(full).then(function (result) {
-      if (result && result.needLogin) {
-        auth.promptLogin().then(function () {
-          return app.addToWatchlist(full);
-        }).then(function (r2) {
-          if (r2 && r2.added) {
-            wx.showToast({ title: '已加入自选', icon: 'success' });
-            self.refreshList();
-          }
-        }).catch(function () {});
-        return;
-      }
-      if (result && result.added) {
-        wx.showToast({ title: '已加入自选', icon: 'success' });
-        self.refreshList();
-      } else {
-        wx.showToast({ title: '已在自选', icon: 'none' });
-      }
-    });
+    findStockByIdAsync(item.id).then(function (full) {
+      if (!full) return;
+      return app.addToWatchlist(full).then(function (result) {
+        if (result && result.needLogin) {
+          return auth.promptLogin().then(function () {
+            return app.addToWatchlist(full);
+          }).then(function (r2) {
+            if (r2 && r2.added) {
+              wx.showToast({ title: '已加入自选', icon: 'success' });
+              self.refreshList();
+            }
+          });
+        }
+        if (result && result.added) {
+          wx.showToast({ title: '已加入自选', icon: 'success' });
+          self.refreshList();
+        } else {
+          wx.showToast({ title: '已在自选', icon: 'none' });
+        }
+      });
+    }).catch(function () {});
   },
 
   onTapLogin() {

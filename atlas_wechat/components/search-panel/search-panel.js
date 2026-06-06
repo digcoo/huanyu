@@ -1,4 +1,4 @@
-const { searchStocks } = require('../../utils/search');
+const { searchStocksAsync } = require('../../utils/search');
 
 const HISTORY_KEY = 'searchHistory';
 const MAX_HISTORY = 6;
@@ -23,7 +23,14 @@ Component({
     keyword: '',
     results: [],
     history: [],
-    searched: false
+    searched: false,
+    searching: false
+  },
+
+  lifetimes: {
+    detached: function () {
+      if (this._searchTimer) clearTimeout(this._searchTimer);
+    }
   },
 
   observers: {
@@ -33,6 +40,7 @@ Component({
           keyword: '',
           results: [],
           searched: false,
+          searching: false,
           history: wx.getStorageSync(HISTORY_KEY) || []
         });
       }
@@ -40,7 +48,7 @@ Component({
     watchlistIds: function () {
       if (this.data.keyword) {
         this.setData({
-          results: this.decorateResults(searchStocks(this.data.keyword))
+          results: this.decorateResults(this.data.results)
         });
       }
     }
@@ -57,24 +65,43 @@ Component({
       this.triggerEvent('close');
     },
 
-    onInput: function (e) {
-      const keyword = e.detail.value || '';
-      const results = keyword.trim()
-        ? this.decorateResults(searchStocks(keyword))
-        : [];
+    runSearch: function (keyword) {
+      const self = this;
+      const q = (keyword || '').trim();
+      if (!q) {
+        this.setData({ keyword: '', results: [], searched: false, searching: false });
+        return;
+      }
 
-      this.setData({
-        keyword: keyword,
-        results: results,
-        searched: !!keyword.trim()
+      this.setData({ searching: true });
+      searchStocksAsync(q).then(function (list) {
+        self.setData({
+          keyword: keyword,
+          results: self.decorateResults(list),
+          searched: true,
+          searching: false
+        });
+      }).catch(function () {
+        self.setData({ searching: false });
       });
     },
 
+    onInput: function (e) {
+      const keyword = e.detail.value || '';
+      if (this._searchTimer) clearTimeout(this._searchTimer);
+      const self = this;
+      this._searchTimer = setTimeout(function () {
+        self.runSearch(keyword);
+      }, 300);
+    },
+
     onClear: function () {
+      if (this._searchTimer) clearTimeout(this._searchTimer);
       this.setData({
         keyword: '',
         results: [],
-        searched: false
+        searched: false,
+        searching: false
       });
     },
 
@@ -84,7 +111,7 @@ Component({
         watchSet[id] = true;
       });
 
-      return list.map(function (item) {
+      return (list || []).map(function (item) {
         return Object.assign({}, item, {
           inWatchlist: !!watchSet[item.id],
           changeText: (item.changePct >= 0 ? '+' : '') + item.changePct + '%',
@@ -107,12 +134,7 @@ Component({
 
     onHistoryTap: function (e) {
       const keyword = e.currentTarget.dataset.keyword || '';
-      const results = this.decorateResults(searchStocks(keyword));
-      this.setData({
-        keyword: keyword,
-        results: results,
-        searched: true
-      });
+      this.runSearch(keyword);
     },
 
     onClearHistory: function () {

@@ -3,10 +3,11 @@ const {
   STRATEGIES,
   buildStrategyRecommendations
 } = require('../../utils/mock');
-const { findStockById } = require('../../utils/search');
+const { findStockByIdAsync } = require('../../utils/search');
 const { buildMarketsForUI } = require('../../utils/markets');
 const config = require('../../utils/config');
 const auth = require('../../utils/auth');
+const stockApi = require('../../utils/stock-api');
 
 const app = getApp();
 
@@ -40,7 +41,8 @@ Page({
     activePeriod: 'week',
     klineFlipped: false,
     searchVisible: false,
-    watchlistIds: []
+    watchlistIds: [],
+    loading: false
   },
 
   onLoad() {
@@ -63,7 +65,11 @@ Page({
     });
 
     this._allRecommendations = buildStrategyRecommendations();
-    this.loadMarket('cn');
+    if (config.useMock) {
+      this.loadMarket('cn');
+    } else {
+      this.loadMarketFromApi('cn');
+    }
   },
 
   onReady() {
@@ -103,12 +109,63 @@ Page({
       activeMarket: marketId,
       indices,
       recommendations: mapChartKlines(this._baseList, period),
-      totalCount: all.length
+      totalCount: all.length,
+      loading: false
+    });
+  },
+
+  loadMarketFromApi(marketId) {
+    if (marketId !== 'cn') {
+      this.setData({
+        activeMarket: marketId,
+        indices: MARKET_INDICES[marketId] || [],
+        recommendations: [],
+        totalCount: 0,
+        loading: false
+      });
+      return;
+    }
+
+    const self = this;
+    const strategyId = this.data.activeStrategy;
+    const period = this.data.activePeriod;
+    const ignored = app.globalData.ignoredIds;
+
+    this.setData({ loading: true });
+
+    stockApi.fetchRecommendations(strategyId).then(function (items) {
+      self._baseList = (items || []).filter(function (item) {
+        return !ignored.includes(item.id);
+      });
+      return stockApi.attachKlinesToItems(self._baseList, period);
+    }).then(function (withKlines) {
+      self._baseList = withKlines;
+      self.setData({
+        activeMarket: marketId,
+        indices: MARKET_INDICES[marketId] || [],
+        recommendations: mapChartKlines(withKlines, period),
+        totalCount: withKlines.length,
+        loading: false
+      });
+    }).catch(function () {
+      if (config.fallbackOnError) {
+        self._allRecommendations = buildStrategyRecommendations();
+        self.loadMarket(marketId);
+        wx.showToast({ title: '已使用离线数据', icon: 'none' });
+        return;
+      }
+      self.setData({ loading: false, recommendations: [], totalCount: 0 });
+      wx.showToast({ title: '加载失败', icon: 'none' });
     });
   },
 
   onMarketChange(e) {
-    this.loadMarket(e.detail.marketId);
+    const marketId = e.detail.marketId;
+    if (config.useMock) {
+      this.loadMarket(marketId);
+    } else {
+      this.loadMarketFromApi(marketId);
+    }
   },
 
   onMarketDisabled() {
@@ -126,15 +183,30 @@ Page({
       activeStrategy: strategyId,
       activeStrategyMeta: findStrategyMeta(strategyId)
     });
-    this.loadMarket(this.data.activeMarket);
+    if (config.useMock) {
+      this.loadMarket(this.data.activeMarket);
+    } else {
+      this.loadMarketFromApi(this.data.activeMarket);
+    }
   },
 
   onPeriodChange(e) {
     const period = e.detail.period;
     wx.setStorageSync('activePeriod', period);
-    this.setData({
-      activePeriod: period,
-      recommendations: mapChartKlines(this._baseList || [], period)
+    if (config.useMock) {
+      this.setData({
+        activePeriod: period,
+        recommendations: mapChartKlines(this._baseList || [], period)
+      });
+      return;
+    }
+    const self = this;
+    stockApi.attachKlinesToItems(this._baseList || [], period).then(function (list) {
+      self._baseList = list;
+      self.setData({
+        activePeriod: period,
+        recommendations: mapChartKlines(list, period)
+      });
     });
   },
 
@@ -214,23 +286,23 @@ Page({
   onSearchAddWatchlist(e) {
     const item = e.detail && e.detail.item;
     if (!item || !item.id) return;
-    const full = findStockById(item.id);
-    if (!full) return;
     const self = this;
-    app.addToWatchlist(full).then(function (result) {
-      if (result && result.needLogin) {
-        auth.promptLogin().then(function () {
-          return app.addToWatchlist(full);
-        }).then(function (r2) {
-          if (r2 && r2.added) self._afterSearchWatchlistAdd();
-        }).catch(function () {});
-        return;
-      }
-      if (result && result.added) self._afterSearchWatchlistAdd();
-      else if (result && result.duplicate) {
-        wx.showToast({ title: '已在自选', icon: 'none' });
-      }
-    });
+    findStockByIdAsync(item.id).then(function (full) {
+      if (!full) return;
+      return app.addToWatchlist(full).then(function (result) {
+        if (result && result.needLogin) {
+          return auth.promptLogin().then(function () {
+            return app.addToWatchlist(full);
+          }).then(function (r2) {
+            if (r2 && r2.added) self._afterSearchWatchlistAdd();
+          });
+        }
+        if (result && result.added) self._afterSearchWatchlistAdd();
+        else if (result && result.duplicate) {
+          wx.showToast({ title: '已在自选', icon: 'none' });
+        }
+      });
+    }).catch(function () {});
   },
 
   _afterSearchWatchlistAdd() {

@@ -1,4 +1,7 @@
 const { buildStrategyRecommendations, MARKETS } = require('./mock');
+const config = require('./config');
+const stockApi = require('./stock-api');
+const adapter = require('./adapter');
 
 function findMarketLabel(marketId) {
   const meta = MARKETS.find(function (m) { return m.id === marketId; });
@@ -63,8 +66,38 @@ function searchStocks(keyword, limit) {
   }).slice(0, limit || 20);
 }
 
+function searchStocksAsync(keyword, limit) {
+  if (config.useMock) {
+    return Promise.resolve(searchStocks(keyword, limit));
+  }
+  return stockApi.search(keyword, limit).catch(function () {
+    if (config.fallbackOnError) return searchStocks(keyword, limit);
+    return [];
+  });
+}
+
+function findStockByIdAsync(id) {
+  if (!id) return Promise.resolve(null);
+  if (config.useMock) {
+    return Promise.resolve(findStockById(id));
+  }
+
+  var code = adapter.extractCode(id);
+  var strategy = adapter.extractStrategy(id);
+  return stockApi.fetchSummary(code).then(function (item) {
+    if (!item) {
+      return config.fallbackOnError ? findStockById(id) : null;
+    }
+    return Object.assign({}, item, { id: id, strategy: strategy });
+  }).catch(function () {
+    return config.fallbackOnError ? findStockById(id) : null;
+  });
+}
+
 module.exports = {
-  buildCatalog,
-  findStockById,
-  searchStocks
+  buildCatalog: buildCatalog,
+  findStockById: findStockById,
+  findStockByIdAsync: findStockByIdAsync,
+  searchStocks: searchStocks,
+  searchStocksAsync: searchStocksAsync
 };

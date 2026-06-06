@@ -1,5 +1,7 @@
 const { MARKETS, STRATEGIES } = require('./mock');
-const { findStockById } = require('./search');
+const config = require('./config');
+const stockApi = require('./stock-api');
+const adapter = require('./adapter');
 
 const STORAGE_KEY = 'watchHistory';
 const MAX_RECORDS = 200;
@@ -93,6 +95,23 @@ function attachChartKlines(records, period) {
   });
 }
 
+function attachChartKlinesAsync(records, period) {
+  if (config.useMock) {
+    return Promise.resolve(attachChartKlines(records, period));
+  }
+  return Promise.all((records || []).map(function (record) {
+    var code = adapter.extractCode(record.id || record.code);
+    return stockApi.fetchKlines(code, period).then(function (bars) {
+      return Object.assign({}, record, {
+        chartKlines: adapter.barsToKlines(bars),
+        resonance: record.resonance || 'medium'
+      });
+    }).catch(function () {
+      return Object.assign({}, record, { chartKlines: [], resonance: record.resonance || 'medium' });
+    });
+  }));
+}
+
 function loadHistory() {
   try {
     const stored = wx.getStorageSync(STORAGE_KEY);
@@ -116,6 +135,7 @@ function saveHistory(list) {
 function archiveRecord(item, removeReason) {
   if (!item || !item.id) return null;
 
+  const { findStockById } = require('./search');
   const latest = findStockById(item.id);
   const exitPrice = latest && latest.price != null ? latest.price : item.price;
   const record = buildRecord(item, exitPrice, removeReason);
@@ -126,6 +146,33 @@ function archiveRecord(item, removeReason) {
   }
   saveHistory(list);
   return record;
+}
+
+function archiveRecordAsync(item, removeReason) {
+  if (!item || !item.id) return Promise.resolve(null);
+
+  function saveWithExit(exitPrice) {
+    const record = buildRecord(item, exitPrice, removeReason);
+    let list = loadHistory();
+    list.unshift(record);
+    if (list.length > MAX_RECORDS) {
+      list = list.slice(0, MAX_RECORDS);
+    }
+    saveHistory(list);
+    return record;
+  }
+
+  if (config.useMock) {
+    return Promise.resolve(archiveRecord(item, removeReason));
+  }
+
+  var code = adapter.extractCode(item.id || item.code);
+  return stockApi.fetchSummary(code).then(function (summary) {
+    var exitPrice = summary && summary.price != null ? summary.price : item.price;
+    return saveWithExit(exitPrice);
+  }).catch(function () {
+    return saveWithExit(item.price);
+  });
 }
 
 function computeSummary(records) {
@@ -179,8 +226,10 @@ module.exports = {
   loadHistory,
   saveHistory,
   archiveRecord,
+  archiveRecordAsync,
   enrichRecord,
   attachChartKlines,
+  attachChartKlinesAsync,
   computeSummary,
   filterRecords
 };
