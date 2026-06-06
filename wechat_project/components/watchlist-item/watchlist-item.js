@@ -11,6 +11,18 @@ Component({
     flipped: {
       type: Boolean,
       value: false
+    },
+    marketLabel: {
+      type: String,
+      value: ''
+    },
+    strategyLabel: {
+      type: String,
+      value: ''
+    },
+    addedLabel: {
+      type: String,
+      value: ''
     }
   },
 
@@ -43,11 +55,9 @@ Component({
 
       if (this._locked !== 'h') return;
 
-      const maxOffset = 120;
-      const clamped = Math.max(-maxOffset, Math.min(maxOffset, dx));
-      let hint = '';
-      if (clamped > 40) hint = 'watchlist';
-      else if (clamped < -40) hint = 'ignore';
+      const maxOffset = 100;
+      const clamped = Math.max(-maxOffset, Math.min(0, dx));
+      const hint = clamped < -40 ? 'remove' : '';
 
       this.setData({ offsetX: clamped, actionHint: hint });
     },
@@ -60,14 +70,10 @@ Component({
       const { offsetX, actionHint } = this.data;
       const item = this._getItem();
 
-      if (actionHint === 'watchlist' && offsetX > 60) {
-        this.triggerEvent('watchlist', { item });
+      if (actionHint === 'remove' && offsetX < -60) {
+        this.triggerEvent('remove', { item });
         wx.vibrateShort({ type: 'light' });
-        wx.showToast({ title: '已加入自选', icon: 'success', duration: 1200 });
-      } else if (actionHint === 'ignore' && offsetX < -60) {
-        this.triggerEvent('ignore', { item });
-        wx.vibrateShort({ type: 'light' });
-        wx.showToast({ title: '已忽略', icon: 'none', duration: 1200 });
+        wx.showToast({ title: '已移出', icon: 'none', duration: 1000 });
       }
 
       this.setData({ offsetX: 0, swiping: false, actionHint: '' });
@@ -77,7 +83,13 @@ Component({
       if (Math.abs(this.data.offsetX) > 10) return;
       const item = this._getItem();
       if (!item.id) return;
-      this.triggerEvent('cardtap', { item });
+      this.triggerEvent('itemtap', { item });
+    },
+
+    onRemoveTap() {
+      const item = this._getItem();
+      if (!item.id) return;
+      this.triggerEvent('removeconfirm', { item });
     }
   }
 });

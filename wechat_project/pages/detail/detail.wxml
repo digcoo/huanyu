@@ -1,7 +1,6 @@
 <wxs src="../../utils/chart.wxs" module="c" />
 
 <view class="page">
-  <!-- 固定导航 -->
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
     <view class="nav-content">
       <view class="back-btn" bindtap="onBack">←</view>
@@ -17,16 +16,14 @@
     </view>
   </view>
 
-  <!-- 未找到 -->
   <view wx:if="{{notFound}}" class="not-found" style="padding-top: {{statusBarHeight + 88}}px">
     <text class="not-found-icon">◈</text>
     <text class="not-found-title">未找到该标的</text>
     <text class="not-found-desc">请从首页策略推荐进入</text>
   </view>
 
-  <!-- 详情内容 -->
   <block wx:if="{{detail}}">
-    <!-- 头部：价格 + 标签 + 摘要 -->
+    <!-- 价格条 -->
     <view class="detail-header" style="padding-top: {{statusBarHeight + 56}}px">
       <view class="price-row">
         <view class="price-main">
@@ -42,40 +39,18 @@
           </view>
         </view>
       </view>
-
-      <view class="tags">
-        <text wx:for="{{detail.tags}}" wx:key="*this" class="tag">{{item}}</text>
-      </view>
-
-      <view class="summary-box">
-        <text class="summary-text">{{detail.summary}}</text>
-      </view>
     </view>
 
-    <!-- K 线区 -->
-    <view class="kline-section">
-      <view class="period-sticky" style="top: {{statusBarHeight + 44}}px">
-        <period-switcher
-          activePeriod="{{activePeriod}}"
-          flipped="{{klineFlipped}}"
-          bind:change="onPeriodChange"
-          bind:flip="onFlipKline"
-        />
+    <!-- ① 企业速览 -->
+    <view class="section section-tight">
+      <view class="section-head">
+        <text class="section-title">企业速览</text>
+        <text class="section-sub">60 秒读懂业务 · 地位 · 优劣势</text>
       </view>
-      <view class="kline-panel">
-        <mini-kline
-          wx:if="{{chartKlines.length}}"
-          klines="{{chartKlines}}"
-          label="{{c.periodLabel(activePeriod)}} · 50根"
-          size="card"
-          maxBars="{{c.maxBars(activePeriod)}}"
-          flipped="{{klineFlipped}}"
-          resonance="{{detail.resonance}}"
-        />
-      </view>
+      <enterprise-brief profile="{{detail.profile}}" />
     </view>
 
-    <!-- 企业阶段 + 健康度 -->
+    <!-- ② 企业画像 -->
     <view class="section">
       <view class="section-head">
         <text class="section-title">企业画像</text>
@@ -87,6 +62,17 @@
           {{detail.stage.label}}
         </view>
         <text class="stage-desc">{{detail.stage.desc}}</text>
+        <text wx:if="{{detail.stageHint}}" class="stage-hint">{{detail.stageHint}}</text>
+      </view>
+
+      <view class="portrait-grid">
+        <view wx:for="{{detail.portraitDimensions}}" wx:key="key" class="portrait-item">
+          <view class="portrait-head">
+            <text class="portrait-label">{{item.label}}</text>
+            <text class="portrait-score">{{item.score}}</text>
+          </view>
+          <text class="portrait-text">{{item.text}}</text>
+        </view>
       </view>
 
       <view class="health-card">
@@ -124,7 +110,30 @@
       </view>
     </view>
 
-    <!-- 行业对标雷达 -->
+    <!-- ③ K 线 -->
+    <view class="kline-section">
+      <view class="period-sticky" style="top: {{statusBarHeight + 44}}px">
+        <period-switcher
+          activePeriod="{{activePeriod}}"
+          flipped="{{klineFlipped}}"
+          bind:change="onPeriodChange"
+          bind:flip="onFlipKline"
+        />
+      </view>
+      <view class="kline-panel">
+        <mini-kline
+          wx:if="{{chartKlines.length}}"
+          klines="{{chartKlines}}"
+          label="{{c.periodLabel(activePeriod)}} · 50根"
+          size="card"
+          maxBars="{{c.maxBars(activePeriod)}}"
+          flipped="{{klineFlipped}}"
+          resonance="{{detail.resonance}}"
+        />
+      </view>
+    </view>
+
+    <!-- ④ 行业对标 -->
     <view class="section">
       <view class="section-head">
         <text class="section-title">行业对标</text>
@@ -135,11 +144,11 @@
       </view>
     </view>
 
-    <!-- 四维罗盘 -->
+    <!-- ⑤ 四维罗盘（默认折叠） -->
     <view class="section">
       <view class="section-head">
         <text class="section-title">四维罗盘</text>
-        <text class="section-sub">近8年财务趋势 · 点击折叠</text>
+        <text class="section-sub">近8年年度数据 · 点击展开</text>
       </view>
 
       <detail-module
@@ -168,16 +177,31 @@
       />
     </view>
 
-    <!-- 关键指标 -->
-    <view class="section section-last">
+    <!-- ⑥ 关键指标 -->
+    <view class="section">
       <view class="section-head">
         <text class="section-title">关键指标</text>
+        <text class="section-sub">估值 · 盈利 · 安全</text>
       </view>
       <view class="metrics-grid">
         <view wx:for="{{detail.keyMetrics}}" wx:key="label" class="metric-item">
           <text class="metric-label">{{item.label}}</text>
           <text class="metric-value">{{item.value}}</text>
         </view>
+      </view>
+    </view>
+
+    <!-- ⑦ 策略逻辑 -->
+    <view class="section section-last">
+      <view class="section-head">
+        <text class="section-title">策略逻辑</text>
+        <text class="section-sub">来自首页推荐引擎</text>
+      </view>
+      <view class="tags">
+        <text wx:for="{{detail.tags}}" wx:key="*this" class="tag">{{item}}</text>
+      </view>
+      <view class="summary-box">
+        <text class="summary-text">{{detail.strategySummary}}</text>
       </view>
     </view>
 

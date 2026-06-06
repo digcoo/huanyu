@@ -1,0 +1,68 @@
+---
+description: Atlas 微信小程序（wechat_project）架构、改动点与设计原则
+globs: wechat_project/**/*
+alwaysApply: false
+---
+
+# Atlas 微信小程序 — 改动记忆与原则
+
+## 产品定位
+个人选股助手 Demo（Mock 数据）。首页偏**策略交易流**，详情页偏**企业认知**，自选页偏**跟踪验证**。三者叙事分层，不要混用同一套文案。
+
+## 核心设计原则
+
+1. **结论先行，证据后置**：先给人话结论（速览/标签/涨跌幅），再展示图表与原始指标。
+2. **同类可比，异类分图**：不同单位（亿 / % / 人 / 天）禁止共用 Y 轴；四维罗盘用 2×2 小 multiples。
+3. **策略与企业分离**：`strategySummary` / 策略标签沉底；企业认知用 `profile` / `stage` / 雷达解读。
+4. **移动端先扫读、再下钻**：折叠态必须有关键 KPI；深度模块（四维罗盘）默认折叠。
+5. **视觉与首页对齐**：自选卡片 K 线 `size="card"`（280rpx），头部/标签/间距与 `strategy-card` 一致。
+6. **全局状态同步**：`activePeriod`、`klineFlipped` 存 `wx.storage`；自选持久化走 `utils/watchlist.js`（精简字段 + 展示时 rehydrate）。
+7. **微信小程序兼容**：避免计算属性名 `{ [key]: val }`（会触发 @babel/runtime）；导航 Tab 用 `reLaunch` + 防抖，不用 `redirectTo` 连点。
+
+## 页面架构要点
+
+### 首页 `pages/index`
+- 自然文档流 + **sticky**：Atlas 标题 → 市场/K 线滚动 → 周期/策略吸顶（非始终 fixed）。
+- 策略三 Tab + 右滑自选 / 左滑忽略；`strategy-card` 自定义事件用 `cardtap` 勿用 `tap`。
+
+### 自选 `pages/watchlist`
+- 顶栏：标题 + **period-switcher**（与首页周期同步）。
+- 列表用**页面原生滚动**（勿用 flex+height:0 的 scroll-view，会高度塌陷）。
+- `market-tabs` 传 `compact`；加入时间通过 `mini-kline` 的 `markerLabel` 标在最新 K 线。
+- 数据：`app.getWatchlist()` → `mapChartKlines` → `enrichItems`。
+
+### 详情 `pages/detail`
+信息顺序（勿随意打乱）：
+```
+价格条 → 企业速览 → 企业画像 → K线 → 行业对标 → 四维罗盘 → 关键指标 → 策略逻辑
+```
+- **企业速览**：`components/enterprise-brief`，数据 `detail.profile`（`detail-mock.js` 的 `COMPANY_PROFILES` / 行业模板）。
+- **企业画像**：生命周期 + `stageHint` + `portraitDimensions` + 健康度分位文案。
+- **行业对标**：`radar.insights` 逐维「优势/关注」解读；资产负债率越低越好。
+- **四维罗盘**：`detail-module` + `trend-chart`（2×2、**canvas 连续折线**、年度序列、独立 Y 轴、涨跌幅）；折叠态显示主 KPI 徽章。
+- **策略逻辑**：原 `summary` 改名为 `strategySummary`，与 tags 放底部。
+
+## 关键文件
+
+| 区域 | 路径 |
+|------|------|
+| Mock 策略池 | `utils/mock.js` |
+| 详情/画像 Mock | `utils/detail-mock.js` |
+| 自选存储 | `utils/watchlist.js`, `app.js` |
+| 企业速览 | `components/enterprise-brief/` |
+| 四维趋势 | `components/trend-chart/`, `components/detail-module/` |
+| 自选卡片 | `components/watchlist-item/` |
+| 加入标记 K 线 | `components/mini-kline/`（`markerLabel`） |
+| 底部导航 | `components/bottom-nav/`（`reLaunch`） |
+
+## 改动清单（已实现）
+
+- 首页：三策略 Tab、sticky 吸顶、卡片紧凑布局。
+- 自选：完整列表、市场筛选、周期切换、左滑移除、K 线加入时间标记、卡片对齐首页。
+- 详情：企业速览 P0、画像增强、雷达解读、信息架构重排、四维罗盘 P0（折线分图）。
+- 基建：`app.json` 页面顺序 index → watchlist → detail；路由 `reLaunch` 修复 webview 报错。
+
+## 后续扩展方向（未做）
+
+- P1：详情竞品对标条、营收结构图；罗盘四象限总览。
+- 接真实 API 时：`profile` / `klines` 分存，展示层 rehydrate，勿把完整 K 线写入 storage。

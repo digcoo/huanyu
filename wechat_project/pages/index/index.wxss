@@ -4,8 +4,31 @@
   padding-bottom: calc(100rpx + env(safe-area-inset-bottom));
 }
 
-.header {
+.nav-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 101;
   background: #0a0e17;
+  box-sizing: border-box;
+}
+
+.toolbar-sticky {
+  position: sticky;
+  z-index: 100;
+  padding: 8rpx 0 10rpx;
+  background: #0a0e17;
+  border-bottom: 1rpx solid #2b2f36;
+  box-sizing: border-box;
+}
+
+.toolbar-inner {
+  margin: 0 24rpx;
+  box-sizing: border-box;
+}
+
+.toolbar-inner strategy-tabs {
+  display: block;
+  width: 100%;
 }
 
 .nav-content {
@@ -66,8 +89,12 @@
   color: #5c6578;
 }
 
-.market-panel {
+.chart-block {
   margin: 0 24rpx 8rpx;
+  box-sizing: border-box;
+}
+
+.market-panel {
   border: 1rpx solid #2b2f36;
   border-radius: 8rpx;
   overflow: hidden;
@@ -90,31 +117,34 @@
   border-radius: 0;
   background: transparent;
 }
-
-.period-sticky {
-  position: sticky;
-  z-index: 200;
-  padding: 8rpx 24rpx;
-  background: #0a0e17;
-  border-bottom: 1rpx solid #2b2f36;
+.period-bar {
+  padding: 0 0 8rpx;
+  background: transparent;
+  box-sizing: border-box;
 }
 
-.period-sticky .period-switcher {
+.period-bar .period-switcher {
+  width: 100%;
   padding: 0;
   margin: 0;
+  box-sizing: border-box;
 }
 
-.period-sticky .period-tabs {
+.period-bar .period-toolbar {
+  width: 100%;
+  gap: 8rpx;
+  box-sizing: border-box;
+}
+
+.period-bar .period-tabs {
+  flex: 1;
+  min-width: 0;
   background: #1e2026;
   border: 1rpx solid #2b2f36;
   border-radius: 8rpx;
 }
 
-.period-sticky .period-toolbar {
-  gap: 8rpx;
-}
-
-.period-sticky .flip-btn {
+.period-bar .flip-btn {
   height: 56rpx;
   width: 56rpx;
 }
@@ -124,24 +154,14 @@
 }
 
 .list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 20rpx 8rpx 12rpx;
-}
-
-.list-title {
-  display: block;
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #e8edf5;
+  padding: 8rpx 8rpx 10rpx;
 }
 
 .list-subtitle {
   display: block;
   font-size: 22rpx;
   color: #5c6578;
-  margin-top: 6rpx;
+  line-height: 1.5;
 }
 
 .list-badge {

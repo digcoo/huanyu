@@ -51,3 +51,33 @@
   background: #00d4ff;
   border-radius: 2rpx;
 }
+
+/* 自选页等紧凑场景 */
+.market-tabs.compact {
+  padding: 0 4rpx;
+}
+
+.market-tabs.compact .tabs-inner {
+  padding: 4rpx 8rpx 2rpx;
+  gap: 6rpx;
+}
+
+.market-tabs.compact .tab-item {
+  padding: 6rpx 16rpx;
+  min-width: 84rpx;
+  border-radius: 12rpx;
+}
+
+.market-tabs.compact .tab-icon {
+  font-size: 24rpx;
+  margin-bottom: 2rpx;
+}
+
+.market-tabs.compact .tab-name {
+  font-size: 22rpx;
+}
+
+.market-tabs.compact .tab-indicator {
+  width: 24rpx;
+  height: 3rpx;
+}

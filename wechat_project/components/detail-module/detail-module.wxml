@@ -2,8 +2,14 @@
   <view class="module-head" bindtap="onToggle">
     <view class="head-left">
       <view class="color-bar" style="background: {{module.color}}"></view>
-      <view>
-        <text class="module-title">{{module.title}}</text>
+      <view class="head-text">
+        <view class="title-row">
+          <text class="module-title">{{module.title}}</text>
+          <view wx:if="{{kpiSummary && !expanded}}" class="kpi-badge {{kpiSummary.trend}}">
+            <text class="kpi-name">{{kpiSummary.name}}</text>
+            <text class="kpi-change">{{kpiSummary.changeLabel}}</text>
+          </view>
+        </view>
         <text class="module-insight" wx:if="{{!expanded}}">{{module.insight}}</text>
       </view>
     </view>
@@ -13,6 +19,6 @@
     <view class="insight-box" style="border-left-color: {{module.color}}">
       <text class="insight-text">{{module.insight}}</text>
     </view>
-    <trend-chart series="{{module.charts}}" height="{{180}}" />
+    <trend-chart id="trendChart" series="{{module.charts}}" />
   </view>
 </view>

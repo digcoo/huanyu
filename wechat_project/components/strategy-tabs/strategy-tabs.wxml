@@ -1,0 +1,14 @@
+<view class="strategy-tabs">
+  <view class="tabs-row">
+    <view
+      wx:for="{{strategies}}"
+      wx:key="id"
+      class="tab-item {{activeStrategy === item.id ? 'active' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="onTabTap"
+    >
+      <text class="tab-icon">{{item.icon}}</text>
+      <text class="tab-name">{{item.name}}</text>
+    </view>
+  </view>
+</view>

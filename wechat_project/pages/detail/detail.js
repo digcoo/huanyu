@@ -1,4 +1,5 @@
-const { getDetailById } = require('../../utils/detail-mock');
+const detailMock = require('../../utils/detail-mock');
+const getDetailById = detailMock.getDetailById;
 
 function mapChartKlines(detail, period) {
   if (!detail || !detail.klines) return [];
@@ -13,8 +14,8 @@ Page({
     detail: null,
     chartKlines: [],
     expandedModules: {
-      financial: true,
-      operation: true,
+      financial: false,
+      operation: false,
       chain: false,
       capital: false
     },
@@ -83,14 +84,14 @@ Page({
     const key = e.detail.key;
     if (!key) return;
     const expanded = this.data.expandedModules[key];
-    this.setData({
-      ['expandedModules.' + key]: !expanded
-    });
+    var patch = {};
+    patch['expandedModules.' + key] = !expanded;
+    this.setData(patch);
   },
 
   onAddWatchlist() {
     const app = getApp();
-    const { detail } = this.data;
+    const detail = this.data.detail;
     if (!detail) return;
     app.addToWatchlist(detail);
     wx.showToast({ title: '已加入自选', icon: 'success' });

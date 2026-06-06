@@ -1,14 +1,25 @@
 <view class="mini-kline {{resonance}} size-{{size}} {{flipped ? 'is-flipped' : ''}}">
-  <view class="label-row" wx:if="{{label}}">
-    <text class="label">{{label}}</text>
-    <view class="ma-legend" wx:if="{{maLegend}}">
-      <text class="ma ma7">MA7</text>
-      <text class="ma ma25">MA25</text>
+  <view class="label-row" wx:if="{{label || markerLabel || maLegend}}">
+    <text class="label" wx:if="{{label}}">{{label}}</text>
+    <view class="label-right">
+      <text wx:if="{{markerLabel}}" class="marker-label">★ {{markerLabel}}</text>
+      <view class="ma-legend" wx:if="{{maLegend}}">
+        <text class="ma ma7">MA7</text>
+        <text class="ma ma25">MA25</text>
+      </view>
     </view>
   </view>
   <view class="chart-wrap">
     <view class="grid-lines">
       <view class="grid-line" wx:for="{{[0,1,2,3,4]}}" wx:key="*this"></view>
+    </view>
+    <view
+      wx:if="{{markerLeft}}"
+      class="add-marker"
+      style="left: {{markerLeft}}%;"
+    >
+      <view class="add-marker-line"></view>
+      <view class="add-marker-dot"></view>
     </view>
     <view class="ma-layer" wx:if="{{ma7Points.length}}">
       <view
@@ -30,7 +41,7 @@
       <view
         wx:for="{{bars}}"
         wx:key="index"
-        class="candle-slot"
+        class="candle-slot {{item.isMarker ? 'is-marker' : ''}}"
         style="left: {{item.left}}%; width: {{item.width}}%;"
       >
         <view

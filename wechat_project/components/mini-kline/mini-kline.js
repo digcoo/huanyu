@@ -49,6 +49,10 @@ Component({
     flipped: {
       type: Boolean,
       value: false
+    },
+    markerLabel: {
+      type: String,
+      value: ''
     }
   },
 
@@ -56,7 +60,8 @@ Component({
     bars: [],
     ma7Points: [],
     ma25Points: [],
-    maLegend: false
+    maLegend: false,
+    markerLeft: null
   },
 
   observers: {
@@ -67,6 +72,9 @@ Component({
       this.render(this.properties.klines);
     },
     maxBars() {
+      this.render(this.properties.klines);
+    },
+    markerLabel() {
       this.render(this.properties.klines);
     }
   },
@@ -86,9 +94,11 @@ Component({
       const maxBars = this.properties.maxBars || 50;
 
       if (!klines || !klines.length) {
-        this.setData({ bars: [], ma7Points: [], ma25Points: [], maLegend: false });
+        this.setData({ bars: [], ma7Points: [], ma25Points: [], maLegend: false, markerLeft: null });
         return;
       }
+
+      const markerLabel = this.properties.markerLabel;
 
       const isCard = size === 'card' || size === 'wide';
       const limit = maxBars > 0 ? maxBars : 50;
@@ -134,13 +144,19 @@ Component({
           bodyH: bodyH.toFixed(2),
           showUpperWick: upperWickH > 0.2,
           showLowerWick: lowerWickH > 0.2,
-          dirClass: isBull ? 'bull' : 'bear'
+          dirClass: isBull ? 'bull' : 'bear',
+          isMarker: !!markerLabel && i === count - 1
         };
       });
+
+      const markerLeft = markerLabel && count > 0
+        ? ((count - 1) * slotW + slotW / 2).toFixed(2)
+        : null;
 
       const showMA = isCard && count >= 7;
       this.setData({
         bars,
+        markerLeft,
         maLegend: showMA,
         ma7Points: showMA ? maToPoints(sliced, 7, range) : [],
         ma25Points: showMA && count >= 25 ? maToPoints(sliced, 25, range) : []

@@ -101,7 +101,7 @@
 
 /* 头部信息 */
 .detail-header {
-  padding: 16rpx 24rpx 8rpx;
+  padding: 12rpx 24rpx 0;
 }
 
 .price-row {
@@ -261,6 +261,10 @@
   padding: 24rpx 24rpx 0;
 }
 
+.section-tight {
+  padding-top: 16rpx;
+}
+
 .section-last {
   padding-bottom: 16rpx;
 }
@@ -314,6 +318,58 @@
   font-size: 24rpx;
   color: #8b95a8;
   line-height: 1.7;
+}
+
+.stage-hint {
+  display: block;
+  font-size: 22rpx;
+  color: #00d4ff;
+  line-height: 1.6;
+  margin-top: 10rpx;
+  opacity: 0.85;
+}
+
+.portrait-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.portrait-item {
+  background: #141b26;
+  border: 1rpx solid #2b2f36;
+  border-radius: 10rpx;
+  padding: 14rpx;
+}
+
+.portrait-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.portrait-label {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #e8edf5;
+}
+
+.portrait-score {
+  font-size: 22rpx;
+  color: #0ecb81;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.portrait-text {
+  font-size: 20rpx;
+  color: #5c6578;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 /* 健康度 */

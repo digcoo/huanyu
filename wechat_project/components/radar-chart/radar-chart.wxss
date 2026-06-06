@@ -149,3 +149,41 @@
 
 .col.win { color: #0ecb81; }
 .col.muted { color: #5c6578; }
+
+.insight-list {
+  margin-top: 16rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.insight-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10rpx;
+}
+
+.insight-tag {
+  flex-shrink: 0;
+  font-size: 18rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 4rpx;
+  font-weight: 600;
+}
+
+.insight-tag.win {
+  color: #0ecb81;
+  background: rgba(14, 203, 129, 0.12);
+}
+
+.insight-tag.warn {
+  color: #f0b90b;
+  background: rgba(240, 185, 11, 0.12);
+}
+
+.insight-text {
+  flex: 1;
+  font-size: 22rpx;
+  color: #8b95a8;
+  line-height: 1.5;
+}

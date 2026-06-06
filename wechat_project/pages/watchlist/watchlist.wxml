@@ -1,17 +1,64 @@
 <view class="page">
   <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
     <view class="nav-content">
-      <text class="page-title">自选池</text>
-      <text class="page-sub">交易验证 · 策略回溯</text>
+      <view class="nav-title-row">
+        <text class="page-title">自选池</text>
+        <text wx:if="{{totalCount > 0}}" class="page-count">{{totalCount}} 只</text>
+      </view>
+    </view>
+    <view wx:if="{{!isEmpty}}" class="period-bar">
+      <period-switcher
+        activePeriod="{{activePeriod}}"
+        flipped="{{klineFlipped}}"
+        bind:change="onPeriodChange"
+        bind:flip="onFlipKline"
+      />
     </view>
   </view>
 
-  <view class="placeholder" style="margin-top: {{statusBarHeight + 80}}px">
-    <view class="placeholder-icon">☆</view>
-    <text class="placeholder-title">自选区 · 开发中</text>
-    <text class="placeholder-desc">多市场分仓视图 · 自选时间戳标记 · 策略效能仪表盘</text>
-    <text class="placeholder-hint">在首页右滑卡片即可加入自选</text>
+  <view class="content" style="padding-top: {{contentTop}}px">
+    <view wx:if="{{!isEmpty && marketTabs.length > 1}}" class="tabs-wrap">
+      <market-tabs
+        compact
+        markets="{{marketTabs}}"
+        activeMarket="{{activeMarket}}"
+        bind:change="onMarketChange"
+      />
+    </view>
+
+    <block wx:if="{{!isEmpty && !filterEmpty}}">
+      <view class="list-wrap">
+        <view class="list-hint">左滑卡片可快速移除</view>
+        <watchlist-item
+          wx:for="{{items}}"
+          wx:key="id"
+          item="{{item}}"
+          activePeriod="{{activePeriod}}"
+          flipped="{{klineFlipped}}"
+          marketLabel="{{item.marketLabel}}"
+          strategyLabel="{{item.strategyLabel}}"
+          addedLabel="{{item.addedLabel}}"
+          bind:itemtap="onItemTap"
+          bind:remove="onRemoveItem"
+          bind:removeconfirm="onRemoveConfirm"
+        />
+        <view class="list-footer">— 已加载全部自选 —</view>
+      </view>
+    </block>
+
+    <view wx:if="{{filterEmpty}}" class="empty filter-empty">
+      <text class="empty-icon">📂</text>
+      <text class="empty-title">该市场暂无自选</text>
+      <text class="empty-desc">切换其他市场标签，或去首页右滑加入</text>
+    </view>
+
+    <view wx:if="{{isEmpty}}" class="empty">
+      <view class="empty-icon-wrap">☆</view>
+      <text class="empty-title">自选池还是空的</text>
+      <text class="empty-desc">在策略页右滑卡片，即可加入自选并在此跟踪</text>
+      <view class="empty-action" bindtap="onGoIndex">去策略页看看</view>
+    </view>
   </view>
 
-  <bottom-nav active="watchlist" />
+  <bottom-nav active="watchlist" watchlistCount="{{watchlistCount}}" />
 </view>

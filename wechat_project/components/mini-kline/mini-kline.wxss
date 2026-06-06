@@ -22,6 +22,21 @@
   justify-content: space-between;
   align-items: center;
   padding: 4rpx 8rpx 2rpx;
+  gap: 8rpx;
+}
+
+.label-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+.marker-label {
+  font-size: 18rpx;
+  color: #00d4ff;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  white-space: nowrap;
 }
 
 .label {
@@ -85,6 +100,41 @@
 .ma-dot.ma7 { background: #f0b90b; }
 .ma-dot.ma25 { background: #e040fb; }
 
+.add-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 3;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.add-marker-line {
+  position: absolute;
+  top: 8%;
+  bottom: 8%;
+  left: 50%;
+  width: 0;
+  border-left: 1rpx dashed rgba(0, 212, 255, 0.75);
+  transform: translateX(-50%);
+}
+
+.add-marker-dot {
+  position: absolute;
+  top: 4%;
+  left: 50%;
+  width: 10rpx;
+  height: 10rpx;
+  margin-left: -5rpx;
+  border-radius: 50%;
+  background: #00d4ff;
+  box-shadow: 0 0 8rpx rgba(0, 212, 255, 0.8);
+}
+
+.candle-slot.is-marker .body {
+  box-shadow: 0 0 0 1rpx rgba(0, 212, 255, 0.9);
+}
+
 .css-chart {
   position: absolute;
   inset: 0;
@@ -123,8 +173,8 @@
 .mini-kline.size-card,
 .mini-kline.size-wide {
   min-height: auto;
-  margin-top: 16rpx;
-  border-radius: 10rpx;
+  margin-top: 10rpx;
+  border-radius: 8rpx;
 }
 
 .mini-kline.size-card .chart-wrap,

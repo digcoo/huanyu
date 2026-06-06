@@ -1,4 +1,4 @@
-<scroll-view class="market-tabs" scroll-x enhanced show-scrollbar="{{false}}">
+<scroll-view class="market-tabs {{compact ? 'compact' : ''}}" scroll-x enhanced show-scrollbar="{{false}}">
   <view class="tabs-inner">
     <view
       wx:for="{{markets}}"

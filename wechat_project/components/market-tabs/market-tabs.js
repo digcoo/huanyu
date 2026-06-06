@@ -7,6 +7,10 @@ Component({
     activeMarket: {
       type: String,
       value: 'cn'
+    },
+    compact: {
+      type: Boolean,
+      value: false
     }
   },
 

@@ -10,7 +10,8 @@ Component({
     dimensions: [],
     companyPoints: [],
     industryPoints: [],
-    rows: []
+    rows: [],
+    insights: []
   },
 
   observers: {
@@ -28,23 +29,28 @@ Component({
   methods: {
     parse(radar) {
       if (!radar || !radar.dimensions) {
-        this.setData({ dimensions: [], companyPoints: [], industryPoints: [], rows: [] });
+        this.setData({ dimensions: [], companyPoints: [], industryPoints: [], rows: [], insights: [] });
         return;
       }
 
-      const rows = radar.dimensions.map((dim, i) => ({
-        dim,
-        company: radar.company[i],
-        industry: radar.industry[i],
-        unit: radar.unit ? radar.unit[i] : '',
-        win: radar.company[i] >= radar.industry[i]
-      }));
+      const insights = radar.insights || [];
+      const rows = radar.dimensions.map(function (dim, i) {
+        const insight = insights[i];
+        return {
+          dim: dim,
+          company: radar.company[i],
+          industry: radar.industry[i],
+          unit: radar.unit ? radar.unit[i] : '',
+          win: insight ? insight.win : radar.company[i] >= radar.industry[i]
+        };
+      });
 
       this.setData({
         dimensions: radar.dimensions,
         companyPoints: radar.companyPoints || [],
         industryPoints: radar.industryPoints || [],
-        rows
+        rows: rows,
+        insights: insights
       });
     }
   }

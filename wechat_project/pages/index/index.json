@@ -4,6 +4,7 @@
     "index-chart": "../../components/index-chart/index-chart",
     "strategy-card": "../../components/strategy-card/strategy-card",
     "period-switcher": "../../components/period-switcher/period-switcher",
+    "strategy-tabs": "../../components/strategy-tabs/strategy-tabs",
     "bottom-nav": "../../components/bottom-nav/bottom-nav"
   },
   "navigationStyle": "custom"

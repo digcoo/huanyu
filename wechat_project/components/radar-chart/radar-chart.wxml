@@ -50,4 +50,10 @@
       <text class="col muted">{{item.industry}}{{item.unit}}</text>
     </view>
   </view>
+  <view class="insight-list" wx:if="{{insights.length}}">
+    <view wx:for="{{insights}}" wx:key="dim" class="insight-row">
+      <text class="insight-tag {{item.win ? 'win' : 'warn'}}">{{item.tag}}</text>
+      <text class="insight-text">{{item.text}}</text>
+    </view>
+  </view>
 </view>

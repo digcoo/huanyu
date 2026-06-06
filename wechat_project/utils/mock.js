@@ -114,305 +114,219 @@ const MARKET_SENTIMENT = {
   bond: { label: '利差', value: '211bp', sub: '中美10Y利差', extra: '收益率曲线 正常' }
 };
 
-function buildRecommendations() {
-  if (buildRecommendations._cache) return buildRecommendations._cache;
+const STRATEGIES = [
+  {
+    id: 'trend',
+    name: '单边趋势',
+    icon: '📈',
+    badge: 'TREND',
+    desc: '顺势跟踪 · 均线多头 · 突破延续'
+  },
+  {
+    id: 'rebound',
+    name: '深坑反弹',
+    icon: '🔄',
+    badge: 'REBOUND',
+    desc: '超跌深坑 · 底背离 · 反弹确认'
+  },
+  {
+    id: 'multi',
+    name: '多周期强势',
+    icon: '⚡',
+    badge: 'MULTI',
+    desc: '日周月共振 · 多周期对齐 · 强势延续'
+  }
+];
 
-  buildRecommendations._cache = {
-    cn: [
-      {
-        id: 'cn-600519',
-        code: '600519',
-        name: '贵州茅台',
-        market: 'cn',
-        price: 1688.00,
-        changePct: 2.35,
-        tags: ['高股息', '月线MACD金叉', '外资流入'],
-        summary: '消费龙头，日周共振突破，北向连续3日净流入',
-        resonance: 'strong',
-        klines: {
-          year: (generateKlineData(50, 1400, 0.08, 'up')),
-          month: (generateKlineData(50, 1600, 0.04, 'up')),
-          week: (generateKlineData(50, 1650, 0.025, 'breakout')),
-          day: (generateKlineData(50, 1680, 0.015, 'up'))
-        }
-      },
-      {
-        id: 'cn-300750',
-        code: '300750',
-        name: '宁德时代',
-        market: 'cn',
-        price: 198.56,
-        changePct: -1.23,
-        tags: ['净利润断层', '产能扩张', '锂电龙头'],
-        summary: 'Q3业绩超预期，周线平台突破后回踩确认',
-        resonance: 'medium',
-        klines: {
-          year: (generateKlineData(50, 180, 0.12, 'up')),
-          month: (generateKlineData(50, 190, 0.06, 'flat')),
-          week: (generateKlineData(50, 195, 0.04, 'breakout')),
-          day: (generateKlineData(50, 198, 0.025, 'flat'))
-        }
-      },
-      {
-        id: 'cn-601318',
-        code: '601318',
-        name: '中国平安',
-        market: 'cn',
-        price: 52.34,
-        changePct: 0.87,
-        tags: ['价值回归', '低估值', '保险复苏'],
-        summary: '估值处于历史10%分位，月线底背离形成',
-        resonance: 'medium',
-        klines: {
-          year: (generateKlineData(50, 55, 0.1, 'down')),
-          month: (generateKlineData(50, 50, 0.05, 'flat')),
-          week: (generateKlineData(50, 51, 0.03, 'up')),
-          day: (generateKlineData(50, 52, 0.02, 'up'))
-        }
-      },
-      {
-        id: 'cn-688981',
-        code: '688981',
-        name: '中芯国际',
-        market: 'cn',
-        price: 48.92,
-        changePct: 3.45,
-        tags: ['国产替代', '突破平台', '半导体'],
-        summary: '日周月三周期共振，芯片板块资金持续流入',
-        resonance: 'strong',
-        klines: {
-          year: (generateKlineData(50, 42, 0.15, 'up')),
-          month: (generateKlineData(50, 45, 0.08, 'up')),
-          week: (generateKlineData(50, 47, 0.05, 'breakout')),
-          day: (generateKlineData(50, 48, 0.03, 'up'))
-        }
-      }
-    ],
-    hk: [
-      {
-        id: 'hk-00700',
-        code: '00700',
-        name: '腾讯控股',
-        market: 'hk',
-        price: 378.40,
-        changePct: 2.12,
-        tags: ['回购加码', '游戏复苏', '突破年线'],
-        summary: '港股权重股，日周共振突破，南向连续5日净流入',
-        resonance: 'strong',
-        klines: {
-          year: (generateKlineData(50, 300, 0.12, 'up')),
-          month: (generateKlineData(50, 350, 0.06, 'up')),
-          week: (generateKlineData(50, 370, 0.04, 'breakout')),
-          day: (generateKlineData(50, 375, 0.025, 'up'))
-        }
-      },
-      {
-        id: 'hk-09988',
-        code: '09988',
-        name: '阿里巴巴',
-        market: 'hk',
-        price: 78.65,
-        changePct: 1.56,
-        tags: ['云计算', '估值修复', '电商回暖'],
-        summary: '云业务增速回升，港股通资金持续加仓',
-        resonance: 'medium',
-        klines: {
-          year: (generateKlineData(50, 70, 0.14, 'flat')),
-          month: (generateKlineData(50, 75, 0.07, 'up')),
-          week: (generateKlineData(50, 77, 0.04, 'up')),
-          day: (generateKlineData(50, 78, 0.03, 'flat'))
-        }
-      },
-      {
-        id: 'hk-01810',
-        code: '01810',
-        name: '小米集团',
-        market: 'hk',
-        price: 18.92,
-        changePct: 4.23,
-        tags: ['IoT生态', '汽车放量', '突破平台'],
-        summary: 'SU7交付超预期，周线三连阳突破前高',
-        resonance: 'strong',
-        klines: {
-          year: (generateKlineData(50, 12, 0.18, 'up')),
-          month: (generateKlineData(50, 16, 0.08, 'breakout')),
-          week: (generateKlineData(50, 18, 0.05, 'up')),
-          day: (generateKlineData(50, 18.5, 0.03, 'up'))
-        }
-      }
-    ],
-    us: [
-      {
-        id: 'us-NVDA',
-        code: 'NVDA',
-        name: '英伟达',
-        market: 'us',
-        price: 875.28,
-        changePct: 2.89,
-        tags: ['AI算力', '财报超预期', '机构增持'],
-        summary: '数据中心营收+154%，多周期均线多头排列',
-        resonance: 'strong',
-        klines: {
-          year: (generateKlineData(50, 450, 0.2, 'up')),
-          month: (generateKlineData(50, 800, 0.1, 'up')),
-          week: (generateKlineData(50, 850, 0.06, 'breakout')),
-          day: (generateKlineData(50, 870, 0.04, 'up'))
-        }
-      },
-      {
-        id: 'us-AAPL',
-        code: 'AAPL',
-        name: '苹果',
-        market: 'us',
-        price: 189.45,
-        changePct: 0.34,
-        tags: ['服务增长', '高股息', '生态壁垒'],
-        summary: 'Vision Pro 销量爬坡，服务业务占比创新高',
-        resonance: 'medium',
-        klines: {
-          year: (generateKlineData(50, 170, 0.08, 'up')),
-          month: (generateKlineData(50, 185, 0.04, 'flat')),
-          week: (generateKlineData(50, 188, 0.03, 'flat')),
-          day: (generateKlineData(50, 189, 0.02, 'up'))
-        }
-      },
-      {
-        id: 'us-TSLA',
-        code: 'TSLA',
-        name: '特斯拉',
-        market: 'us',
-        price: 245.67,
-        changePct: -2.15,
-        tags: ['FSD进展', '产能利用率', '高波动'],
-        summary: 'Robotaxi 发布预期升温，但短期面临交付压力',
-        resonance: 'weak',
-        klines: {
-          year: (generateKlineData(50, 250, 0.15, 'flat')),
-          month: (generateKlineData(50, 240, 0.08, 'down')),
-          week: (generateKlineData(50, 248, 0.05, 'flat')),
-          day: (generateKlineData(50, 246, 0.04, 'down'))
-        }
-      }
-    ],
-    crypto: [
-      {
-        id: 'crypto-BTC',
-        code: 'BTC',
-        name: 'Bitcoin',
-        market: 'crypto',
-        price: 67845.23,
-        changePct: 1.85,
-        tags: ['减半周期', 'ETF流入', '链上活跃'],
-        summary: 'ETF 连续12日净流入，链上持币地址数创新高',
-        resonance: 'strong',
-        klines: {
-          year: (generateKlineData(50, 42000, 0.25, 'up')),
-          month: (generateKlineData(50, 60000, 0.12, 'up')),
-          week: (generateKlineData(50, 65000, 0.08, 'breakout')),
-          day: (generateKlineData(50, 67000, 0.05, 'up'))
-        }
-      },
-      {
-        id: 'crypto-SOL',
-        code: 'SOL',
-        name: 'Solana',
-        market: 'crypto',
-        price: 156.78,
-        changePct: 5.67,
-        tags: ['DeFi生态', '高TPS', '生态爆发'],
-        summary: 'DEX 交易量超越以太坊，开发者活跃度第一',
-        resonance: 'strong',
-        klines: {
-          year: (generateKlineData(50, 25, 0.3, 'up')),
-          month: (generateKlineData(50, 120, 0.15, 'up')),
-          week: (generateKlineData(50, 145, 0.1, 'breakout')),
-          day: (generateKlineData(50, 155, 0.06, 'up'))
-        }
-      }
-    ],
-    futures: [
-      {
-        id: 'fut-AU',
-        code: 'AU2506',
-        name: '沪金主力',
-        market: 'futures',
-        price: 568.45,
-        changePct: 0.57,
-        tags: ['避险需求', '央行购金', '通胀对冲'],
-        summary: '地缘风险升温，黄金 ETF 持仓连续增加',
-        resonance: 'medium',
-        klines: {
-          year: (generateKlineData(50, 480, 0.1, 'up')),
-          month: (generateKlineData(50, 540, 0.05, 'up')),
-          week: (generateKlineData(50, 560, 0.03, 'up')),
-          day: (generateKlineData(50, 567, 0.02, 'flat'))
-        }
-      },
-      {
-        id: 'fut-SC',
-        code: 'SC2506',
-        name: '原油主力',
-        market: 'futures',
-        price: 612.34,
-        changePct: -1.36,
-        tags: ['OPEC+', '需求担忧', '库存上升'],
-        summary: 'EIA 库存超预期，短期承压但长期供给偏紧',
-        resonance: 'weak',
-        klines: {
-          year: (generateKlineData(50, 650, 0.12, 'down')),
-          month: (generateKlineData(50, 630, 0.06, 'down')),
-          week: (generateKlineData(50, 620, 0.04, 'flat')),
-          day: (generateKlineData(50, 615, 0.03, 'down'))
-        }
-      }
-    ],
-    forex: [
-      {
-        id: 'fx-USDCNY',
-        code: 'USDCNY',
-        name: '美元/人民币',
-        market: 'forex',
-        price: 7.2345,
-        changePct: 0.17,
-        tags: ['利差驱动', '央行干预', '贸易顺差'],
-        summary: '中美利差收窄，人民币中间价强于市场预期',
-        resonance: 'medium',
-        klines: {
-          year: (generateKlineData(50, 7.15, 0.02, 'up')),
-          month: (generateKlineData(50, 7.22, 0.01, 'flat')),
-          week: (generateKlineData(50, 7.23, 0.008, 'flat')),
-          day: (generateKlineData(50, 7.234, 0.005, 'up'))
-        }
-      }
-    ],
-    bond: [
-      {
-        id: 'bond-CN10Y',
-        code: 'CN10Y',
-        name: '10年期国债',
-        market: 'bond',
-        price: 2.345,
-        changePct: -0.51,
-        tags: ['宽松预期', '收益率下行', '配置窗口'],
-        summary: '央行降准预期升温，长端利率下行空间打开',
-        resonance: 'medium',
-        klines: {
-          year: (generateKlineData(50, 2.65, 0.05, 'down')),
-          month: (generateKlineData(50, 2.45, 0.03, 'down')),
-          week: (generateKlineData(50, 2.36, 0.02, 'down')),
-          day: (generateKlineData(50, 2.35, 0.01, 'flat'))
-        }
-      }
-    ]
+function stock(strategy, market, code, name, price, changePct, tags, summary, resonance, trends) {
+  const vol = trends.vol || 0.03;
+  return {
+    id: strategy + '-' + market + '-' + code,
+    strategy,
+    code,
+    name,
+    market,
+    price,
+    changePct,
+    tags,
+    summary,
+    resonance,
+    klines: {
+      year: generateKlineData(50, price * (trends.yearBase || 0.82), vol * 1.8, trends.year),
+      month: generateKlineData(50, price * (trends.monthBase || 0.92), vol * 1.3, trends.month),
+      week: generateKlineData(50, price * (trends.weekBase || 0.98), vol, trends.week),
+      day: generateKlineData(50, price * (trends.dayBase || 0.99), vol * 0.85, trends.day)
+    }
+  };
+}
+
+function buildStrategyRecommendations() {
+  if (buildStrategyRecommendations._cache) return buildStrategyRecommendations._cache;
+
+  buildStrategyRecommendations._cache = {
+    trend: {
+      cn: [
+        stock('trend', 'cn', '600519', '贵州茅台', 1688, 2.35,
+          ['均线多头', '趋势延续', '北向流入'], '消费龙头，日周均线多头排列，趋势单边上行', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.015 }),
+        stock('trend', 'cn', '688981', '中芯国际', 48.92, 3.45,
+          ['突破平台', '半导体', '量价齐升'], '突破前高后缩量回踩，趋势结构完好', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.03 }),
+        stock('trend', 'cn', '300750', '宁德时代', 198.56, 1.86,
+          ['锂电龙头', '趋势加速', '机构增持'], '周线三连阳，均线呈单边发散', 'medium',
+          { year: 'up', month: 'up', week: 'up', day: 'up', vol: 0.025 })
+      ],
+      hk: [
+        stock('trend', 'hk', '00700', '腾讯控股', 378.4, 2.12,
+          ['回购加码', '突破年线', '趋势强化'], '港股权重龙头，均线多头排列', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.025 }),
+        stock('trend', 'hk', '01810', '小米集团', 18.92, 4.23,
+          ['汽车放量', '趋势突破', 'IoT生态'], 'SU7 催化下形成单边上升趋势', 'strong',
+          { year: 'up', month: 'breakout', week: 'up', day: 'up', vol: 0.03 })
+      ],
+      us: [
+        stock('trend', 'us', 'NVDA', '英伟达', 875.28, 2.89,
+          ['AI算力', '趋势龙头', '财报超预期'], '数据中心营收高增，多均线单边向上', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.04 }),
+        stock('trend', 'us', 'AAPL', '苹果', 189.45, 0.84,
+          ['服务增长', '稳健趋势', '生态壁垒'], '慢牛结构，趋势斜率稳定', 'medium',
+          { year: 'up', month: 'flat', week: 'up', day: 'up', vol: 0.02 })
+      ],
+      crypto: [
+        stock('trend', 'crypto', 'BTC', 'Bitcoin', 67845.23, 1.85,
+          ['减半周期', 'ETF流入', '趋势延续'], 'ETF 连续净流入，中期趋势未破坏', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.05 })
+      ],
+      futures: [
+        stock('trend', 'futures', 'AU2506', '沪金主力', 568.45, 0.57,
+          ['避险需求', '趋势上行', '央行购金'], '地缘风险推升，黄金维持单边强势', 'medium',
+          { year: 'up', month: 'up', week: 'up', day: 'flat', vol: 0.02 })
+      ],
+      forex: [
+        stock('trend', 'forex', 'USDCNY', '美元/人民币', 7.2345, 0.17,
+          ['利差驱动', '趋势偏强', '贸易顺差'], '美元阶段性偏强，汇率趋势延续', 'medium',
+          { year: 'up', month: 'flat', week: 'flat', day: 'up', vol: 0.005 })
+      ],
+      bond: [
+        stock('trend', 'bond', 'US10Y', '10Y美债', 4.456, 0.52,
+          ['收益率上行', '通胀预期', '趋势偏空债券'], '美债收益率单边上行，价格趋势下行', 'medium',
+          { yearBase: 1.02, monthBase: 1.01, weekBase: 1.005, dayBase: 1.002, year: 'up', month: 'up', week: 'up', day: 'up', vol: 0.006 })
+      ]
+    },
+    rebound: {
+      cn: [
+        stock('rebound', 'cn', '601318', '中国平安', 52.34, 2.15,
+          ['深坑探底', '底背离', '价值回归'], '估值历史低位，月线 MACD 底背离，反弹初现', 'medium',
+          { year: 'down', month: 'flat', week: 'up', day: 'up', vol: 0.02 }),
+        stock('rebound', 'cn', '000858', '五粮液', 128.6, 1.92,
+          ['超跌反弹', '白酒复苏', '深坑修复'], '深度回调后放量阳线，反弹结构确认', 'medium',
+          { year: 'down', month: 'down', week: 'flat', day: 'up', vol: 0.022 }),
+        stock('rebound', 'cn', '601012', '隆基绿能', 18.45, 3.68,
+          ['深坑反弹', '光伏龙头', '产能出清'], '行业低谷后首次周线阳包阴，反弹信号', 'medium',
+          { year: 'down', month: 'down', week: 'up', day: 'breakout', vol: 0.035 })
+      ],
+      hk: [
+        stock('rebound', 'hk', '09988', '阿里巴巴', 78.65, 2.36,
+          ['深坑修复', '估值修复', '云计算'], '港股深坑后放量反弹，云业务边际改善', 'medium',
+          { year: 'down', month: 'flat', week: 'up', day: 'up', vol: 0.03 }),
+        stock('rebound', 'hk', '03690', '美团', 112.3, 1.78,
+          ['超跌反弹', '本地生活', '盈利修复'], '深坑区企稳，反弹波段开启', 'medium',
+          { year: 'down', month: 'flat', week: 'up', day: 'flat', vol: 0.028 })
+      ],
+      us: [
+        stock('rebound', 'us', 'TSLA', '特斯拉', 245.67, 3.25,
+          ['深坑反弹', 'FSD预期', '高弹性'], '深度回调后 V 型反弹，短线动能恢复', 'medium',
+          { year: 'flat', month: 'down', week: 'up', day: 'breakout', vol: 0.04 }),
+        stock('rebound', 'us', 'BABA', '阿里巴巴 ADR', 78.2, 2.88,
+          ['中概反弹', '深坑修复', '回购支撑'], '中概深坑后集体反弹，估值极端压缩', 'medium',
+          { year: 'down', month: 'flat', week: 'up', day: 'up', vol: 0.035 })
+      ],
+      crypto: [
+        stock('rebound', 'crypto', 'ETH', 'Ethereum', 3456.78, 4.12,
+          ['深坑反弹', 'Layer2', '生态修复'], 'BTC 带动下的深坑反弹，ETH 弹性更大', 'medium',
+          { year: 'down', month: 'flat', week: 'up', day: 'up', vol: 0.03 })
+      ],
+      futures: [
+        stock('rebound', 'futures', 'SC2506', '原油主力', 612.34, 2.45,
+          ['深坑反弹', 'OPEC支撑', '库存回落'], '需求担忧后的深坑反弹，短线技术修复', 'medium',
+          { year: 'down', month: 'down', week: 'up', day: 'up', vol: 0.03 })
+      ],
+      forex: [],
+      bond: [
+        stock('rebound', 'bond', 'CN10Y', '10年期国债', 2.345, -0.51,
+          ['收益率下行', '宽松预期', '深坑后反弹'], '降准预期下债券深坑反弹，收益率下行', 'medium',
+          { year: 'down', month: 'down', week: 'down', day: 'flat', vol: 0.01 })
+      ]
+    },
+    multi: {
+      cn: [
+        stock('multi', 'cn', '600519', '贵州茅台', 1688, 2.35,
+          ['多周期共振', '日周月对齐', '外资流入'], '日/周/月三周期同步走强，共振信号强', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.015 }),
+        stock('multi', 'cn', '688981', '中芯国际', 48.92, 3.45,
+          ['三周期共振', '国产替代', '半导体'], '芯片板块资金流入，多周期均线同步上穿', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.03 }),
+        stock('multi', 'cn', '300750', '宁德时代', 198.56, -1.23,
+          ['多周期强势', '产能扩张', '净利断层'], 'Q3 业绩超预期，多周期结构仍偏强', 'strong',
+          { year: 'up', month: 'flat', week: 'breakout', day: 'flat', vol: 0.025 })
+      ],
+      hk: [
+        stock('multi', 'hk', '00700', '腾讯控股', 378.4, 2.12,
+          ['多周期共振', '游戏复苏', '南向流入'], '日周共振突破，南向连续 5 日净流入', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.025 }),
+        stock('multi', 'hk', '01810', '小米集团', 18.92, 4.23,
+          ['四周期对齐', '汽车放量', '突破平台'], 'SU7 交付超预期，多周期强势共振', 'strong',
+          { year: 'up', month: 'breakout', week: 'up', day: 'up', vol: 0.03 })
+      ],
+      us: [
+        stock('multi', 'us', 'NVDA', '英伟达', 875.28, 2.89,
+          ['多周期强势', 'AI算力', '机构增持'], '数据中心营收 +154%，多周期均线多头排列', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.04 }),
+        stock('multi', 'us', 'MSFT', '微软', 425.6, 1.56,
+          ['云+AI共振', '多周期强势', '盈利稳定'], 'Azure 与 Copilot 双轮驱动，多周期结构健康', 'strong',
+          { year: 'up', month: 'up', week: 'up', day: 'up', vol: 0.018 })
+      ],
+      crypto: [
+        stock('multi', 'crypto', 'BTC', 'Bitcoin', 67845.23, 1.85,
+          ['多周期共振', 'ETF流入', '链上活跃'], 'ETF 连续净流入，链上地址数创新高', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.05 }),
+        stock('multi', 'crypto', 'SOL', 'Solana', 156.78, 5.67,
+          ['生态爆发', '多周期强势', '高TPS'], 'DEX 交易量超越以太坊，开发者活跃度第一', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.06 })
+      ],
+      futures: [
+        stock('multi', 'futures', 'AU2506', '沪金主力', 568.45, 0.57,
+          ['多周期偏强', '避险需求', '央行购金'], '地缘风险升温，多周期黄金结构偏强', 'medium',
+          { year: 'up', month: 'up', week: 'up', day: 'flat', vol: 0.02 })
+      ],
+      forex: [
+        stock('multi', 'forex', 'USDCNY', '美元/人民币', 7.2345, 0.17,
+          ['多周期对齐', '利差驱动', '贸易顺差'], '中美利差收窄，人民币中间价强于预期', 'medium',
+          { year: 'up', month: 'flat', week: 'flat', day: 'up', vol: 0.005 })
+      ],
+      bond: [
+        stock('multi', 'bond', 'CN10Y', '10年期国债', 2.345, -0.51,
+          ['多周期下行', '宽松预期', '配置窗口'], '央行降准预期升温，长端利率多周期下行', 'medium',
+          { year: 'down', month: 'down', week: 'down', day: 'flat', vol: 0.01 })
+      ]
+    }
   };
 
-  return buildRecommendations._cache;
+  return buildStrategyRecommendations._cache;
+}
+
+/** @deprecated 兼容旧调用，返回当前默认策略（多周期强势）数据 */
+function buildRecommendations() {
+  const all = buildStrategyRecommendations();
+  return all.multi;
 }
 
 module.exports = {
   MARKETS,
   MARKET_INDICES,
   MARKET_SENTIMENT,
+  STRATEGIES,
+  buildStrategyRecommendations,
   buildRecommendations,
   generateKlineData,
   normalizeKlines

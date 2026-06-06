@@ -16,6 +16,9 @@
   >
     <view class="nav-icon-wrap">
       <text class="nav-icon">☆</text>
+      <view wx:if="{{watchlistCount > 0}}" class="nav-badge">
+        {{watchlistCount > 99 ? '99+' : watchlistCount}}
+      </view>
     </view>
     <text class="nav-label">自选</text>
   </view>

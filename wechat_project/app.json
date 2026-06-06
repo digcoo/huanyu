@@ -1,8 +1,8 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/detail/detail",
-    "pages/watchlist/watchlist"
+    "pages/watchlist/watchlist",
+    "pages/detail/detail"
   ],
   "window": {
     "navigationBarBackgroundColor": "#0a0e17",

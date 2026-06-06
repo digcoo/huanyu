@@ -2,7 +2,7 @@
  * 详情页 Mock 数据 — 基于首页标的扩展，使用种子随机保证刷新一致
  */
 
-const { buildRecommendations } = require('./mock');
+const { buildStrategyRecommendations } = require('./mock');
 
 const STAGE_MAP = {
   expansion: { id: 'expansion', label: '快速扩张', desc: '营收高增长，资本开支加大，现金流紧但结构健康', color: '#0ecb81' },
@@ -12,14 +12,234 @@ const STAGE_MAP = {
 };
 
 const INDUSTRY_MAP = {
-  cn: { '600519': '白酒', '300750': '锂电池', '601318': '保险', '688981': '半导体' },
-  hk: { '00700': '互联网', '09988': '电商', '01810': '消费电子' },
-  us: { NVDA: '半导体', AAPL: '消费电子', TSLA: '新能源汽车' },
-  crypto: { BTC: '加密货币', SOL: '公链' },
+  cn: { '600519': '白酒', '000858': '白酒', '300750': '锂电池', '601318': '保险', '688981': '半导体', '601012': '光伏' },
+  hk: { '00700': '互联网', '09988': '电商', '01810': '消费电子', '03690': '电商' },
+  us: { NVDA: '半导体', AAPL: '消费电子', TSLA: '新能源汽车', MSFT: '互联网', BABA: '电商' },
+  crypto: { BTC: '加密货币', ETH: '加密货币', SOL: '公链' },
   futures: { AU2506: '贵金属', SC2506: '能源' },
   forex: { USDCNY: '外汇' },
-  bond: { CN10Y: '国债' }
+  bond: { CN10Y: '国债', US10Y: '国债' }
 };
+
+const STAGE_HINTS = {
+  expansion: '处于快速扩张期 → 关注营收增速与资本开支效率，而非短期估值。',
+  stable: '处于稳定守业期 → 适合看现金流、分红与护城河，而非爆发式增长。',
+  shrink: '处于收缩聚焦期 → 重点看降本增效能否持续、现金流能否修复。',
+  decline: '处于萎缩承压期 → 优先评估偿债能力与核心业务是否还有拐点。'
+};
+
+const RADAR_META = {
+  'ROE': { higherBetter: true, winText: '股东回报优于同业', loseText: '资本回报落后于行业' },
+  '毛利率': { higherBetter: true, winText: '定价权与盈利空间较强', loseText: '盈利空间弱于同业' },
+  '营收增速': { higherBetter: true, winText: '成长动能领先行业', loseText: '营收增长落后于同业' },
+  '资产负债率': { higherBetter: false, winText: '杠杆水平相对可控', loseText: '负债压力高于行业' },
+  '研发占比': { higherBetter: true, winText: '研发投入力度较大', loseText: '研发强度低于同业' }
+};
+
+const COMPANY_PROFILES = {
+  '600519': {
+    businessOneLiner: '高端白酒龙头，以茅台酒为核心大单品，经销与直销渠道并行。',
+    industryPosition: 'A股白酒市值第一，品牌溢价与渠道管控力处于行业顶尖。',
+    strengths: ['国民级品牌壁垒，定价权强劲', '现金流充沛，预收款模式优异', '直营比例提升，渠道利润回收'],
+    risks: ['消费场景集中，政策与舆情敏感', '估值长期处于行业高位', '年轻消费结构变化需跟踪']
+  },
+  '688981': {
+    businessOneLiner: '中国大陆规模最大、技术最先进的晶圆代工企业之一。',
+    industryPosition: '国产半导体制造核心标的，先进制程与成熟制程并重。',
+    strengths: ['国产替代战略地位突出', '产能利用率与规模效应', '政策与产业基金支持'],
+    risks: ['先进制程受外部约束', '资本开支大、折旧压力高', '行业周期波动明显']
+  },
+  '300750': {
+    businessOneLiner: '全球动力电池龙头，覆盖动力与储能两大电池系统。',
+    industryPosition: '全球动力电池装机量领先，产业链垂直整合能力强。',
+    strengths: ['规模与成本优势领先', '客户覆盖全球主流车企', '储能第二曲线增长'],
+    risks: ['原材料价格波动', '行业竞争加剧压缩毛利', '海外贸易与地缘风险']
+  },
+  '00700': {
+    businessOneLiner: '以社交+游戏为基石，延伸至金融科技、云与企业服务的互联网巨头。',
+    industryPosition: '港股互联网市值龙头，微信生态具备稀缺流量入口。',
+    strengths: ['微信/QQ 超级入口与网络效应', '游戏与广告现金流稳定', '回购与股东回报积极'],
+    risks: ['游戏版号与监管政策', '广告需求随宏观波动', '云与 ToB 业务盈利仍在爬坡']
+  },
+  '01810': {
+    businessOneLiner: '智能手机×AIoT×智能电动汽车「人车家全生态」布局。',
+    industryPosition: '全球智能手机出货前列，汽车业务为新增量曲线。',
+    strengths: ['IoT 生态与用户粘性', '供应链效率与性价比', '汽车交付量快速爬坡'],
+    risks: ['手机市场增长放缓', '汽车业务仍处投入期', '海外拓展面临竞争']
+  },
+  'NVDA': {
+    businessOneLiner: 'GPU 与 AI 算力基础设施龙头，数据中心业务为核心增长引擎。',
+    industryPosition: '全球 AI 训练芯片市占率领先，CUDA 生态护城河深厚。',
+    strengths: ['AI 算力需求爆发受益', '软硬件一体化生态', '数据中心营收高增'],
+    risks: ['估值与预期较高', '大客户自研芯片替代', '出口管制与地缘风险']
+  },
+  'AAPL': {
+    businessOneLiner: 'iPhone 为核心，服务、可穿戴与 Mac 组成硬件+服务生态。',
+    industryPosition: '全球市值最大消费电子公司，品牌与用户粘性极强。',
+    strengths: ['生态系统锁定与高 ARPU', '服务业务毛利率高', '现金流与回购力度大'],
+    risks: ['iPhone 销售周期波动', '中国市场竞争加剧', '创新节奏与监管审查']
+  },
+  'MSFT': {
+    businessOneLiner: 'Azure 云 + Office 365 + Copilot AI 的企业软件与云计算巨头。',
+    industryPosition: '全球企业云与生产力软件领导者，AI 商业化进展领先。',
+    strengths: ['Azure 与 Copilot 双轮驱动', '企业客户粘性强', '盈利与现金流稳健'],
+    risks: ['云增速边际放缓', 'AI 投入期成本上升', '反垄断与数据监管']
+  },
+  'BTC': {
+    businessOneLiner: '去中心化数字黄金，总量 2100 万枚，通过 PoW 共识保障安全。',
+    industryPosition: '加密货币市值第一，机构配置与 ETF 通道逐步完善。',
+    strengths: ['品牌与网络效应最强', '减半周期与稀缺叙事', 'ETF 等合规通道拓展'],
+    risks: ['价格波动极大', '监管政策不确定', '能源消耗舆论压力']
+  }
+};
+
+const INDUSTRY_PROFILE_DEFAULT = {
+  '白酒': {
+    businessOneLiner: '{name}主营白酒生产与销售，品牌与渠道是核心竞争要素。',
+    industryPosition: '{name}处于{name}所在白酒赛道，需关注品牌力与渠道管控。',
+    strengths: ['品牌与渠道构成主要壁垒', '高端化趋势下毛利率较高', '现金流通常优于制造业'],
+    risks: ['消费政策与舆情风险', '行业集中度提升竞争加剧', '库存与批价波动']
+  },
+  '半导体': {
+    businessOneLiner: '{name}从事半导体设计/制造/设备，受国产替代与周期双重驱动。',
+    industryPosition: '{name}在半导体产业链中占据关键环节，行业地位取决于技术与产能。',
+    strengths: ['国产替代长期逻辑', '高壁垒带来一定定价权', '政策与产业资本支持'],
+    risks: ['资本开支大、周期性强', '技术迭代与外部约束', '库存与价格下行风险']
+  },
+  '锂电池': {
+    businessOneLiner: '{name}布局动力/储能电池或材料，绑定新能源产业链。',
+    industryPosition: '{name}在锂电产业链中竞争格局激烈，规模与成本决定地位。',
+    strengths: ['新能源渗透率长期向上', '龙头规模效应显著', '储能打开第二增长曲线'],
+    risks: ['原材料与价格竞争', '产能过剩隐忧', '技术路线变更风险']
+  },
+  '互联网': {
+    businessOneLiner: '{name}以流量与平台为核心，变现方式包括广告、游戏、金融科技等。',
+    industryPosition: '{name}在互联网细分赛道中竞争，用户规模与留存是关键。',
+    strengths: ['网络效应与平台壁垒', '轻资产、边际成本递减', '多元变现路径'],
+    risks: ['监管与合规要求', '流量红利见顶', '宏观影响广告与消费']
+  },
+  '消费电子': {
+    businessOneLiner: '{name}面向消费者的硬件与生态产品，依赖创新与供应链效率。',
+    industryPosition: '{name}在消费电子赛道中，品牌与渠道决定市场份额。',
+    strengths: ['品牌与用户生态', '供应链管理与成本控制', '产品迭代带来换机周期'],
+    risks: ['需求波动与库存风险', '竞争压缩利润率', '创新不及预期']
+  },
+  '新能源汽车': {
+    businessOneLiner: '{name}从事整车或核心零部件，电动化与智能化是主线。',
+    industryPosition: '{name}在新能源车赛道中，交付量与毛利率是核心指标。',
+    strengths: ['电动化渗透率提升', '智能化差异化空间', '政策与基础设施支持'],
+    risks: ['价格战压缩利润', '补贴退坡与竞争加剧', '供应链与召回风险']
+  },
+  '加密货币': {
+    businessOneLiner: '{name}为区块链原生资产，价格由供需、叙事与流动性驱动。',
+    industryPosition: '{name}在加密市场中流动性与共识决定地位。',
+    strengths: ['去中心化与全球流通', '减半/升级等叙事催化', '机构配置通道拓宽'],
+    risks: ['极高波动与监管风险', '安全与黑客事件', '宏观流动性敏感']
+  },
+  '电商': {
+    businessOneLiner: '{name}以电商平台为核心，变现依赖 GMV、广告与云计算等。',
+    industryPosition: '{name}在电商/本地生活赛道中，用户规模与履约效率是关键。',
+    strengths: ['平台规模与数据资产', '多元变现与生态协同', '下沉市场与出海空间'],
+    risks: ['竞争与补贴压力', '监管与反垄断', '宏观消费疲软']
+  },
+  '保险': {
+    businessOneLiner: '{name}以寿险/财险为主，投资收益与承保利润双轮驱动。',
+    industryPosition: '{name}在保险行业中，渠道与负债成本决定竞争力。',
+    strengths: ['长期保单现金流稳定', '品牌与代理人渠道', '投资端弹性'],
+    risks: ['利率下行压制利差', '赔付与退保波动', '监管与资本要求']
+  },
+  '光伏': {
+    businessOneLiner: '{name}布局硅片/组件/电站，受装机量与价格周期影响大。',
+    industryPosition: '{name}在光伏产业链中，成本与一体化程度决定地位。',
+    strengths: ['碳中和长期需求', '龙头成本曲线领先', '技术迭代带来效率提升'],
+    risks: ['产能过剩与价格战', '贸易壁垒', '上游硅料价格波动']
+  },
+  '能源': {
+    businessOneLiner: '{name}为原油/天然气等能源衍生品，价格受供需与地缘驱动。',
+    industryPosition: '{name}在能源市场中，宏观与 OPEC 政策是核心变量。',
+    strengths: ['通胀与地缘避险属性', '供需缺口阶段性支撑', '产业链定价基准'],
+    risks: ['宏观衰退压制需求', '政策与储备释放', '高波动风险']
+  },
+  '外汇': {
+    businessOneLiner: '{name}反映两国货币相对强弱，受利差、贸易与政策影响。',
+    industryPosition: '{name}在汇率市场中，央行政策与跨境资本流动是主线。',
+    strengths: ['流动性极好', '宏观指标可跟踪', '对冲与配置工具'],
+    risks: ['政策干预风险', '单边波动', '杠杆放大损失']
+  },
+  '国债': {
+    businessOneLiner: '{name}代表无风险利率基准，价格与收益率反向变动。',
+    industryPosition: '{name}在债券市场中作为定价锚，受央行与通胀预期驱动。',
+    strengths: ['信用风险极低', '避险与配置价值', '宏观政策敏感可交易'],
+    risks: ['利率上行带来价格下跌', '通胀超预期', '流动性阶段性收紧']
+  },
+  '公链': {
+    businessOneLiner: '{name}为公链原生代币，价值与网络活跃度和生态绑定。',
+    industryPosition: '{name}在公链竞争中，TPS、开发者与 TVL 是核心指标。',
+    strengths: ['生态应用快速增长', '网络效应与社区', '高 Beta 弹性'],
+    risks: ['竞争链分流', '安全与升级风险', '监管不确定性']
+  },
+  '综合': {
+    businessOneLiner: '{name}为跨行业或综合类标的，需结合具体业务线理解。',
+    industryPosition: '{name}在{industry}领域经营，行业地位需结合财报与竞品判断。',
+    strengths: ['业务多元化分散风险', '具备一定区域或品类优势', '估值修复空间需个案分析'],
+    risks: ['业务复杂度高、透明度低', '宏观与政策波动', '竞争格局变化']
+  }
+};
+
+function fillProfileTemplate(tpl, name, industry) {
+  return tpl
+    .replace(/\{name\}/g, name)
+    .replace(/\{industry\}/g, industry);
+}
+
+function getCompanyProfile(code, name, industry) {
+  if (COMPANY_PROFILES[code]) {
+    return {
+      businessOneLiner: COMPANY_PROFILES[code].businessOneLiner,
+      industryPosition: COMPANY_PROFILES[code].industryPosition,
+      strengths: COMPANY_PROFILES[code].strengths.slice(),
+      risks: COMPANY_PROFILES[code].risks.slice()
+    };
+  }
+  const fallback = INDUSTRY_PROFILE_DEFAULT[industry] || INDUSTRY_PROFILE_DEFAULT['综合'];
+  return {
+    businessOneLiner: fillProfileTemplate(fallback.businessOneLiner, name, industry),
+    industryPosition: fillProfileTemplate(fallback.industryPosition, name, industry),
+    strengths: fallback.strengths.slice(),
+    risks: fallback.risks.slice()
+  };
+}
+
+function buildRadarInsights(radar) {
+  return radar.dimensions.map(function (dim, i) {
+    const meta = RADAR_META[dim] || { higherBetter: true, winText: '优于行业', loseText: '低于行业' };
+    const company = radar.company[i];
+    const industry = radar.industry[i];
+    const unit = radar.unit ? radar.unit[i] : '';
+    const win = meta.higherBetter ? company >= industry : company <= industry;
+    const cmp = win ? '高于' : '低于';
+    return {
+      dim: dim,
+      company: company,
+      industry: industry,
+      unit: unit,
+      win: win,
+      tag: win ? '优势' : '关注',
+      text: dim + ' ' + company + unit + '，' + cmp + '行业 ' + industry + unit + '，' + (win ? meta.winText : meta.loseText)
+    };
+  });
+}
+
+function buildPortraitDimensions(stage, healthBreakdown, radarInsights) {
+  const profitInsight = radarInsights[0] || {};
+  const marginInsight = radarInsights[1] || {};
+  return [
+    { key: 'profit', label: '盈利能力', score: healthBreakdown.profit, text: profitInsight.text || '盈利指标待补充' },
+    { key: 'growth', label: '成长动能', score: healthBreakdown.growth, text: stage.label + '阶段，' + stage.desc },
+    { key: 'operation', label: '运营效率', score: healthBreakdown.operation, text: '人均创收与周转效率综合评估' },
+    { key: 'debt', label: '财务安全', score: healthBreakdown.debt, text: (radarInsights[3] && radarInsights[3].text) || '偿债与杠杆综合评估' }
+  ];
+}
 
 const STAGE_INSIGHTS = {
   expansion: {
@@ -80,11 +300,33 @@ function genPercentSeries(rng, start, trend, years) {
   return res;
 }
 
+/** 基于企业序列生成行业均值对比线（略低/更平，保持同周期） */
+function buildIndustryBenchmark(rng, companyData, ratio) {
+  ratio = ratio || 0.85;
+  return companyData.map(function (d) {
+    var jitter = (rng() - 0.5) * 0.06;
+    var scale = ratio + jitter;
+    return {
+      year: d.year,
+      value: +(d.value * scale).toFixed(2)
+    };
+  });
+}
+
+function withIndustryCompare(rng, chart, ratio) {
+  return Object.assign({}, chart, {
+    industryData: buildIndustryBenchmark(rng, chart.data, ratio)
+  });
+}
+
 function findBaseItem(id) {
-  const all = buildRecommendations();
-  for (const market in all) {
-    const found = all[market].find(item => item.id === id);
-    if (found) return found;
+  const all = buildStrategyRecommendations();
+  for (const strategyId in all) {
+    const byMarket = all[strategyId];
+    for (const market in byMarket) {
+      const found = byMarket[market].find(item => item.id === id);
+      if (found) return found;
+    }
   }
   return null;
 }
@@ -167,34 +409,51 @@ function buildCompass(rng, base, stageId) {
       title: '运营人效',
       color: '#f0b90b',
       insight: insights.operation,
-      charts: [
-        { name: '员工数', unit: '人', color: '#848e9c', data: employees },
-        { name: '人均创收', unit: '万', color: '#0ecb81', data: revPerEmp },
-        { name: '存货周转天数', unit: '天', color: '#ff9500', data: genPercentSeries(rng, 85, -3, 8) },
-        { name: '应收周转天数', unit: '天', color: '#a78bfa', data: genPercentSeries(rng, 42, -1.5, 8) }
-      ]
+      charts: (function () {
+        var invDays = genPercentSeries(rng, 85, -3, 8);
+        var arDays = genPercentSeries(rng, 42, -1.5, 8);
+        return [
+          { name: '员工数', unit: '人', color: '#848e9c', data: employees },
+          withIndustryCompare(rng, { name: '人均创收', unit: '万', color: '#0ecb81', data: revPerEmp }, 0.72),
+          withIndustryCompare(rng, { name: '存货周转天数', unit: '天', color: '#ff9500', data: invDays }, 1.08),
+          withIndustryCompare(rng, { name: '应收周转天数', unit: '天', color: '#a78bfa', data: arDays }, 1.05)
+        ];
+      })()
     },
     chain: {
       title: '产业链地位',
       color: '#a78bfa',
       insight: insights.chain,
-      charts: [
-        { name: '毛利率', unit: '%', color: '#0ecb81', data: genPercentSeries(rng, 38, 1.2, 8) },
-        { name: '净利率', unit: '%', color: '#f0b90b', data: genPercentSeries(rng, 22, 0.8, 8) },
-        { name: '预收占比', unit: '%', color: '#848e9c', data: genPercentSeries(rng, 8, 0.6, 8) },
-        { name: '应付/应收比', unit: 'x', color: '#ff9500', data: genYearSeries(rng, 1.2, 0.02, 8).map(d => ({ year: d.year, value: +d.value.toFixed(2) })) }
-      ]
+      compareIndustry: true,
+      charts: (function () {
+        var gross = genPercentSeries(rng, 38, 1.2, 8);
+        var net = genPercentSeries(rng, 22, 0.8, 8);
+        var prepay = genPercentSeries(rng, 8, 0.6, 8);
+        var apAr = genYearSeries(rng, 1.2, 0.02, 8).map(function (d) {
+          return { year: d.year, value: +d.value.toFixed(2) };
+        });
+        return [
+          withIndustryCompare(rng, { name: '毛利率', unit: '%', color: '#0ecb81', data: gross }, 0.82),
+          withIndustryCompare(rng, { name: '净利率', unit: '%', color: '#f0b90b', data: net }, 0.78),
+          withIndustryCompare(rng, { name: '预收占比', unit: '%', color: '#848e9c', data: prepay }, 0.65),
+          withIndustryCompare(rng, { name: '应付/应收比', unit: 'x', color: '#ff9500', data: apAr }, 0.88)
+        ];
+      })()
     },
     capital: {
       title: '资本结构',
       color: '#f6465d',
       insight: insights.capital,
-      charts: [
-        { name: '资产负债率', unit: '%', color: '#f6465d', data: genPercentSeries(rng, 32, 0.5, 8) },
-        { name: '有息负债率', unit: '%', color: '#ff9500', data: genPercentSeries(rng, 12, 0.2, 8) },
-        { name: '货币资金', unit: '亿', color: '#0ecb81', data: genYearSeries(rng, base * 0.15, 0.08, 8) },
-        { name: '短期借款', unit: '亿', color: '#848e9c', data: genYearSeries(rng, base * 0.06, 0.03, 8) }
-      ]
+      charts: (function () {
+        var debtRatio = genPercentSeries(rng, 32, 0.5, 8);
+        var ibDebtRatio = genPercentSeries(rng, 12, 0.2, 8);
+        return [
+          withIndustryCompare(rng, { name: '资产负债率', unit: '%', color: '#f6465d', data: debtRatio }, 1.02),
+          withIndustryCompare(rng, { name: '有息负债率', unit: '%', color: '#ff9500', data: ibDebtRatio }, 0.92),
+          { name: '货币资金', unit: '亿', color: '#0ecb81', data: genYearSeries(rng, base * 0.15, 0.08, 8) },
+          { name: '短期借款', unit: '亿', color: '#848e9c', data: genYearSeries(rng, base * 0.06, 0.03, 8) }
+        ];
+      })()
     }
   };
 }
@@ -223,21 +482,30 @@ function getDetailById(id) {
     compass.capital
   ];
 
+  const profile = getCompanyProfile(base.code, base.name, industry);
+  const radarInsights = buildRadarInsights(radar);
+  const healthBreakdown = {
+    profit: Math.min(99, healthScore + 5),
+    growth: Math.min(99, healthScore - 3),
+    debt: Math.min(99, healthScore + 8),
+    operation: Math.min(99, healthScore - 1)
+  };
+
   return Object.assign({}, base, {
     industry,
     stage,
+    stageHint: STAGE_HINTS[stage.id] || '',
     healthScore,
-    healthRank: '超越' + industry + '行业 ' + healthScore + '% 的公司',
-    healthBreakdown: {
-      profit: Math.min(99, healthScore + 5),
-      growth: Math.min(99, healthScore - 3),
-      debt: Math.min(99, healthScore + 8),
-      operation: Math.min(99, healthScore - 1)
-    },
+    healthRank: '盈利力超过' + industry + '行业 ' + healthScore + '% 的公司',
+    healthBreakdown: healthBreakdown,
+    profile: profile,
+    portraitDimensions: buildPortraitDimensions(stage, healthBreakdown, radarInsights),
+    strategySummary: base.summary,
     radar: Object.assign({}, radar, {
       companyPoints: radarToPoints(radar.company, maxRadar),
       industryPoints: radarToPoints(radar.industry, maxRadar),
-      gridLevels: [20, 35, 50]
+      gridLevels: [20, 35, 50],
+      insights: radarInsights
     }),
     compass,
     compassList,

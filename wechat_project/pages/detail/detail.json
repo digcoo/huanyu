@@ -4,6 +4,7 @@
     "period-switcher": "../../components/period-switcher/period-switcher",
     "mini-kline": "../../components/mini-kline/mini-kline",
     "radar-chart": "../../components/radar-chart/radar-chart",
-    "detail-module": "../../components/detail-module/detail-module"
+    "detail-module": "../../components/detail-module/detail-module",
+    "enterprise-brief": "../../components/enterprise-brief/enterprise-brief"
   }
 }

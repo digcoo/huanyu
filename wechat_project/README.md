@@ -18,7 +18,7 @@
 
 1. 下载并安装 [微信开发者工具](https://developers.weixin.qq.com/miniprogram/dev/devtools/download.html)
 2. 打开微信开发者工具 → 导入项目
-3. 目录选择：`d:\workspaces\huanyu_wealth`
+3. 目录选择：`d:\workspaces\huanyu\wechat_project`
 4. AppID 选择「测试号」或「游客模式」
 5. 点击编译预览
 
