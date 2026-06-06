@@ -138,8 +138,11 @@ const STRATEGIES = [
   }
 ];
 
-function stock(strategy, market, code, name, price, changePct, tags, summary, resonance, trends) {
+const { formatDataUpdatedLabel, todayDayStr } = require('./time');
+
+function stock(strategy, market, code, name, price, changePct, tags, summary, resonance, trends, dataDay) {
   const vol = trends.vol || 0.03;
+  const day = dataDay || todayDayStr();
   return {
     id: strategy + '-' + market + '-' + code,
     strategy,
@@ -151,6 +154,8 @@ function stock(strategy, market, code, name, price, changePct, tags, summary, re
     tags,
     summary,
     resonance,
+    dataDay: day,
+    dataUpdatedLabel: formatDataUpdatedLabel(day),
     klines: {
       year: generateKlineData(50, price * (trends.yearBase || 0.82), vol * 1.8, trends.year),
       month: generateKlineData(50, price * (trends.monthBase || 0.92), vol * 1.3, trends.month),

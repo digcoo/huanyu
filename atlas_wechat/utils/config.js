@@ -1,6 +1,6 @@
 /**
  * 正式版运行时配置（atlas_wechat）
- * Phase 0：useMock=true 保持可独立预览；联调 backend 时改为 false
+ * useMock=false 联调 backend；fallbackOnError=true 时 API 失败回退本地 Mock
  */
 module.exports = {
   useMock: false,

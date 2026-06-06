@@ -124,6 +124,16 @@
 .stock-change.up { color: #0ecb81; }
 .stock-change.down { color: #f6465d; }
 
+.meta-row {
+  margin-top: 4rpx;
+}
+
+.data-updated {
+  font-size: 18rpx;
+  color: #5c6578;
+  line-height: 1.2;
+}
+
 .tags {
   display: flex;
   flex-wrap: wrap;

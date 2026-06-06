@@ -2,6 +2,7 @@
  * Backend DTO → 小程序 UI 字段映射
  */
 const { MARKETS } = require('./mock');
+const { formatDataUpdatedLabel } = require('./time');
 
 const STRATEGY_API = {
   trend: { strategy: 'qsn', trendPeriodTypes: 'week,month', opPeriodType: 'day' },
@@ -97,7 +98,9 @@ function mapRecommendation(item, strategyId) {
     tags: tags,
     summary: item.summary || item.trendMessage || item.mainBusiness || item.signalMessage || '',
     resonance: changePct > 2 ? 'strong' : changePct > 0 ? 'medium' : 'weak',
-    mainBusiness: item.mainBusiness
+    mainBusiness: item.mainBusiness,
+    dataDay: item.day || '',
+    dataUpdatedLabel: formatDataUpdatedLabel(item.day)
   };
 }
 
