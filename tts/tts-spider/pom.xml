@@ -52,7 +52,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <fork>true</fork>
-                    <mainClass>com.yh.bigdata.tts.spider.CryptoApplicationStarter</mainClass>
+                    <mainClass>com.yh.bigdata.tts.spider.ApplicationStarter</mainClass>
                 </configuration>
                 <executions>
                     <execution>

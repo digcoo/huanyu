@@ -4,7 +4,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.yh.bigdata.silkworm.api.BaseTest;
-import com.yh.bigdata.tts.spider.crawler.StockQuarterCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockQuarterXueQiuCrawler;
 
 public class StockQuarterCrawlerTest extends BaseTest{
