@@ -1,0 +1,17 @@
+<view class="matrix">
+  <view class="matrix-header">
+    <text class="matrix-title">多周期共振</text>
+    <view class="resonance-badge {{resonance}}">
+      <text wx:if="{{resonance === 'strong'}}">● 强共振</text>
+      <text wx:elif="{{resonance === 'medium'}}">● 中共振</text>
+      <text wx:elif="{{resonance === 'weak'}}">● 弱共振</text>
+      <text wx:else>● 待观察</text>
+    </view>
+  </view>
+  <view class="grid">
+    <view class="grid-cell"><mini-kline klines="{{klines.year}}" label="年" resonance="{{resonance}}" /></view>
+    <view class="grid-cell"><mini-kline klines="{{klines.month}}" label="月" resonance="{{resonance}}" /></view>
+    <view class="grid-cell"><mini-kline klines="{{klines.week}}" label="周" resonance="{{resonance}}" /></view>
+    <view class="grid-cell"><mini-kline klines="{{klines.day}}" label="日" resonance="{{resonance}}" /></view>
+  </view>
+</view>

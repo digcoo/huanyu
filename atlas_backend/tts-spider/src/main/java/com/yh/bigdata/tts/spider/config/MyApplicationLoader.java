@@ -32,7 +32,9 @@ public class MyApplicationLoader {
     @PostConstruct
     public void onApplicationEvent() {
 
-        if (!"app".equals(env.getProperty("project"))) {
+        if (!"app".equals(env.getProperty("project"))
+                && !Boolean.parseBoolean(env.getProperty("atlas.cache.enabled", "true"))) {
+            log.info("RealtimeStockCache load skipped (atlas.cache.enabled=false and project!=app)");
             return;
         }
 

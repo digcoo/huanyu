@@ -1,0 +1,39 @@
+<view class="trend-chart" wx:if="{{charts.length}}">
+  <view class="trend-grid">
+    <view wx:for="{{charts}}" wx:key="name" wx:for-index="idx" class="mini-chart {{item.hasCompare ? 'has-compare' : ''}}">
+      <view class="mini-head">
+        <text class="mini-name">{{item.name}}</text>
+        <text class="mini-change {{item.trend}}">{{item.changeLabel}}</text>
+      </view>
+      <view wx:if="{{item.hasCompare}}" class="compare-legend">
+        <view class="leg-item">
+          <view class="leg-line solid" style="background: {{item.color}}"></view>
+          <text>企业</text>
+        </view>
+        <view class="leg-item">
+          <view class="leg-line dashed"></view>
+          <text>行业均值</text>
+        </view>
+      </view>
+      <view class="mini-area">
+        <canvas type="2d" id="tc-{{idx}}" class="mini-canvas"></canvas>
+      </view>
+      <view class="year-axis">
+        <text class="year-label">{{item.firstYear}}</text>
+        <text class="year-label">年度</text>
+        <text class="year-label">{{item.lastYear}}</text>
+      </view>
+      <view class="mini-foot">
+        <block wx:if="{{item.hasCompare}}">
+          <text class="foot-item">企 {{item.lastValue}}{{item.unit}}</text>
+          <text class="foot-item industry">行 {{item.industryLastValue}}{{item.unit}}</text>
+        </block>
+        <block wx:else>
+          <text class="foot-item">{{item.firstValue}}{{item.unit}}</text>
+          <text class="foot-arrow">→</text>
+          <text class="foot-item highlight">{{item.lastValue}}{{item.unit}}</text>
+        </block>
+      </view>
+    </view>
+  </view>
+</view>

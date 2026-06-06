@@ -1,0 +1,51 @@
+openapi: 3.0.3
+info:
+  title: Atlas Backend API
+  version: 0.1.0
+  description: atlas_wechat Phase 1 接口草案（context-path /tts）
+servers:
+  - url: http://127.0.0.1:9010/tts
+paths:
+  /stock/health:
+    get:
+      summary: 健康检查与缓存状态
+  /stock/search:
+    get:
+      summary: 股票搜索
+      parameters:
+        - name: q
+          in: query
+          required: true
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+  /stock/{code}:
+    get:
+      summary: 股票摘要
+  /stock/{code}/klines:
+    get:
+      summary: K 线 OHLC
+      parameters:
+        - name: period
+          in: query
+          schema:
+            enum: [day, week, month, year]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+  /stock/{code}/detail:
+    get:
+      summary: 详情（profile + keyMetrics）
+  /stock/{code}/compass:
+    get:
+      summary: 四维罗盘年度序列
+  /stock/findMy:
+    get:
+      summary: 策略选股（已有）
+  /auth/wx/login:
+    post:
+      summary: 微信登录（Phase 1 stub）

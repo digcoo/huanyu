@@ -1,0 +1,139 @@
+.market-tabs {
+  width: 100%;
+  white-space: nowrap;
+  background: #0a0e17;
+  padding: 0 8rpx;
+}
+
+.tabs-inner {
+  display: inline-flex;
+  padding: 16rpx 8rpx 12rpx;
+  gap: 8rpx;
+}
+
+.tab-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12rpx 24rpx;
+  border-radius: 16rpx;
+  position: relative;
+  min-width: 100rpx;
+}
+
+.tab-item.active {
+  background: rgba(0, 212, 255, 0.1);
+}
+
+.tab-icon {
+  font-size: 28rpx;
+  margin-bottom: 4rpx;
+}
+
+.tab-name {
+  font-size: 24rpx;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.tab-item.active .tab-name {
+  color: #00d4ff;
+  font-weight: 600;
+}
+
+.tab-item.disabled {
+  opacity: 0.38;
+}
+
+.tab-item.disabled .tab-name {
+  color: #4a5260;
+}
+
+.tab-item.disabled .tab-icon {
+  filter: grayscale(1);
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32rpx;
+  height: 4rpx;
+  background: #00d4ff;
+  border-radius: 2rpx;
+}
+
+/* 自选页等紧凑场景 */
+.market-tabs.compact {
+  padding: 0 4rpx;
+}
+
+.market-tabs.compact .tabs-inner {
+  padding: 4rpx 8rpx 2rpx;
+  gap: 6rpx;
+}
+
+.market-tabs.compact .tab-item {
+  padding: 6rpx 16rpx;
+  min-width: 84rpx;
+  border-radius: 12rpx;
+}
+
+.market-tabs.compact .tab-icon {
+  font-size: 24rpx;
+  margin-bottom: 2rpx;
+}
+
+.market-tabs.compact .tab-name {
+  font-size: 22rpx;
+}
+
+.market-tabs.compact .tab-indicator {
+  width: 24rpx;
+  height: 3rpx;
+}
+
+/* 单行胶囊：图标+文字横排，显著降低行高 */
+.market-tabs.compact.inline {
+  padding: 0;
+}
+
+.market-tabs.compact.inline .tabs-inner {
+  padding: 0;
+  gap: 8rpx;
+}
+
+.market-tabs.compact.inline .tab-item {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  padding: 6rpx 18rpx;
+  min-width: 0;
+  min-height: 0;
+  border-radius: 999rpx;
+  background: #1e2026;
+  border: 1rpx solid #2b2f36;
+}
+
+.market-tabs.compact.inline .tab-item.active {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: rgba(0, 212, 255, 0.45);
+}
+
+.market-tabs.compact.inline .tab-icon {
+  font-size: 20rpx;
+  margin-bottom: 0;
+  line-height: 1;
+}
+
+.market-tabs.compact.inline .tab-name {
+  font-size: 22rpx;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.market-tabs.compact.inline .tab-indicator {
+  display: none;
+}

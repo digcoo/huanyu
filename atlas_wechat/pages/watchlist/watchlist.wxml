@@ -1,0 +1,85 @@
+<view class="page">
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <view class="nav-title-row">
+        <view class="title-left">
+          <text class="page-title">自选池</text>
+          <text wx:if="{{totalCount > 0}}" class="page-count">{{totalCount}} 只</text>
+        </view>
+        <view class="search-btn" bindtap="onOpenSearch">
+          <text class="search-icon">⌕</text>
+        </view>
+      </view>
+    </view>
+    <view wx:if="{{!isEmpty && marketTabs.length > 1}}" class="market-bar">
+      <market-tabs
+        compact
+        inline
+        markets="{{marketTabs}}"
+        activeMarket="{{activeMarket}}"
+        bind:change="onMarketChange"
+      />
+    </view>
+    <view wx:if="{{!isEmpty}}" class="period-bar">
+      <period-switcher
+        activePeriod="{{activePeriod}}"
+        flipped="{{klineFlipped}}"
+        bind:change="onPeriodChange"
+        bind:flip="onFlipKline"
+      />
+    </view>
+  </view>
+
+  <view class="content" style="padding-top: {{contentTop}}px">
+    <block wx:if="{{!isEmpty && !filterEmpty}}">
+      <view class="list-wrap">
+        <watchlist-item
+          wx:for="{{items}}"
+          wx:key="id"
+          item="{{item}}"
+          activePeriod="{{activePeriod}}"
+          flipped="{{klineFlipped}}"
+          marketLabel="{{item.marketLabel}}"
+          strategyLabel="{{item.strategyLabel}}"
+          addedLabel="{{item.addedLabel}}"
+          bind:itemtap="onItemTap"
+          bind:remove="onRemoveItem"
+          bind:removeconfirm="onRemoveConfirm"
+        />
+        <view class="list-footer">— 已加载全部自选 —</view>
+      </view>
+    </block>
+
+    <view wx:if="{{filterEmpty}}" class="empty filter-empty">
+      <text class="empty-icon">📂</text>
+      <text class="empty-title">该市场暂无自选</text>
+      <text class="empty-desc">切换其他市场标签，或去首页右滑加入</text>
+    </view>
+
+    <view wx:if="{{needLogin}}" class="empty">
+      <view class="empty-icon-wrap">◈</view>
+      <text class="empty-title">登录后使用自选池</text>
+      <text class="empty-desc">跟踪验证需绑定微信账号，数据云端同步</text>
+      <view class="empty-action" bindtap="onTapLogin">微信登录</view>
+    </view>
+
+    <view wx:if="{{isEmpty && !needLogin}}" class="empty">
+      <view class="empty-icon-wrap">☆</view>
+      <text class="empty-title">自选池还是空的</text>
+      <text class="empty-desc">搜索股票名称或代码添加，或在策略页右滑卡片加入自选</text>
+      <view class="empty-action" bindtap="onOpenSearch">搜索添加</view>
+      <view class="empty-action secondary" bindtap="onGoIndex">去策略页看看</view>
+    </view>
+  </view>
+
+  <bottom-nav active="watchlist" watchlistCount="{{watchlistCount}}" />
+
+  <search-panel
+    visible="{{searchVisible}}"
+    watchlistIds="{{watchlistIds}}"
+    statusBarHeight="{{statusBarHeight}}"
+    bind:close="onSearchClose"
+    bind:select="onSearchSelect"
+    bind:addwatchlist="onSearchAddWatchlist"
+  />
+</view>

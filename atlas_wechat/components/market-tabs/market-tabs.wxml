@@ -1,0 +1,16 @@
+<scroll-view class="market-tabs {{compact ? 'compact' : ''}} {{inline ? 'inline' : ''}}" scroll-x enhanced show-scrollbar="{{false}}">
+  <view class="tabs-inner">
+    <view
+      wx:for="{{markets}}"
+      wx:key="id"
+      class="tab-item {{activeMarket === item.id ? 'active' : ''}} {{item.enabled === false ? 'disabled' : ''}}"
+      data-id="{{item.id}}"
+      data-enabled="{{item.enabled !== false}}"
+      bindtap="onTabTap"
+    >
+      <text class="tab-icon">{{item.icon}}</text>
+      <text class="tab-name">{{item.name}}</text>
+      <view wx:if="{{activeMarket === item.id}}" class="tab-indicator"></view>
+    </view>
+  </view>
+</scroll-view>

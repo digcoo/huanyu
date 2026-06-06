@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "mini-kline": "../mini-kline/mini-kline"
+  }
+}

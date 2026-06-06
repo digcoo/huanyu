@@ -137,6 +137,19 @@
   	 from base s
   </select>
 
+  <select id="searchByKeyword" resultMap="BaseResultMap">
+    select
+      <include refid="Base_Column_List" />
+    from base s
+    where s.is_trade = 1
+      and (
+        s.code like concat('%', #{keyword}, '%')
+        or s.name like concat('%', #{keyword}, '%')
+      )
+    order by s.amount desc
+    limit #{limit}
+  </select>
+
   <select id="selectByPageQuery" resultMap="BaseResultMap" parameterType="com.yh.bigdata.tts.common.param.StockPageQuery">
     select s.code, s.name, s.trade, s.open, s.high, s.low, s.is_st, s.day 
     		, s.ma5, s.ma10, s.ma20, s.ma30

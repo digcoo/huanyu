@@ -1,0 +1,33 @@
+<view class="enterprise-brief" wx:if="{{profile}}">
+  <view class="brief-block">
+    <text class="brief-label">业务</text>
+    <text class="brief-text">{{profile.businessOneLiner}}</text>
+  </view>
+  <view class="brief-block">
+    <text class="brief-label">行业地位</text>
+    <text class="brief-text">{{profile.industryPosition}}</text>
+  </view>
+  <view wx:if="{{profile.dimensions && profile.dimensions.length}}" class="dimension-section">
+    <text class="dimension-head">认知维度</text>
+    <view wx:for="{{profile.dimensions}}" wx:key="key" class="dimension-item">
+      <text class="dim-label">{{item.label}}</text>
+      <text class="dim-text">{{item.text}}</text>
+    </view>
+  </view>
+  <view class="brief-row">
+    <view class="brief-col strengths">
+      <text class="col-title">核心优势</text>
+      <view wx:for="{{profile.strengths}}" wx:key="*this" class="bullet-item">
+        <text class="bullet-dot">+</text>
+        <text class="bullet-text">{{item}}</text>
+      </view>
+    </view>
+    <view class="brief-col risks">
+      <text class="col-title">主要风险</text>
+      <view wx:for="{{profile.risks}}" wx:key="*this" class="bullet-item">
+        <text class="bullet-dot">−</text>
+        <text class="bullet-text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+</view>

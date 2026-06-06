@@ -1,0 +1,55 @@
+<wxs src="../../utils/chart.wxs" module="c" />
+
+<view class="item-wrapper">
+  <view class="action-bg remove {{actionHint === 'remove' ? 'visible' : ''}}">
+    <text class="action-icon">✕</text>
+    <text class="action-text">移除</text>
+  </view>
+
+  <view
+    class="watchlist-item {{swiping ? 'swiping' : ''}}"
+    style="transform: translateX({{offsetX}}px)"
+    bindtouchstart="onTouchStart"
+    bindtouchmove="onTouchMove"
+    bindtouchend="onTouchEnd"
+    bindtap="onTap"
+  >
+    <view class="card-header">
+      <view class="stock-info">
+        <text class="stock-name">{{item.name}}</text>
+        <text class="stock-code">{{item.code}}</text>
+      </view>
+      <view class="price-info">
+        <text class="stock-price">{{item.price}}</text>
+        <text class="stock-change {{item.changePct >= 0 ? 'up' : 'down'}}">
+          {{item.changePct >= 0 ? '+' : ''}}{{item.changePct}}%
+        </text>
+      </view>
+    </view>
+
+    <view wx:if="{{marketLabel || strategyLabel}}" class="meta-row">
+      <text wx:if="{{marketLabel}}" class="meta-badge market">{{marketLabel}}</text>
+      <text wx:if="{{strategyLabel}}" class="meta-badge strategy">{{strategyLabel}}</text>
+    </view>
+
+    <view wx:if="{{item.tags && item.tags.length}}" class="tags">
+      <text wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag" class="tag">{{tag}}</text>
+    </view>
+
+    <mini-kline
+      wx:if="{{item.chartKlines && item.chartKlines.length}}"
+      klines="{{item.chartKlines}}"
+      label="{{c.periodLabel(activePeriod)}}"
+      markerLabel="{{addedLabel}}"
+      size="card"
+      maxBars="{{c.maxBars(activePeriod)}}"
+      flipped="{{flipped}}"
+      resonance="{{item.resonance}}"
+    />
+
+    <view class="item-footer">
+      <text class="hint">点击查看详情</text>
+      <view class="remove-btn" catchtap="onRemoveTap">移除</view>
+    </view>
+  </view>
+</view>

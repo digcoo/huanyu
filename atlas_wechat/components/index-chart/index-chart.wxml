@@ -1,0 +1,27 @@
+<view class="index-chart" wx:if="{{indices.length}}">
+  <view class="index-tabs">
+    <view
+      wx:for="{{indices}}"
+      wx:key="code"
+      class="index-tab {{currentIndex === index ? 'active' : ''}}"
+      data-index="{{index}}"
+      bindtap="onTabTap"
+    >
+      <text class="index-name">{{item.name}}</text>
+      <text class="index-price">{{item.price}}</text>
+      <text class="index-change {{item.changePct >= 0 ? 'up' : 'down'}}">
+        {{item.changePct >= 0 ? '+' : ''}}{{item.changePct}}%
+      </text>
+    </view>
+  </view>
+
+  <mini-kline
+    wx:if="{{chartKlines.length}}"
+    klines="{{chartKlines}}"
+    label="{{chartLabel}}"
+    size="card"
+    maxBars="{{maxBars}}"
+    flipped="{{flipped}}"
+    resonance="none"
+  />
+</view>

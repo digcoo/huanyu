@@ -1,0 +1,76 @@
+page {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #0f1419;
+  --bg-card: #141b26;
+  --bg-card-hover: #1a2332;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --text-primary: #e8edf5;
+  --text-secondary: #8b95a8;
+  --text-muted: #5c6578;
+  --accent-blue: #00d4ff;
+  --accent-orange: #ff9500;
+  --accent-green: #0ecb81;
+  --accent-red: #f6465d;
+  --kline-up: #0ecb81;
+  --kline-down: #f6465d;
+  --kline-bg: #1e2026;
+  --kline-grid: #2b2f36;
+
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-size: 28rpx;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+view, text, scroll-view {
+  box-sizing: border-box;
+}
+
+.container {
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.text-accent {
+  color: var(--accent-blue);
+}
+
+.text-up {
+  color: var(--kline-up);
+}
+
+.text-down {
+  color: var(--kline-down);
+}
+
+.card {
+  background: var(--bg-card);
+  border-radius: 20rpx;
+  border: 1rpx solid var(--border-subtle);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 1rpx;
+}
+
+.section-subtitle {
+  font-size: 22rpx;
+  color: var(--text-muted);
+  margin-top: 4rpx;
+}

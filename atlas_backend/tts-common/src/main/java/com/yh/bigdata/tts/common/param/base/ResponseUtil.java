@@ -28,6 +28,10 @@ public class ResponseUtil {
 		return new Response<String>(SERVER_ERROR.statusCode, SERVER_ERROR.errorMessage);
 	}
 	
+	public static <T> Response<T> fail(ResponseCode responseCode) {
+		return new Response<>(responseCode.statusCode, responseCode.errorMessage);
+	}
+	
 	public static Response<String> custom(ResponseCode responseCode) {
 		return new Response<String>(responseCode.statusCode, responseCode.errorMessage);
 	}

@@ -55,5 +55,7 @@ public interface StockBaseMapper {
   Page<StockBase> selectDaZhangByPageQuery(StockPageQuery pageQuery);
 
   List<StockBase> selectAll();
+
+  List<StockBase> searchByKeyword(@Param("keyword") String keyword, @Param("limit") int limit);
   
 }

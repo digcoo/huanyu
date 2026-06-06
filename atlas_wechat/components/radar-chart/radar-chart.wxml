@@ -1,0 +1,59 @@
+<view class="radar-chart" wx:if="{{dimensions.length}}">
+  <view class="radar-wrap">
+    <view class="radar-bg">
+      <view class="ring ring-1"></view>
+      <view class="ring ring-2"></view>
+      <view class="ring ring-3"></view>
+      <view class="axis axis-0"></view>
+      <view class="axis axis-1"></view>
+      <view class="axis axis-2"></view>
+      <view class="axis axis-3"></view>
+      <view class="axis axis-4"></view>
+    </view>
+    <view class="radar-layer industry">
+      <view
+        wx:for="{{industryPoints}}"
+        wx:key="index"
+        class="radar-dot"
+        style="left: {{item.x}}%; top: {{item.y}}%;"
+      ></view>
+    </view>
+    <view class="radar-layer company">
+      <view
+        wx:for="{{companyPoints}}"
+        wx:key="index"
+        class="radar-dot"
+        style="left: {{item.x}}%; top: {{item.y}}%;"
+      ></view>
+    </view>
+    <view class="radar-labels">
+      <text class="lbl lbl-0">{{dimensions[0]}}</text>
+      <text class="lbl lbl-1">{{dimensions[1]}}</text>
+      <text class="lbl lbl-2">{{dimensions[2]}}</text>
+      <text class="lbl lbl-3">{{dimensions[3]}}</text>
+      <text class="lbl lbl-4">{{dimensions[4]}}</text>
+    </view>
+  </view>
+  <view class="radar-legend">
+    <view class="leg-item"><view class="leg-dot company"></view><text>企业</text></view>
+    <view class="leg-item"><view class="leg-dot industry"></view><text>行业均值</text></view>
+  </view>
+  <view class="compare-table">
+    <view class="table-head">
+      <text class="col dim">指标</text>
+      <text class="col">企业</text>
+      <text class="col">行业</text>
+    </view>
+    <view wx:for="{{rows}}" wx:key="dim" class="table-row">
+      <text class="col dim">{{item.dim}}</text>
+      <text class="col {{item.win ? 'win' : ''}}">{{item.company}}{{item.unit}}</text>
+      <text class="col muted">{{item.industry}}{{item.unit}}</text>
+    </view>
+  </view>
+  <view class="insight-list" wx:if="{{insights.length}}">
+    <view wx:for="{{insights}}" wx:key="dim" class="insight-row">
+      <text class="insight-tag {{item.win ? 'win' : 'warn'}}">{{item.tag}}</text>
+      <text class="insight-text">{{item.text}}</text>
+    </view>
+  </view>
+</view>

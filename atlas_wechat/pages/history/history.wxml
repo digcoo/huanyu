@@ -1,0 +1,91 @@
+<view class="page">
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <view class="nav-title-row">
+        <text class="page-title">历史复盘</text>
+        <text wx:if="{{summary.total > 0}}" class="page-count">{{summary.total}} 笔</text>
+      </view>
+      <text class="page-sub">自选加入 → 移出期间的盈亏统计</text>
+    </view>
+    <view wx:if="{{!isEmpty}}" class="period-bar">
+      <period-switcher
+        activePeriod="{{activePeriod}}"
+        flipped="{{klineFlipped}}"
+        bind:change="onPeriodChange"
+        bind:flip="onFlipKline"
+      />
+    </view>
+  </view>
+
+  <view class="content" style="padding-top: {{contentTop}}px">
+    <view wx:if="{{!isEmpty}}" class="summary-card">
+      <view class="kpi-grid">
+        <view class="kpi-item">
+          <text class="kpi-value">{{summary.total}}</text>
+          <text class="kpi-label">完结笔数</text>
+        </view>
+        <view class="kpi-item">
+          <text class="kpi-value accent">{{summary.winRateText}}</text>
+          <text class="kpi-label">胜率</text>
+        </view>
+        <view class="kpi-item">
+          <text class="kpi-value">{{summary.avgHoldText}}</text>
+          <text class="kpi-label">均持有</text>
+        </view>
+        <view class="kpi-item">
+          <text class="kpi-value {{summary.avgPnlPct >= 0 ? 'up' : 'down'}}">{{summary.avgPnlText}}</text>
+          <text class="kpi-label">均收益</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!isEmpty}}" class="filter-bar">
+      <view
+        wx:for="{{filters}}"
+        wx:key="id"
+        class="filter-chip {{activeFilter === item.id ? 'active' : ''}}"
+        data-filter="{{item.id}}"
+        bindtap="onFilterTap"
+      >{{item.label}}</view>
+    </view>
+
+    <block wx:if="{{!isEmpty && !filterEmpty}}">
+      <view class="list-wrap">
+        <history-item
+          wx:for="{{items}}"
+          wx:key="recordId"
+          item="{{item}}"
+          activePeriod="{{activePeriod}}"
+          flipped="{{klineFlipped}}"
+          marketLabel="{{item.marketLabel}}"
+          strategyLabel="{{item.strategyLabel}}"
+          bind:itemtap="onItemTap"
+        />
+        <view class="list-footer">— 已加载全部历史 —</view>
+      </view>
+    </block>
+
+    <view wx:if="{{filterEmpty}}" class="empty filter-empty">
+      <text class="empty-icon">📂</text>
+      <text class="empty-title">该筛选暂无记录</text>
+      <text class="empty-desc">切换「全部」查看完整历史</text>
+    </view>
+
+    <view wx:if="{{needLogin}}" class="empty">
+      <view class="empty-icon-wrap">◈</view>
+      <text class="empty-title">登录后查看历史复盘</text>
+      <text class="empty-desc">完结记录与自选池绑定同一账号</text>
+      <view class="empty-action" bindtap="onTapLogin">微信登录</view>
+    </view>
+
+    <view wx:if="{{isEmpty && !needLogin}}" class="empty">
+      <view class="empty-icon-wrap">◷</view>
+      <text class="empty-title">还没有完结记录</text>
+      <text class="empty-desc">移出自选的标的会在这里统计持有期盈亏</text>
+      <view class="empty-action" bindtap="onGoWatchlist">去自选池看看</view>
+    </view>
+  </view>
+
+  <bottom-nav active="history" watchlistCount="{{watchlistCount}}" />
+</view>
+

@@ -1,0 +1,137 @@
+.history-item {
+  background: #141b26;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.06);
+  padding: 12rpx 16rpx 14rpx;
+  margin-bottom: 14rpx;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.stock-info {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8rpx;
+  min-width: 0;
+  flex: 1;
+}
+
+.stock-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #e8edf5;
+  line-height: 1.2;
+}
+
+.stock-code {
+  font-size: 18rpx;
+  color: #5c6578;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  line-height: 1.2;
+}
+
+.pnl-info {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pnl-value {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  line-height: 1.2;
+}
+
+.pnl-value.up { color: #f6465d; }
+.pnl-value.down { color: #0ecb81; }
+
+.pnl-sub {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 18rpx;
+  color: #848e9c;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  line-height: 1.2;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6rpx;
+  margin-top: 6rpx;
+}
+
+.meta-badge {
+  font-size: 18rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 4rpx;
+}
+
+.meta-badge.market {
+  color: #00d4ff;
+  background: rgba(0, 212, 255, 0.08);
+  border: 1rpx solid rgba(0, 212, 255, 0.15);
+}
+
+.meta-badge.strategy {
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.08);
+  border: 1rpx solid rgba(167, 139, 250, 0.15);
+}
+
+.meta-badge.period,
+.meta-badge.hold {
+  color: #848e9c;
+  background: rgba(132, 142, 156, 0.08);
+  border: 1rpx solid rgba(132, 142, 156, 0.15);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6rpx;
+  margin-top: 6rpx;
+}
+
+.tag {
+  font-size: 18rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 4rpx;
+  background: rgba(0, 212, 255, 0.08);
+  color: #00d4ff;
+  border: 1rpx solid rgba(0, 212, 255, 0.15);
+}
+
+.tag:nth-child(2n) {
+  background: rgba(255, 149, 0, 0.08);
+  color: #ff9500;
+  border-color: rgba(255, 149, 0, 0.15);
+}
+
+.tag:nth-child(3n) {
+  background: rgba(167, 139, 250, 0.08);
+  color: #a78bfa;
+  border-color: rgba(167, 139, 250, 0.15);
+}
+
+.item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10rpx;
+  padding-top: 8rpx;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.04);
+}
+
+.hint {
+  font-size: 20rpx;
+  color: #5c6578;
+}
