@@ -1,0 +1,210 @@
+<wxs src="../../utils/chart.wxs" module="c" />
+
+<view class="page">
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+    <view class="nav-content">
+      <view class="back-btn" bindtap="onBack">←</view>
+      <view class="nav-title" wx:if="{{detail}}">
+        <text class="nav-name">{{detail.name}}</text>
+        <text class="nav-code">{{detail.code}}</text>
+      </view>
+      <view class="nav-title" wx:else>
+        <text class="nav-name">标的详情</text>
+      </view>
+      <view class="watch-btn" wx:if="{{detail}}" bindtap="onAddWatchlist">★</view>
+      <view class="watch-btn placeholder" wx:else></view>
+    </view>
+  </view>
+
+  <view wx:if="{{notFound}}" class="not-found" style="padding-top: {{statusBarHeight + 88}}px">
+    <text class="not-found-icon">◈</text>
+    <text class="not-found-title">未找到该标的</text>
+    <text class="not-found-desc">请搜索标的，或从策略推荐进入</text>
+  </view>
+
+  <block wx:if="{{detail}}">
+    <!-- 价格条 -->
+    <view class="detail-header" style="padding-top: {{statusBarHeight + 56}}px">
+      <view class="price-row">
+        <view class="price-main {{detail.changePct > 0 ? 'up' : detail.changePct < 0 ? 'down' : 'flat'}}">
+          <text class="price-value">{{detail.price}}</text>
+          <text class="price-change">{{detail.changePct >= 0 ? '+' : ''}}{{detail.changePct}}%</text>
+        </view>
+        <view class="badge-group">
+          <view class="industry-badge">{{detail.industry}}</view>
+          <view class="resonance-badge {{detail.resonance}}">
+            {{detail.resonance === 'strong' ? '强共振' : detail.resonance === 'medium' ? '中共振' : '弱共振'}}
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ① K 线 -->
+    <view class="kline-section kline-section-top">
+      <view class="period-sticky" style="top: {{statusBarHeight + 44}}px">
+        <period-switcher
+          activePeriod="{{activePeriod}}"
+          flipped="{{klineFlipped}}"
+          bind:change="onPeriodChange"
+          bind:flip="onFlipKline"
+        />
+      </view>
+      <view class="kline-panel">
+        <mini-kline
+          wx:if="{{chartKlines.length}}"
+          klines="{{chartKlines}}"
+          label="{{c.periodLabel(activePeriod)}} · 50根"
+          size="card"
+          maxBars="{{c.maxBars(activePeriod)}}"
+          flipped="{{klineFlipped}}"
+          resonance="{{detail.resonance}}"
+        />
+      </view>
+    </view>
+
+    <!-- ② 企业速览 -->
+    <view class="section section-tight">
+      <view class="section-head">
+        <text class="section-title">企业速览</text>
+        <text class="section-sub">60 秒读懂业务 · 地位 · 认知维度</text>
+      </view>
+      <enterprise-brief profile="{{detail.profile}}" />
+    </view>
+
+    <!-- ③ 企业画像 -->
+    <view class="section">
+      <view class="section-head">
+        <text class="section-title">企业画像</text>
+        <text class="section-sub">生命周期 · 财务健康度</text>
+      </view>
+
+      <view class="stage-card">
+        <view class="stage-badge" style="border-color: {{detail.stage.color}}; color: {{detail.stage.color}}">
+          {{detail.stage.label}}
+        </view>
+        <text class="stage-desc">{{detail.stage.desc}}</text>
+        <text wx:if="{{detail.stageHint}}" class="stage-hint">{{detail.stageHint}}</text>
+      </view>
+
+      <view class="portrait-grid">
+        <view wx:for="{{detail.portraitDimensions}}" wx:key="key" class="portrait-item">
+          <view class="portrait-head">
+            <text class="portrait-label">{{item.label}}</text>
+            <text class="portrait-score">{{item.score}}</text>
+          </view>
+          <text class="portrait-text">{{item.text}}</text>
+        </view>
+      </view>
+
+      <view class="health-card">
+        <view class="health-score-wrap">
+          <view class="score-ring">
+            <text class="score-num">{{detail.healthScore}}</text>
+            <text class="score-unit">分</text>
+          </view>
+          <view class="health-info">
+            <text class="health-rank">{{detail.healthRank}}</text>
+            <view class="health-bars">
+              <view class="hbar-row">
+                <text class="hbar-label">盈利</text>
+                <view class="hbar-track"><view class="hbar-fill" style="width: {{detail.healthBreakdown.profit}}%"></view></view>
+                <text class="hbar-val">{{detail.healthBreakdown.profit}}</text>
+              </view>
+              <view class="hbar-row">
+                <text class="hbar-label">成长</text>
+                <view class="hbar-track"><view class="hbar-fill growth" style="width: {{detail.healthBreakdown.growth}}%"></view></view>
+                <text class="hbar-val">{{detail.healthBreakdown.growth}}</text>
+              </view>
+              <view class="hbar-row">
+                <text class="hbar-label">偿债</text>
+                <view class="hbar-track"><view class="hbar-fill debt" style="width: {{detail.healthBreakdown.debt}}%"></view></view>
+                <text class="hbar-val">{{detail.healthBreakdown.debt}}</text>
+              </view>
+              <view class="hbar-row">
+                <text class="hbar-label">运营</text>
+                <view class="hbar-track"><view class="hbar-fill op" style="width: {{detail.healthBreakdown.operation}}%"></view></view>
+                <text class="hbar-val">{{detail.healthBreakdown.operation}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- ④ 行业对标 -->
+    <view class="section">
+      <view class="section-head">
+        <text class="section-title">行业对标</text>
+        <text class="section-sub">{{detail.industry}} · 五维雷达 vs 行业均值</text>
+      </view>
+      <view class="card-block">
+        <radar-chart radar="{{detail.radar}}" />
+      </view>
+    </view>
+
+    <!-- ⑤ 四维罗盘（默认折叠） -->
+    <view class="section">
+      <view class="section-head">
+        <text class="section-title">四维罗盘</text>
+        <text class="section-sub">近8年年度数据 · 点击展开</text>
+      </view>
+
+      <detail-module
+        module="{{detail.compass.financial}}"
+        moduleKey="financial"
+        expanded="{{expandedModules.financial}}"
+        bind:toggle="onToggleModule"
+      />
+      <detail-module
+        module="{{detail.compass.operation}}"
+        moduleKey="operation"
+        expanded="{{expandedModules.operation}}"
+        bind:toggle="onToggleModule"
+      />
+      <detail-module
+        module="{{detail.compass.chain}}"
+        moduleKey="chain"
+        expanded="{{expandedModules.chain}}"
+        bind:toggle="onToggleModule"
+      />
+      <detail-module
+        module="{{detail.compass.capital}}"
+        moduleKey="capital"
+        expanded="{{expandedModules.capital}}"
+        bind:toggle="onToggleModule"
+      />
+    </view>
+
+    <!-- ⑥ 关键指标 -->
+    <view class="section">
+      <view class="section-head">
+        <text class="section-title">关键指标</text>
+        <text class="section-sub">估值 · 盈利 · 安全</text>
+      </view>
+      <view class="metrics-grid">
+        <view wx:for="{{detail.keyMetrics}}" wx:key="label" class="metric-item">
+          <text class="metric-label">{{item.label}}</text>
+          <text class="metric-value">{{item.value}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- ⑦ 策略逻辑 -->
+    <view class="section section-last">
+      <view class="section-head">
+        <text class="section-title">策略逻辑</text>
+        <text class="section-sub">来自首页推荐引擎</text>
+      </view>
+      <view class="tags">
+        <text wx:for="{{detail.tags}}" wx:key="*this" class="tag">{{item}}</text>
+      </view>
+      <view class="summary-box">
+        <text class="summary-text">{{detail.strategySummary}}</text>
+      </view>
+    </view>
+
+    <view class="page-footer">
+      <text>— Atlas 深度解剖 · Demo 数据 —</text>
+    </view>
+  </block>
+</view>

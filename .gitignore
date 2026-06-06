@@ -28,6 +28,8 @@ logs/
 
 # WeChat Mini Program
 wechat_project/project.private.config.json
+atlas_wechat/
+atlas_demo/project.private.config.json
 miniprogram_npm/
 node_modules/
 

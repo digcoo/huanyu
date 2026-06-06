@@ -1,0 +1,166 @@
+<view class="page">
+
+  <!-- 品牌区：滚动时吸顶 -->
+
+  <view class="nav-sticky" style="padding-top: {{statusBarHeight}}px">
+
+    <view class="nav-content">
+
+      <view class="brand">
+
+        <text class="brand-logo">◈</text>
+
+        <view class="brand-text">
+
+          <text class="brand-name">Atlas</text>
+
+          <text class="brand-sub">寰宇全息投研助手</text>
+
+        </view>
+
+      </view>
+
+      <view class="nav-actions" style="margin-right: {{navPaddingRight}}px">
+        <view class="search-btn" bindtap="onOpenSearch">
+          <text class="search-icon">⌕</text>
+        </view>
+        <view class="nav-stats">
+          <text class="stat-num">{{recommendations.length}}</text>
+          <text class="stat-label">推荐</text>
+        </view>
+      </view>
+
+    </view>
+
+  </view>
+
+
+
+  <market-tabs
+
+    markets="{{markets}}"
+
+    activeMarket="{{activeMarket}}"
+
+    bind:change="onMarketChange"
+
+  />
+
+
+
+  <view class="chart-block">
+
+    <view class="market-panel">
+
+      <index-chart indices="{{indices}}" activePeriod="{{activePeriod}}" flipped="{{klineFlipped}}" />
+
+    </view>
+
+  </view>
+
+
+
+  <!-- 周期 + 策略：滚过 K 线后吸顶，叠在品牌区下方 -->
+
+  <view class="toolbar-sticky" style="top: {{toolbarStickyTop}}px">
+
+    <view class="toolbar-inner">
+
+      <view class="period-bar">
+
+        <period-switcher
+
+          activePeriod="{{activePeriod}}"
+
+          flipped="{{klineFlipped}}"
+
+          bind:change="onPeriodChange"
+
+          bind:flip="onFlipKline"
+
+        />
+
+      </view>
+
+      <strategy-tabs
+
+        strategies="{{strategies}}"
+
+        activeStrategy="{{activeStrategy}}"
+
+        bind:change="onStrategyChange"
+
+      />
+
+    </view>
+
+  </view>
+
+
+
+  <view class="recommend-list">
+
+    <view class="list-header">
+
+      <text class="list-subtitle">{{activeStrategyMeta.desc}}</text>
+
+    </view>
+
+
+
+    <view wx:if="{{recommendations.length === 0}}" class="empty-state">
+
+      <text class="empty-icon">📭</text>
+
+      <text class="empty-text">该策略暂无推荐</text>
+
+      <text class="empty-hint">切换市场或其他策略查看更多标的</text>
+
+    </view>
+
+
+
+    <strategy-card
+
+      wx:for="{{recommendations}}"
+
+      wx:key="id"
+
+      item="{{item}}"
+
+      activePeriod="{{activePeriod}}"
+
+      flipped="{{klineFlipped}}"
+
+      bind:watchlist="onAddWatchlist"
+
+      bind:ignore="onIgnore"
+
+      bind:cardtap="onCardTap"
+
+    />
+
+
+
+    <view class="list-footer">
+
+      <text>— 左滑忽略 · 右滑自选 · 点击查看详情 —</text>
+
+    </view>
+
+  </view>
+
+
+
+  <bottom-nav active="index" watchlistCount="{{watchlistCount}}" />
+
+  <search-panel
+    visible="{{searchVisible}}"
+    watchlistIds="{{watchlistIds}}"
+    statusBarHeight="{{statusBarHeight}}"
+    bind:close="onSearchClose"
+    bind:select="onSearchSelect"
+    bind:addwatchlist="onSearchAddWatchlist"
+  />
+</view>
+

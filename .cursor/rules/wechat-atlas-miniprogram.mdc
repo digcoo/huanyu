@@ -1,6 +1,6 @@
 ---
-description: Atlas 微信小程序（wechat_project）架构、改动点与设计原则
-globs: wechat_project/**/*
+description: Atlas 微信小程序（atlas_demo / atlas_wechat）架构、改动点与设计原则
+globs: atlas_demo/**/*,atlas_wechat/**/*
 alwaysApply: false
 ---
 

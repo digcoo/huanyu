@@ -1,0 +1,35 @@
+<view class="bottom-nav">
+  <view
+    class="nav-item {{active === 'index' ? 'active' : ''}}"
+    data-page="index"
+    bindtap="onNavTap"
+  >
+    <view class="nav-icon-wrap">
+      <text class="nav-icon">◈</text>
+    </view>
+    <text class="nav-label">策略</text>
+  </view>
+  <view
+    class="nav-item {{active === 'watchlist' ? 'active' : ''}}"
+    data-page="watchlist"
+    bindtap="onNavTap"
+  >
+    <view class="nav-icon-wrap">
+      <text class="nav-icon">☆</text>
+      <view wx:if="{{watchlistCount > 0}}" class="nav-badge">
+        {{watchlistCount > 99 ? '99+' : watchlistCount}}
+      </view>
+    </view>
+    <text class="nav-label">自选</text>
+  </view>
+  <view
+    class="nav-item {{active === 'history' ? 'active' : ''}}"
+    data-page="history"
+    bindtap="onNavTap"
+  >
+    <view class="nav-icon-wrap">
+      <text class="nav-icon">◷</text>
+    </view>
+    <text class="nav-label">历史</text>
+  </view>
+</view>

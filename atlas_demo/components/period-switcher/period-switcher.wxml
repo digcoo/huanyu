@@ -1,0 +1,16 @@
+<view class="period-switcher">
+  <view class="period-toolbar">
+    <view class="flip-btn {{flipped ? 'active' : ''}}" bindtap="onFlip">
+      <text class="flip-icon">⇄</text>
+    </view>
+    <view class="period-tabs">
+      <view
+        wx:for="{{periods}}"
+        wx:key="id"
+        class="period-tab {{activePeriod === item.id ? 'active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="onTap"
+      >{{item.label}}</view>
+    </view>
+  </view>
+</view>

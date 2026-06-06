@@ -1,0 +1,40 @@
+<wxs src="../../utils/chart.wxs" module="c" />
+
+<view class="history-item" bindtap="onTap">
+  <view class="card-header">
+    <view class="stock-info">
+      <text class="stock-name">{{item.name}}</text>
+      <text class="stock-code">{{item.code}}</text>
+    </view>
+    <view class="pnl-info">
+      <text class="pnl-value {{item.pnlClass}}">{{item.pnlText}}</text>
+      <text class="pnl-sub">{{item.priceRange}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{marketLabel || strategyLabel}}" class="meta-row">
+    <text wx:if="{{marketLabel}}" class="meta-badge market">{{marketLabel}}</text>
+    <text wx:if="{{strategyLabel}}" class="meta-badge strategy">{{strategyLabel}}</text>
+    <text class="meta-badge period">{{item.periodLabel}}</text>
+    <text class="meta-badge hold">{{item.holdLabel}}</text>
+  </view>
+
+  <view wx:if="{{item.tags && item.tags.length}}" class="tags">
+    <text wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag" class="tag">{{tag}}</text>
+  </view>
+
+  <mini-kline
+    wx:if="{{item.chartKlines && item.chartKlines.length}}"
+    klines="{{item.chartKlines}}"
+    label="{{c.periodLabel(activePeriod)}}"
+    markerLabel="{{item.markerLabel}}"
+    size="card"
+    maxBars="{{c.maxBars(activePeriod)}}"
+    flipped="{{flipped}}"
+    resonance="{{item.resonance}}"
+  />
+
+  <view class="item-footer">
+    <text class="hint">持有期复盘 · 点击查看详情</text>
+  </view>
+</view>

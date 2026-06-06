@@ -1,0 +1,58 @@
+App({
+  globalData: {
+    watchlist: [],
+    history: [],
+    ignoredIds: []
+  },
+
+  onLaunch() {
+    const { loadWatchlist } = require('./utils/watchlist');
+    const { loadHistory } = require('./utils/history');
+    this.globalData.watchlist = loadWatchlist();
+    this.globalData.history = loadHistory();
+    this.globalData.ignoredIds = wx.getStorageSync('ignoredIds') || [];
+  },
+
+  addToWatchlist(item) {
+    if (!item || !item.id) return false;
+    const exists = this.globalData.watchlist.some(function (w) { return w.id === item.id; });
+    if (exists) return false;
+
+    const entryPrice = item.price;
+    const entry = Object.assign({}, item, {
+      addedAt: Date.now(),
+      entryPrice: entryPrice
+    });
+    delete entry.chartKlines;
+    this.globalData.watchlist.unshift(entry);
+    const { saveWatchlist } = require('./utils/watchlist');
+    saveWatchlist(this.globalData.watchlist);
+    return true;
+  },
+
+  removeFromWatchlist(id, removeReason) {
+    const item = this.globalData.watchlist.find(function (w) { return w.id === id; });
+    if (!item) return false;
+
+    const { archiveRecord } = require('./utils/history');
+    archiveRecord(item, removeReason || 'manual');
+    this.globalData.history = require('./utils/history').loadHistory();
+
+    this.globalData.watchlist = this.globalData.watchlist.filter(function (w) { return w.id !== id; });
+    const { saveWatchlist } = require('./utils/watchlist');
+    saveWatchlist(this.globalData.watchlist);
+    return true;
+  },
+
+  getWatchlist() {
+    const { rehydrateItem } = require('./utils/watchlist');
+    return this.globalData.watchlist.map(rehydrateItem);
+  },
+
+  ignoreItem(id) {
+    if (!this.globalData.ignoredIds.includes(id)) {
+      this.globalData.ignoredIds.push(id);
+      wx.setStorageSync('ignoredIds', this.globalData.ignoredIds);
+    }
+  }
+});

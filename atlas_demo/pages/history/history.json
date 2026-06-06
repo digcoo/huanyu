@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "bottom-nav": "../../components/bottom-nav/bottom-nav",
+    "period-switcher": "../../components/period-switcher/period-switcher",
+    "history-item": "../../components/history-item/history-item"
+  },
+  "navigationStyle": "custom"
+}
+

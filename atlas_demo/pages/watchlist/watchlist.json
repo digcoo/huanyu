@@ -1,0 +1,10 @@
+{
+  "usingComponents": {
+    "bottom-nav": "../../components/bottom-nav/bottom-nav",
+    "market-tabs": "../../components/market-tabs/market-tabs",
+    "period-switcher": "../../components/period-switcher/period-switcher",
+    "watchlist-item": "../../components/watchlist-item/watchlist-item",
+    "search-panel": "../../components/search-panel/search-panel"
+  },
+  "navigationStyle": "custom"
+}

@@ -1,0 +1,85 @@
+<view wx:if="{{visible}}" class="search-mask" bindtap="onMaskTap" catchtouchmove="onPanelTap">
+  <view class="search-panel" catchtap="onPanelTap" style="padding-top: {{statusBarHeight}}px">
+    <view class="search-head">
+      <view class="search-input-wrap">
+        <text class="search-input-icon">⌕</text>
+        <input
+          class="search-input"
+          value="{{keyword}}"
+          placeholder="股票名称或代码"
+          placeholder-class="search-placeholder"
+          focus="{{visible}}"
+          confirm-type="search"
+          bindinput="onInput"
+        />
+        <view wx:if="{{keyword}}" class="search-clear" bindtap="onClear">×</view>
+      </view>
+      <view class="search-cancel" bindtap="onClose">取消</view>
+    </view>
+
+    <scroll-view class="search-body" scroll-y enhanced show-scrollbar="{{false}}">
+      <block wx:if="{{!keyword && history.length}}">
+        <view class="section-head">
+          <text class="section-title">最近搜索</text>
+          <text class="section-action" bindtap="onClearHistory">清空</text>
+        </view>
+        <view class="history-list">
+          <view
+            wx:for="{{history}}"
+            wx:key="*this"
+            class="history-chip"
+            data-keyword="{{item}}"
+            bindtap="onHistoryTap"
+          >{{item}}</view>
+        </view>
+      </block>
+
+      <block wx:if="{{keyword && results.length}}">
+        <view class="result-list">
+          <view
+            wx:for="{{results}}"
+            wx:key="id"
+            class="result-item"
+            data-id="{{item.id}}"
+            bindtap="onSelect"
+          >
+            <view class="result-main">
+              <view class="result-name-row">
+                <text class="result-name">{{item.name}}</text>
+                <text wx:if="{{item.inWatchlist}}" class="result-tag">已自选</text>
+              </view>
+              <text class="result-meta">{{item.marketLabel}} · {{item.code}}</text>
+            </view>
+            <view class="result-side">
+              <text class="result-price">{{item.price}}</text>
+              <text class="result-change {{item.changeClass}}">{{item.changeText}}</text>
+            </view>
+            <view
+              wx:if="{{!item.inWatchlist}}"
+              class="result-add"
+              catchtap="onAddWatchlist"
+              data-id="{{item.id}}"
+            >+自选</view>
+          </view>
+        </view>
+      </block>
+
+      <view wx:if="{{searched && !results.length}}" class="search-empty">
+        <text class="empty-icon">⌕</text>
+        <text class="empty-title">未找到匹配标的</text>
+        <text class="empty-desc">试试股票名称或代码，如「茅台」「600519」</text>
+      </view>
+
+      <view wx:if="{{!keyword && !history.length}}" class="search-hint">
+        <text class="hint-title">搜索标的</text>
+        <text class="hint-desc">支持股票名称、代码模糊匹配</text>
+        <view class="hint-examples">
+          <text class="hint-chip">贵州茅台</text>
+          <text class="hint-chip">600519</text>
+          <text class="hint-chip">腾讯</text>
+          <text class="hint-chip">NVDA</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>
