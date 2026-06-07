@@ -41,8 +41,8 @@
   flex-shrink: 0;
 }
 
-.mini-change.up { color: #0ecb81; }
-.mini-change.down { color: #f6465d; }
+.mini-change.up { color: #f6465d; }
+.mini-change.down { color: #0ecb81; }
 .mini-change.flat { color: #848e9c; }
 
 .compare-legend {

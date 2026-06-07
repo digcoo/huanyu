@@ -2,6 +2,8 @@ const { MARKETS, STRATEGIES } = require('./mock');
 const config = require('./config');
 const stockApi = require('./stock-api');
 const adapter = require('./adapter');
+const watchlistApi = require('./watchlist-api');
+const auth = require('./auth');
 
 const STORAGE_KEY = 'watchHistory';
 const MAX_RECORDS = 200;
@@ -112,7 +114,7 @@ function attachChartKlinesAsync(records, period) {
   }));
 }
 
-function loadHistory() {
+function loadHistoryLocal() {
   try {
     const stored = wx.getStorageSync(STORAGE_KEY);
     if (!Array.isArray(stored)) return [];
@@ -122,14 +124,31 @@ function loadHistory() {
   }
 }
 
-function saveHistory(list) {
+function saveHistoryLocal(list) {
   try {
-    wx.setStorageSync(STORAGE_KEY, list);
+    wx.setStorageSync(STORAGE_KEY, list || []);
     return true;
   } catch (e) {
     console.error('[history] storage save failed', e);
     return false;
   }
+}
+
+function loadHistory() {
+  if (watchlistApi.isRemoteEnabled() && auth.isLoggedIn()) {
+    return watchlistApi.fetchHistory('all').then(function (res) {
+      const items = (res && res.items) || [];
+      saveHistoryLocal(items);
+      return items;
+    }).catch(function () {
+      return loadHistoryLocal();
+    });
+  }
+  return Promise.resolve(loadHistoryLocal());
+}
+
+function saveHistory(list) {
+  return saveHistoryLocal(list);
 }
 
 function archiveRecord(item, removeReason) {
@@ -139,12 +158,12 @@ function archiveRecord(item, removeReason) {
   const latest = findStockById(item.id);
   const exitPrice = latest && latest.price != null ? latest.price : item.price;
   const record = buildRecord(item, exitPrice, removeReason);
-  let list = loadHistory();
+  let list = loadHistoryLocal();
   list.unshift(record);
   if (list.length > MAX_RECORDS) {
     list = list.slice(0, MAX_RECORDS);
   }
-  saveHistory(list);
+  saveHistoryLocal(list);
   return record;
 }
 
@@ -153,12 +172,12 @@ function archiveRecordAsync(item, removeReason) {
 
   function saveWithExit(exitPrice) {
     const record = buildRecord(item, exitPrice, removeReason);
-    let list = loadHistory();
+    let list = loadHistoryLocal();
     list.unshift(record);
     if (list.length > MAX_RECORDS) {
       list = list.slice(0, MAX_RECORDS);
     }
-    saveHistory(list);
+    saveHistoryLocal(list);
     return record;
   }
 
@@ -225,6 +244,8 @@ function filterRecords(records, filter) {
 module.exports = {
   loadHistory,
   saveHistory,
+  loadHistoryLocal,
+  saveHistoryLocal,
   archiveRecord,
   archiveRecordAsync,
   enrichRecord,

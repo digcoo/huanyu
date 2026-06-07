@@ -120,14 +120,15 @@ const STRATEGIES = [
     name: '单边趋势',
     icon: '📈',
     badge: 'TREND',
-    desc: '顺势跟踪 · 均线多头 · 突破延续'
+    desc: '梯子试盘 · 均线多头 · 突破延续'
   },
   {
     id: 'rebound',
     name: '深坑反弹',
-    icon: '🔄',
+    icon: '🕳️',
+    iconImage: '/assets/strategy/rebound.png',
     badge: 'REBOUND',
-    desc: '超跌深坑 · 底背离 · 反弹确认'
+    desc: '长期深跌 · 恐慌释放 · 反弹接入'
   },
   {
     id: 'multi',

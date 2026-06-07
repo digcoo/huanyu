@@ -1,4 +1,4 @@
-/* 币安 Pro · 纯 CSS 渲染（避免 scroll-view 内 canvas 悬浮） */
+/* A 股 · 纯 CSS 渲染（避免 scroll-view 内 canvas 悬浮） */
 .mini-kline {
   display: flex;
   flex-direction: column;
@@ -56,8 +56,14 @@
   font-family: 'SF Mono', 'Menlo', monospace;
 }
 
-.ma7 { color: #f0b90b; }
-.ma25 { color: #e040fb; }
+.ma-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
 
 .chart-wrap {
   position: relative;
@@ -66,6 +72,25 @@
   margin: 0;
   background: #1e2026;
   overflow: hidden;
+}
+
+.chart-shell {
+  position: relative;
+}
+
+.updated-badge {
+  position: absolute;
+  top: 6rpx;
+  right: 6rpx;
+  z-index: 4;
+  font-size: 16rpx;
+  color: #848e9c;
+  background: rgba(20, 27, 38, 0.88);
+  padding: 2rpx 8rpx;
+  border-radius: 4rpx;
+  line-height: 1.3;
+  pointer-events: none;
+  font-family: 'SF Mono', 'Menlo', monospace;
 }
 
 .grid-lines {
@@ -83,22 +108,13 @@
   background: rgba(43, 47, 54, 0.7);
 }
 
-.ma-layer {
+.css-chart {
   position: absolute;
   inset: 0;
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
-
-.ma-dot {
-  position: absolute;
-  width: 4rpx;
-  height: 4rpx;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.ma-dot.ma7 { background: #f0b90b; }
-.ma-dot.ma25 { background: #e040fb; }
 
 .add-marker {
   position: absolute;
@@ -135,13 +151,6 @@
   box-shadow: 0 0 0 1rpx rgba(0, 212, 255, 0.9);
 }
 
-.css-chart {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
 .candle-slot {
   position: absolute;
   top: 0;
@@ -156,8 +165,8 @@
   opacity: 0.85;
 }
 
-.wick.bull { background: #0ecb81; }
-.wick.bear { background: #f6465d; }
+.wick.bull { background: #f6465d; }
+.wick.bear { background: #0ecb81; }
 
 .body {
   position: absolute;
@@ -166,8 +175,8 @@
   border-radius: 0;
 }
 
-.body.bull { background: #0ecb81; }
-.body.bear { background: #f6465d; }
+.body.bull { background: #f6465d; }
+.body.bear { background: #0ecb81; }
 
 /* 卡片主图：大尺寸清晰 K 线 */
 .mini-kline.size-card,
@@ -194,12 +203,7 @@
   border-radius: 0;
 }
 
-.mini-kline.size-card .ma-dot,
-.mini-kline.size-wide .ma-dot {
-  width: 6rpx;
-  height: 6rpx;
-}
-
+/* 翻转：Y 轴镜像，高价在下、低价在上（坐标系高低对调） */
 .mini-kline.is-flipped .chart-wrap {
-  transform: scaleX(-1);
+  transform: scaleY(-1);
 }

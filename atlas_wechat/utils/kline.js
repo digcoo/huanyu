@@ -1,6 +1,6 @@
 /**
  * 币安 Pro 风格 K 线绘制引擎
- * 参考 Binance App 深色主题：实心蜡烛、绿涨红跌、水平细网格、价格区留白
+ * A 股深色主题：实心蜡烛、红涨绿跌、水平细网格、价格区留白
  */
 
 const BINANCE = {
@@ -8,8 +8,8 @@ const BINANCE = {
   bgDeep: '#161a1e',
   grid: '#2b2f36',
   gridLight: 'rgba(43, 47, 54, 0.55)',
-  bullish: '#0ecb81',
-  bearish: '#f6465d',
+  bullish: '#f6465d',
+  bearish: '#0ecb81',
   ma7: '#f0b90b',
   ma25: '#e040fb',
   text: '#848e9c',

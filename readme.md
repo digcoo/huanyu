@@ -37,3 +37,16 @@ POST /tts/auth/wx/login  { "code": "..." }
 ```
 
 启动前需本地 MySQL `tts` 库有数据；`application.properties` 已默认 `atlas.cache.enabled=true`。
+
+年报财务（MVP）：
+
+```bash
+# 1. 执行建表
+mysql -u root -p tts < atlas_backend/db/stock_annual_report.sql
+
+# 2. 开发环境手动爬取（需 atlas.spider.report.manual-enabled=true）
+POST /tts/stock/admin/crawl-annual?code=sh600519
+
+# 3. 生产定时爬取（atlas.spider.report.enabled=true）
+#    每月 1 日 03:00 全 A 股；4–6 月每周日 03:00 加频
+```

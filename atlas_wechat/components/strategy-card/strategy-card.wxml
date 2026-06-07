@@ -31,10 +31,6 @@
       </view>
     </view>
 
-    <view wx:if="{{item.dataUpdatedLabel}}" class="meta-row">
-      <text class="data-updated">数据更新 · {{item.dataUpdatedLabel}}</text>
-    </view>
-
     <view class="tags">
       <text wx:for="{{item.tags}}" wx:key="*this" wx:for-item="tag" class="tag">{{tag}}</text>
     </view>
@@ -47,8 +43,12 @@
       maxBars="{{c.maxBars(activePeriod)}}"
       flipped="{{flipped}}"
       resonance="{{item.resonance}}"
+      updatedLabel="{{item.dataUpdatedLabel}}"
     />
-    <view wx:else class="chart-empty">K线加载中...</view>
+    <view wx:else class="chart-empty">
+      <text wx:if="{{item.dataUpdatedLabel}}" class="data-updated-badge">更新 · {{item.dataUpdatedLabel}}</text>
+      <text>K线加载中...</text>
+    </view>
 
     <view class="summary">
       <view class="summary-icon">💡</view>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.UserSessionMapper">
+
+  <insert id="insert">
+    insert into user_session(token, openid, expire_time)
+    values (#{token}, #{openid}, #{expireTime})
+  </insert>
+
+  <select id="selectByToken" resultType="com.yh.bigdata.tts.common.model.UserSession">
+    select token, openid, expire_time as expireTime from user_session where token = #{token}
+  </select>
+
+  <delete id="deleteByToken">
+    delete from user_session where token = #{token}
+  </delete>
+
+</mapper>

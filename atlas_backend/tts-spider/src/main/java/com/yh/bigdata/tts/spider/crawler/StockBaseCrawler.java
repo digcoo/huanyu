@@ -116,9 +116,7 @@ public class StockBaseCrawler {
 				Boolean isTrade = (jsonObject.getDouble("open") < 1 || jsonObject.getDouble("amount") < 1 || jsonObject.getDouble("volume") < 1 || stockBase.getName().contains("退"))? false : true; 				
 				stockBase.setIsTrade(isTrade);
 				
-				if(stockBase.getCode().contains("C")) {
-					spiderMainBusiness(stockBase);		//爬取主营业务
-				}
+//				spiderMainBusiness(stockBase); // 主营业务由 StockCompanyDetailCrawler 全量爬取
 				
 //				checkIsTrade(stockBase);		//标记是否退市
 

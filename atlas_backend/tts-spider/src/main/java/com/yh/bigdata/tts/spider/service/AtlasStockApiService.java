@@ -18,6 +18,8 @@ public interface AtlasStockApiService {
 
     Map<String, AtlasCompassModuleVo> getCompass(String code);
 
+    List<AtlasMarketIndexVo> getMarketIndices(String market, String period, int limit);
+
     boolean isCacheReady();
 
     StockBase requireStock(String code);

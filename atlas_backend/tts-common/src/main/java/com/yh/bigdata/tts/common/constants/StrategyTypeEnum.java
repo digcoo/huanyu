@@ -8,8 +8,8 @@ import lombok.Getter;
 @Getter
 public enum StrategyTypeEnum {
 
-    TREND_NEW("qsn", "趋势", 1),
-    DEFAUL("default", "右侧(脱离)*梯子*深坑*上移(底上移、顶上移)：周期", 9),
+    TREND_NEW("qsn", "单边趋势", 1),
+    DEFAUL("default", "深坑反弹", 2),
     CROSS_BAND_PRESSURE("cross_band_pressure", "突破波段: 关键阻力位", 9);
 
 	private final String code;

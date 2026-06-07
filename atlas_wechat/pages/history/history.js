@@ -57,6 +57,13 @@ Page({
       return;
     }
     this.setData({ needLogin: false });
+    const self = this;
+    if (config.syncRemote && auth.isLoggedIn()) {
+      getApp().refreshHistoryFromServer().finally(function () {
+        self.refreshList();
+      });
+      return;
+    }
     this.refreshList();
   },
 
@@ -64,12 +71,12 @@ Page({
     const app = getApp();
     const period = this.data.activePeriod;
     const activeFilter = this.data.activeFilter;
-    const enriched = loadHistory().map(enrichRecord);
     const self = this;
 
     function renderList(raw) {
+      const enriched = raw.map(enrichRecord);
       const summary = computeSummary(raw);
-      const filtered = filterRecords(raw, activeFilter);
+      const filtered = filterRecords(enriched, activeFilter);
       const isEmpty = raw.length === 0;
       const navHeight = self.data.statusBarHeight + 56;
       const contentTop = navHeight + (isEmpty ? 0 : 52);
@@ -84,12 +91,13 @@ Page({
       });
     }
 
-    if (config.useMock) {
-      renderList(attachChartKlines(enriched, period));
-      return;
-    }
-
-    attachChartKlinesAsync(enriched, period).then(renderList);
+    loadHistory().then(function (raw) {
+      if (config.useMock) {
+        renderList(attachChartKlines(raw.map(enrichRecord), period));
+        return;
+      }
+      attachChartKlinesAsync(raw.map(enrichRecord), period).then(renderList);
+    });
   },
 
   onPeriodChange(e) {
@@ -104,7 +112,7 @@ Page({
     wx.setStorageSync('klineFlipped', klineFlipped);
     this.setData({ klineFlipped: klineFlipped });
     wx.showToast({
-      title: klineFlipped ? 'K线已翻转' : 'K线已还原',
+      title: klineFlipped ? '坐标已翻转（低价在上）' : '坐标已还原',
       icon: 'none',
       duration: 800
     });
@@ -130,10 +138,13 @@ Page({
   },
 
   onTapLogin() {
+    const self = this;
     auth.promptLogin().then(function () {
-      this.setData({ needLogin: false });
-      this.refreshList();
-    }.bind(this)).catch(function () {});
+      return getApp().syncFromServer();
+    }).then(function () {
+      self.setData({ needLogin: false });
+      self.refreshList();
+    }).catch(function () {});
   }
 });
 

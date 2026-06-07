@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.UserWatchHistoryMapper">
+
+  <select id="selectByOpenid" resultType="com.yh.bigdata.tts.common.model.UserWatchHistory">
+    select id, openid, record_id as recordId, stock_id as stockId, code, name, market, strategy,
+           resonance, tags_json as tagsJson, entry_price as entryPrice, exit_price as exitPrice,
+           added_at as addedAt, removed_at as removedAt, hold_days as holdDays, pnl_pct as pnlPct,
+           remove_reason as removeReason
+    from user_watch_history
+    where openid = #{openid}
+    <if test="filter == 'win'">
+      and pnl_pct &gt; 0
+    </if>
+    <if test="filter == 'loss'">
+      and pnl_pct &lt;= 0
+    </if>
+    order by removed_at desc
+    limit 200
+  </select>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    insert into user_watch_history(
+      openid, record_id, stock_id, code, name, market, strategy, resonance, tags_json,
+      entry_price, exit_price, added_at, removed_at, hold_days, pnl_pct, remove_reason, create_time
+    ) values (
+      #{openid}, #{recordId}, #{stockId}, #{code}, #{name}, #{market}, #{strategy}, #{resonance}, #{tagsJson},
+      #{entryPrice}, #{exitPrice}, #{addedAt}, #{removedAt}, #{holdDays}, #{pnlPct}, #{removeReason}, now()
+    )
+  </insert>
+
+  <select id="countByOpenid" resultType="int">
+    select count(*) from user_watch_history where openid = #{openid}
+  </select>
+
+  <delete id="deleteOldestBeyond">
+    delete from user_watch_history
+    where openid = #{openid}
+      and id not in (
+        select id from (
+          select id from user_watch_history where openid = #{openid} order by removed_at desc limit #{keep}
+        ) t
+      )
+  </delete>
+
+</mapper>

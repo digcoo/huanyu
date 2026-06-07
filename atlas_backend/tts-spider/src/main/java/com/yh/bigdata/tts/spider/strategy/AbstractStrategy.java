@@ -162,7 +162,11 @@ public abstract class AbstractStrategy {
             checkResult.setHasSignal(true);
 
             if (checkResult.isSuccess()) {
-                checkResult.setTrendPeriodType(trendPeriodTypes.get(0));
+                if (trendPeriodTypes != null && !trendPeriodTypes.isEmpty()) {
+                    checkResult.setTrendPeriodType(trendPeriodTypes.get(0));
+                } else if (!finalTrendPeriodTypes.isEmpty()) {
+                    checkResult.setTrendPeriodType(finalTrendPeriodTypes.get(0));
+                }
                 checkResult.setOpPeriodType(finalOpPeriodType);
             }
 

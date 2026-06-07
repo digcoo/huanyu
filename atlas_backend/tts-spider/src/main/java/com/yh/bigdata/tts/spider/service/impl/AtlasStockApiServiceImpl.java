@@ -4,11 +4,19 @@ import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.dao.StockBaseMapper;
 import com.yh.bigdata.tts.common.dto.atlas.*;
+import com.yh.bigdata.tts.common.model.StockAnnualReport;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.utils.StockCodeUtil;
+import com.yh.bigdata.tts.common.dao.StockIndustryBenchmarkMapper;
+import com.yh.bigdata.tts.common.model.StockIndustryBenchmark;
+import com.yh.bigdata.tts.spider.service.AtlasAnnualReportService;
+import com.yh.bigdata.tts.spider.service.AtlasDetailComputeService;
 import com.yh.bigdata.tts.spider.service.AtlasStockApiService;
 import com.yh.bigdata.tts.spider.service.StockService;
+import com.yh.bigdata.tts.spider.utils.SinaIndexClient;
+import com.yh.bigdata.tts.spider.utils.SinaIndexClient.IndexDef;
+import com.yh.bigdata.tts.spider.utils.SinaIndexClient.Quote;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +34,15 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
 
     @Autowired
     private StockService stockService;
+
+    @Autowired
+    private AtlasAnnualReportService atlasAnnualReportService;
+
+    @Autowired
+    private AtlasDetailComputeService atlasDetailComputeService;
+
+    @Autowired
+    private StockIndustryBenchmarkMapper stockIndustryBenchmarkMapper;
 
     @Override
     public boolean isCacheReady() {
@@ -64,21 +81,24 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
     @Override
     public AtlasStockDetailVo getDetail(String code) {
         StockBase stock = requireStock(code);
-        Map<String, Object> profile = new LinkedHashMap<>();
-        profile.put("businessOneLiner", StringUtils.defaultIfBlank(stock.getMainBusiness(), stock.getName() + " · A股标的"));
-        profile.put("industryPosition", "基于行情与主营业务数据的 Demo 详情，完整财报画像后续接入。");
-        profile.put("strengths", Arrays.asList("纳入 Atlas 行情缓存", "支持多周期 K 线查询"));
-        profile.put("risks", Arrays.asList("财务深度数据待接入", "请以官方披露为准"));
+        StockBase dbStock = stockBaseMapper.selectByPrimaryKey(stock.getCode());
+        if (dbStock != null) {
+            mergeDetailFields(stock, dbStock);
+        }
+        atlasAnnualReportService.refreshIfMissingAsync(stock.getCode(), stock.getName());
 
-        List<Map<String, String>> keyMetrics = new ArrayList<>();
-        keyMetrics.add(metric("最新价", formatPrice(stock.getTrade())));
-        keyMetrics.add(metric("涨跌幅", formatPct(stock.getChangeRate())));
-        if (stock.getTurnoverRate() != null) {
-            keyMetrics.add(metric("换手率", formatPct(stock.getTurnoverRate())));
-        }
-        if (stock.getAmount() != null) {
-            keyMetrics.add(metric("成交额", formatAmountYi(stock.getAmount())));
-        }
+        StockAnnualReport latest = atlasAnnualReportService.getLatest(stock.getCode());
+        Map<String, Object> profile = atlasAnnualReportService.buildProfileFromAnnual(stock, latest);
+        enrichProfile(stock, profile);
+        List<Map<String, String>> keyMetrics = buildKeyMetrics(stock, latest);
+
+        String industry = StringUtils.defaultIfBlank(stock.getIndustry(), "综合");
+        StockIndustryBenchmark benchmark = stockIndustryBenchmarkMapper.selectByIndustry(industry);
+
+        Map<String, Object> stageRaw = atlasDetailComputeService.computeStage(latest);
+        String stageHint = (String) stageRaw.remove("stageHint");
+        Map<String, Object> health = atlasDetailComputeService.computeHealth(stock, latest, benchmark);
+        Map<String, Object> radar = atlasDetailComputeService.computeRadar(latest, benchmark);
 
         return AtlasStockDetailVo.builder()
                 .code(stock.getCode())
@@ -86,16 +106,137 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
                 .market("cn")
                 .price(stock.getTrade())
                 .changePct(roundPct(stock.getChangeRate()))
-                .industry("综合")
+                .industry(industry)
                 .mainBusiness(stock.getMainBusiness())
                 .profile(profile)
                 .keyMetrics(keyMetrics)
+                .stage(stageRaw)
+                .stageHint(stageHint)
+                .healthScore((Integer) health.get("healthScore"))
+                .healthRank((String) health.get("healthRank"))
+                .healthBreakdown((Map<String, Integer>) health.get("healthBreakdown"))
+                .radar(radar)
+                .competitors(atlasDetailComputeService.buildCompetitorList(stock.getCode()))
+                .portraitDimensions(buildPortraitDimensions(stageRaw, health, radar))
                 .build();
+    }
+
+    private void mergeDetailFields(StockBase target, StockBase db) {
+        target.setMainBusiness(db.getMainBusiness());
+        target.setIndustry(db.getIndustry());
+        target.setIndustryCsrc(db.getIndustryCsrc());
+        target.setOrgProfile(db.getOrgProfile());
+        target.setPeTtm(db.getPeTtm());
+        target.setPb(db.getPb());
+        target.setPsTtm(db.getPsTtm());
+        target.setDividendYield(db.getDividendYield());
+        target.setHigh52w(db.getHigh52w());
+        target.setLow52w(db.getLow52w());
+        target.setTotalMvYi(db.getTotalMvYi());
+        target.setQuancheng(db.getQuancheng());
+    }
+
+    private void enrichProfile(StockBase stock, Map<String, Object> profile) {
+        if (StringUtils.isNotBlank(stock.getOrgProfile())) {
+            profile.put("businessOneLiner", StringUtils.defaultIfBlank(stock.getMainBusiness(),
+                    stock.getOrgProfile().length() > 120 ? stock.getOrgProfile().substring(0, 120) + "…" : stock.getOrgProfile()));
+        }
+        if (StringUtils.isNotBlank(stock.getIndustry())) {
+            profile.put("industryTag", stock.getIndustry());
+        }
+    }
+
+    private List<Map<String, String>> buildKeyMetrics(StockBase stock, StockAnnualReport latest) {
+        List<Map<String, String>> metrics = new ArrayList<>(atlasAnnualReportService.buildKeyMetricsFromAnnual(stock, latest));
+        if (stock.getPeTtm() != null) {
+            metrics.add(metric("PE(TTM)", formatNum(stock.getPeTtm())));
+        }
+        if (stock.getPb() != null) {
+            metrics.add(metric("PB", formatNum(stock.getPb())));
+        }
+        if (stock.getDividendYield() != null && stock.getDividendYield() > 0) {
+            metrics.add(metric("股息率", formatNum(stock.getDividendYield()) + "%"));
+        }
+        if (stock.getTotalMvYi() != null) {
+            metrics.add(metric("总市值", formatNum(stock.getTotalMvYi()) + "亿"));
+        }
+        if (stock.getHigh52w() != null) {
+            metrics.add(metric("52周最高", formatNum(stock.getHigh52w())));
+        }
+        if (stock.getLow52w() != null) {
+            metrics.add(metric("52周最低", formatNum(stock.getLow52w())));
+        }
+        return metrics;
+    }
+
+    private List<Map<String, Object>> buildPortraitDimensions(Map<String, Object> stage,
+                                                              Map<String, Object> health,
+                                                              Map<String, Object> radar) {
+        Map<String, Integer> breakdown = (Map<String, Integer>) health.get("healthBreakdown");
+        List<Map<String, Object>> insights = radar != null ? (List<Map<String, Object>>) radar.get("insights") : Collections.emptyList();
+        List<Map<String, Object>> dims = new ArrayList<>();
+        dims.add(portrait("profit", "盈利质量", breakdown.get("profit"),
+                insightText(insights, 0, "ROE 与净利率综合评估")));
+        dims.add(portrait("growth", "成长动能", breakdown.get("growth"),
+                stage.get("label") + "阶段，" + stage.get("desc")));
+        dims.add(portrait("debt", "财务安全", breakdown.get("debt"),
+                insightText(insights, 3, "偿债与杠杆综合评估")));
+        dims.add(portrait("operation", "运营效率", breakdown.get("operation"),
+                insightText(insights, 1, "毛利率与运营效率评估")));
+        return dims;
+    }
+
+    private Map<String, Object> portrait(String key, String label, Integer score, String text) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("key", key);
+        m.put("label", label);
+        m.put("score", score != null ? score : 60);
+        m.put("text", text);
+        return m;
+    }
+
+    private String insightText(List<Map<String, Object>> insights, int idx, String fallback) {
+        if (insights != null && insights.size() > idx && insights.get(idx).get("text") != null) {
+            return String.valueOf(insights.get(idx).get("text"));
+        }
+        return fallback;
     }
 
     @Override
     public Map<String, AtlasCompassModuleVo> getCompass(String code) {
         StockBase stock = requireStock(code);
+        atlasAnnualReportService.refreshIfMissingAsync(stock.getCode(), stock.getName());
+
+        Map<String, AtlasCompassModuleVo> fromAnnual = atlasAnnualReportService.buildCompassFromAnnual(stock.getCode());
+        if (fromAnnual != null && !fromAnnual.isEmpty()) {
+            return fromAnnual;
+        }
+        return buildCompassFromKline(stock);
+    }
+
+    @Override
+    public List<AtlasMarketIndexVo> getMarketIndices(String market, String period, int limit) {
+        if (!"cn".equalsIgnoreCase(StringUtils.defaultString(market, "cn"))) {
+            return Collections.emptyList();
+        }
+        int safeLimit = Math.min(Math.max(limit, 1), 200);
+        List<AtlasMarketIndexVo> result = new ArrayList<>();
+        for (IndexDef def : SinaIndexClient.CN_INDICES) {
+            Quote quote = SinaIndexClient.fetchQuote(def);
+            List<AtlasKlineBarVo> klines = SinaIndexClient.fetchKlines(def.symbol, period, safeLimit);
+            result.add(AtlasMarketIndexVo.builder()
+                    .code(def.symbol)
+                    .displayCode(def.displayCode)
+                    .name(def.name)
+                    .price(quote != null ? quote.price : null)
+                    .changePct(quote != null ? quote.changePct : null)
+                    .klines(klines)
+                    .build());
+        }
+        return result;
+    }
+
+    private Map<String, AtlasCompassModuleVo> buildCompassFromKline(StockBase stock) {
         List<Trade> yearBars = RealtimeStockCache.getLastTrades(stock, PeriodTypeEnum.YEAR, 8);
         if (yearBars.isEmpty()) {
             yearBars = RealtimeStockCache.getLastTrades(stock, PeriodTypeEnum.MONTH, 24);
@@ -103,24 +244,24 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
 
         Map<String, AtlasCompassModuleVo> compass = new LinkedHashMap<>();
         compass.put("financial", module("财务动能", "#0ecb81",
-                "基于年/月 K 线收盘价、成交额、成交量序列（Demo 聚合，非财报口径）。",
+                "年报数据待爬取；暂以 K 线 proxy 展示。",
                 Arrays.asList(
                         chart("收盘价", "元", "#0ecb81", seriesFrom(yearBars, SeriesType.CLOSE)),
                         chart("成交额", "亿", "#f0b90b", seriesFrom(yearBars, SeriesType.AMOUNT_YI)),
                         chart("成交量", "万手", "#848e9c", seriesFrom(yearBars, SeriesType.VOLUME_WAN))
                 )));
         compass.put("operation", module("运营人效", "#f0b90b",
-                "以换手率为 proxy 观察活跃度变化（有数据则展示）。",
+                "年报数据待爬取；暂以换手率 proxy。",
                 Collections.singletonList(
                         chart("换手率", "%", "#0ecb81", seriesFrom(yearBars, SeriesType.TURNOVER))
                 )));
         compass.put("chain", module("产业链地位", "#a78bfa",
-                "以 K 线振幅观察波动区间（Demo proxy，非毛利率）。",
+                "年报数据待爬取；暂以振幅 proxy。",
                 Collections.singletonList(
                         chart("振幅", "%", "#ff9500", seriesFrom(yearBars, SeriesType.SHOCK))
                 )));
         compass.put("capital", module("资本结构", "#f6465d",
-                "资本结构深度指标待财报爬虫接入；暂展示成交额趋势。",
+                "年报数据待爬取；暂展示成交额趋势。",
                 Collections.singletonList(
                         chart("成交额", "亿", "#f6465d", seriesFrom(yearBars, SeriesType.AMOUNT_YI))
                 )));
@@ -223,6 +364,10 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
         item.put("label", label);
         item.put("value", value);
         return item;
+    }
+
+    private String formatNum(double value) {
+        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private double nullSafe(Double value) {

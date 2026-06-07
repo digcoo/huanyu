@@ -67,24 +67,32 @@ function rehydrateListAsync(list, period) {
   }));
 }
 
-function loadWatchlist() {
+function loadWatchlistLocal() {
   try {
     const stored = wx.getStorageSync('watchlist');
     if (!Array.isArray(stored)) return [];
-    return stored.map(rehydrateItem);
+    return stored;
   } catch (e) {
     return [];
   }
 }
 
-function saveWatchlist(list) {
+function saveWatchlistLocal(list) {
   try {
-    wx.setStorageSync('watchlist', list.map(toStoredItem));
+    wx.setStorageSync('watchlist', (list || []).map(toStoredItem));
     return true;
   } catch (e) {
     console.error('[watchlist] storage save failed', e);
     return false;
   }
+}
+
+function loadWatchlist() {
+  return loadWatchlistLocal();
+}
+
+function saveWatchlist(list) {
+  return saveWatchlistLocal(list);
 }
 
 module.exports = {
@@ -94,5 +102,7 @@ module.exports = {
   rehydrateItemAsync: rehydrateItemAsync,
   rehydrateListAsync: rehydrateListAsync,
   loadWatchlist: loadWatchlist,
-  saveWatchlist: saveWatchlist
+  saveWatchlist: saveWatchlist,
+  loadWatchlistLocal: loadWatchlistLocal,
+  saveWatchlistLocal: saveWatchlistLocal
 };

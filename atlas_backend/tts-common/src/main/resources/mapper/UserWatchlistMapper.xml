@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.UserWatchlistMapper">
+
+  <select id="selectByOpenid" resultType="com.yh.bigdata.tts.common.model.UserWatchlist">
+    select id, openid, stock_id as stockId, code, name, market, strategy,
+           entry_price as entryPrice, resonance, summary, tags_json as tagsJson, added_at as addedAt
+    from user_watchlist
+    where openid = #{openid}
+    order by added_at desc
+  </select>
+
+  <select id="selectByOpenidAndStockId" resultType="com.yh.bigdata.tts.common.model.UserWatchlist">
+    select id, openid, stock_id as stockId, code, name, market, strategy,
+           entry_price as entryPrice, resonance, summary, tags_json as tagsJson, added_at as addedAt
+    from user_watchlist
+    where openid = #{openid} and stock_id = #{stockId}
+  </select>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    insert into user_watchlist(
+      openid, stock_id, code, name, market, strategy, entry_price, resonance, summary, tags_json, added_at, create_time
+    ) values (
+      #{openid}, #{stockId}, #{code}, #{name}, #{market}, #{strategy}, #{entryPrice}, #{resonance}, #{summary}, #{tagsJson}, #{addedAt}, now()
+    )
+  </insert>
+
+  <delete id="deleteByOpenidAndStockId">
+    delete from user_watchlist where openid = #{openid} and stock_id = #{stockId}
+  </delete>
+
+</mapper>

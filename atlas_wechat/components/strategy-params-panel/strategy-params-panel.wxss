@@ -1,0 +1,152 @@
+.params-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  background: rgba(10, 14, 23, 0.88);
+}
+
+.params-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0a0e17;
+}
+
+.params-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 24rpx;
+  border-bottom: 1rpx solid #2b2f36;
+}
+
+.params-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #e8edf5;
+}
+
+.params-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.params-reset {
+  font-size: 24rpx;
+  color: #848e9c;
+}
+
+.params-close {
+  font-size: 44rpx;
+  color: #848e9c;
+  line-height: 1;
+  padding: 0 8rpx;
+}
+
+.params-body {
+  flex: 1;
+  min-height: 0;
+  padding: 8rpx 24rpx 24rpx;
+  box-sizing: border-box;
+}
+
+.field-block {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #1e2026;
+}
+
+.field-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.field-label {
+  font-size: 28rpx;
+  color: #e8edf5;
+}
+
+.field-value {
+  font-size: 26rpx;
+  color: #f0b90b;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.field-hint {
+  display: block;
+  font-size: 22rpx;
+  color: #5c6578;
+  margin-bottom: 8rpx;
+}
+
+.field-hint.inline {
+  display: block;
+  margin-top: 4rpx;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.switch-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.picker-value {
+  margin-top: 12rpx;
+  padding: 16rpx 20rpx;
+  background: #1e2026;
+  border: 1rpx solid #2b2f36;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: #c8d0dc;
+}
+
+.empty-hint {
+  padding: 80rpx 0;
+  text-align: center;
+  color: #5c6578;
+  font-size: 26rpx;
+}
+
+.params-foot {
+  padding: 12rpx 24rpx calc(16rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid #2b2f36;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.foot-hint {
+  font-size: 22rpx;
+  color: #5c6578;
+  line-height: 1.4;
+}
+
+.apply-btn {
+  background: #f0b90b;
+  color: #0a0e17;
+  font-size: 28rpx;
+  font-weight: 600;
+  border-radius: 12rpx;
+  border: none;
+}
+
+.preview-btn {
+  background: transparent;
+  color: #848e9c;
+  font-size: 26rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid #2b2f36;
+}
+
+.apply-btn::after,
+.preview-btn::after {
+  border: none;
+}

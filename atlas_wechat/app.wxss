@@ -11,8 +11,8 @@ page {
   --accent-orange: #ff9500;
   --accent-green: #0ecb81;
   --accent-red: #f6465d;
-  --kline-up: #0ecb81;
-  --kline-down: #f6465d;
+  --kline-up: #f6465d;
+  --kline-down: #0ecb81;
   --kline-bg: #1e2026;
   --kline-grid: #2b2f36;
 

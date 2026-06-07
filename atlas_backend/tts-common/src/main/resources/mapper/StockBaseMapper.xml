@@ -9,12 +9,6 @@
     <result column="is_trade" property="isTrade" jdbcType="BIT" />
     <result column="trade" property="trade" jdbcType="DOUBLE" />
     <result column="last_trade" property="lastTrade" jdbcType="DOUBLE" />
-    <result column="ma5" property="ma5" jdbcType="DOUBLE" />
-    <result column="ma10" property="ma10" jdbcType="DOUBLE" />
-    <result column="ma20" property="ma20" jdbcType="DOUBLE" />
-    <result column="ma30" property="ma30" jdbcType="DOUBLE" />
-    <result column="ma60" property="ma60" jdbcType="DOUBLE" />
-    <result column="ma120" property="ma120" jdbcType="DOUBLE" />
     <result column="open" property="open" jdbcType="DOUBLE" />
     <result column="high" property="high" jdbcType="DOUBLE" />
     <result column="low" property="low" jdbcType="DOUBLE" />
@@ -23,17 +17,21 @@
     <result column="day" property="day" jdbcType="DATE" />
     <result column="quancheng" property="quancheng" jdbcType="VARCHAR" />
 	<result column="main_business" property="mainBusiness" jdbcType="VARCHAR" />
+	<result column="industry" property="industry" jdbcType="VARCHAR" />
+	<result column="industry_csrc" property="industryCsrc" jdbcType="VARCHAR" />
+	<result column="org_profile" property="orgProfile" jdbcType="VARCHAR" />
+	<result column="pe_ttm" property="peTtm" jdbcType="DOUBLE" />
+	<result column="pb" property="pb" jdbcType="DOUBLE" />
+	<result column="ps_ttm" property="psTtm" jdbcType="DOUBLE" />
+	<result column="dividend_yield" property="dividendYield" jdbcType="DOUBLE" />
+	<result column="high_52w" property="high52w" jdbcType="DOUBLE" />
+	<result column="low_52w" property="low52w" jdbcType="DOUBLE" />
+	<result column="total_mv_yi" property="totalMvYi" jdbcType="DOUBLE" />
 	<result column="turnover_rate" property="turnoverRate" jdbcType="DOUBLE" />
   </resultMap>
   <sql id="Base_Column_List" >
-    code, name, exchange, is_st, is_trade, trade, last_trade, open, high, low, volume, amount, day, quancheng, turnover_rate, main_business
-    <!--  ma5, ma10, ma20, ma30, ma60, ma120, week_ma5, week_ma10, week_ma20, week_ma30, week_ma60, week_ma120, 
-    month_ma5, month_ma10, month_ma20, month_ma30, month_ma60, month_ma120, year_ma5, year_ma10, year_ma20, year_ma30, 
-    min60_ma5, min60_ma10, min60_ma20, min60_ma30, min60_ma60, min60_ma120, min30_ma5, min30_ma10, min30_ma20, min30_ma30, min30_ma60, min30_ma120, 
-    , main_business, buy1_price, buy1_volume, buy2_price, buy2_volume, buy3_price, buy3_volume, buy4_price, buy4_volume, buy5_price, buy5_volume
-    , sell1_price, sell1_volume, sell2_price, sell2_volume, sell3_price, sell3_volume, sell4_price, sell4_volume, sell5_price, sell5_volume
-    , mgsy, mgjzc -->
-    
+    code, name, exchange, is_st, is_trade, trade, last_trade, open, high, low, volume, amount, day, quancheng, turnover_rate, main_business,
+    industry, industry_csrc, org_profile, pe_ttm, pb, ps_ttm, dividend_yield, high_52w, low_52w, total_mv_yi
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" >
     select  
@@ -52,11 +50,9 @@
   </delete>
   <insert id="insert" parameterType="com.yh.bigdata.tts.common.model.StockBase" >
     insert into base(code, name, exchange, open, high, low, trade, last_trade, volume, amount, day, is_st, is_trade
-    , ma5, ma10, ma20, ma30, ma60, ma120, quancheng, main_business, create_time, update_time
-    , turnover_rate)
+    , quancheng, main_business, create_time, update_time, turnover_rate)
     values (#{code}, #{name}, #{exchange}, #{open}, #{high}, #{low},  #{trade}, #{lastTrade}, #{volume}, #{amount}, #{day}, #{isSt}, #{isTrade}
-    , #{ma5}, #{ma10}, #{ma20}, #{ma30}, #{ma60}, #{ma120}, #{quancheng}, #{mainBusiness}, now(), now()
-	, #{turnoverRate})
+    , #{quancheng}, #{mainBusiness}, now(), now(), #{turnoverRate})
   </insert>
   
  <update id="updateByPrimaryKeySelective" parameterType="com.yh.bigdata.tts.common.model.StockBase" >
@@ -78,28 +74,6 @@
         </if>
     	<if test="lastTrade != null">
         	, last_trade = #{lastTrade}
-        </if>
-        
-    	<if test="ma5 != null">
-        	, ma5 = #{ma5}
-        </if>
-        
-    	<if test="ma10 != null">
-        	, ma10 = #{ma10}
-        </if>
-        
-    	<if test="ma20 != null">
-        	, ma20 = #{ma20}
-        </if>
-        
-    	<if test="ma30 != null">
-        	, ma30 = #{ma30}
-        </if>
-    	<if test="ma60 != null">
-        	, ma60 = #{ma60}
-        </if>
-    	<if test="ma120 != null">
-        	, ma120 = #{ma120}
         </if>
     	<if test="open != null">
         	, open = #{open}
@@ -124,6 +98,36 @@
         </if>
     	<if test="mainBusiness != null">
         	, main_business = #{mainBusiness}
+        </if>
+    	<if test="industry != null">
+        	, industry = #{industry}
+        </if>
+    	<if test="industryCsrc != null">
+        	, industry_csrc = #{industryCsrc}
+        </if>
+    	<if test="orgProfile != null">
+        	, org_profile = #{orgProfile}
+        </if>
+    	<if test="peTtm != null">
+        	, pe_ttm = #{peTtm}
+        </if>
+    	<if test="pb != null">
+        	, pb = #{pb}
+        </if>
+    	<if test="psTtm != null">
+        	, ps_ttm = #{psTtm}
+        </if>
+    	<if test="dividendYield != null">
+        	, dividend_yield = #{dividendYield}
+        </if>
+    	<if test="high52w != null">
+        	, high_52w = #{high52w}
+        </if>
+    	<if test="low52w != null">
+        	, low_52w = #{low52w}
+        </if>
+    	<if test="totalMvYi != null">
+        	, total_mv_yi = #{totalMvYi}
         </if>
         <if test="turnoverRate != null">
         	, turnover_rate = #{turnoverRate}
@@ -151,8 +155,7 @@
   </select>
 
   <select id="selectByPageQuery" resultMap="BaseResultMap" parameterType="com.yh.bigdata.tts.common.param.StockPageQuery">
-    select s.code, s.name, s.trade, s.open, s.high, s.low, s.is_st, s.day 
-    		, s.ma5, s.ma10, s.ma20, s.ma30
+    select s.code, s.name, s.trade, s.open, s.high, s.low, s.is_st, s.day
     	from base s
     	<where>
 	    	<if test="code != null">

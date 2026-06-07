@@ -106,8 +106,8 @@
   line-height: 1.2;
 }
 
-.stock-change.up { color: #0ecb81; }
-.stock-change.down { color: #f6465d; }
+.stock-change.up { color: #f6465d; }
+.stock-change.down { color: #0ecb81; }
 
 .meta-row {
   display: flex;

@@ -78,15 +78,90 @@ function mapSearchItem(item, strategy) {
   };
 }
 
+function parseUnilateralTier(trendMessage) {
+  if (!trendMessage) return null;
+  var m = String(trendMessage).match(/\[([SABC])\]/);
+  return m ? m[1] : null;
+}
+
+function parseUnilateralTrendLabel(trendMessage) {
+  if (!trendMessage) return '';
+  var s = String(trendMessage);
+  var bracket = s.match(/\[([SABC])\]([^|,]+)/);
+  if (bracket) return bracket[2].trim();
+  return s.replace(/^\([^)]*:\s*/, '').replace(/\).*$/, '').trim();
+}
+
+function buildUnilateralTags(item) {
+  var tags = [];
+  var tier = parseUnilateralTier(item.trendMessage);
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (tier === 'S') tags.push('共振');
+  else if (tier === 'A') tags.push('均线多头');
+  else if (tier === 'B') tags.push('待确认');
+  else if (tier === 'C') tags.push('月K拐点');
+  if (item.signalMessage && item.signalMessage.indexOf('月K阳反阴') >= 0) {
+    tags.push('月K信号');
+  }
+  if (item.signalMessage && (item.signalMessage.indexOf('梯子试盘') >= 0 || item.signalMessage.indexOf('均线再起') >= 0)) {
+    tags.push('梯子试盘');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('平台突破') >= 0) {
+    tags.push('突破延续');
+  }
+  if (label && tags.indexOf(label) < 0 && label.length <= 12) {
+    tags.push(label);
+  }
+  return tags;
+}
+
+function buildReboundTags(item) {
+  var tags = [];
+  var tier = parseUnilateralTier(item.trendMessage);
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (tier === 'S') tags.push('共振反弹');
+  else if (tier === 'A') tags.push('深坑脱离');
+  else if (tier === 'B') tags.push('底上移');
+  else if (tier === 'C') tags.push('底背离');
+  if (item.signalMessage && item.signalMessage.indexOf('波段脱离') >= 0) {
+    tags.push('脱离确认');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('底背离') >= 0) {
+    tags.push('MACD背离');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('low上移') >= 0) {
+    tags.push('结构修复');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('恐慌') >= 0) {
+    tags.push('恐慌释放');
+  }
+  if (label && label.indexOf('坑底') >= 0 && tags.indexOf('坑底反弹') < 0) {
+    tags.push('坑底反弹');
+  }
+  if (label && tags.indexOf(label) < 0 && label.length <= 12) {
+    tags.push(label);
+  }
+  return tags;
+}
+
 function mapRecommendation(item, strategyId) {
   strategyId = strategyId || 'trend';
   var code = normalizeCode(item.code);
   var changePct = normalizeChangePct(item);
   var tags = [];
   if (item.newFlag) tags.push('今日新推');
-  if (item.trendMessage) tags.push('趋势');
-  if (item.signalMessage) tags.push('信号');
+  if (strategyId === 'trend') {
+    tags = tags.concat(buildUnilateralTags(item));
+  } else if (strategyId === 'rebound') {
+    tags = tags.concat(buildReboundTags(item));
+  } else {
+    if (item.signalMessage) tags.push('信号');
+    else if (item.trendMessage) tags.push('趋势');
+  }
+  tags = tags.filter(function (t, i) { return tags.indexOf(t) === i; });
 
+  var summaryParts = [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
+    .filter(function (s) { return s && String(s).trim(); });
   return {
     id: makeStockId(strategyId, 'cn', code),
     strategy: strategyId,
@@ -96,7 +171,7 @@ function mapRecommendation(item, strategyId) {
     price: item.close != null ? item.close : item.price,
     changePct: changePct,
     tags: tags,
-    summary: item.summary || item.trendMessage || item.mainBusiness || item.signalMessage || '',
+    summary: summaryParts.length ? summaryParts[0] : '',
     resonance: changePct > 2 ? 'strong' : changePct > 0 ? 'medium' : 'weak',
     mainBusiness: item.mainBusiness,
     dataDay: item.day || '',
@@ -131,6 +206,29 @@ function mapCompass(raw) {
   };
 }
 
+function mapMarketIndex(item, period) {
+  if (!item) return null;
+  period = period || 'week';
+  var bars = barsToKlines(item.klines || []);
+  var klines = {};
+  klines[period] = bars;
+  var price = item.price;
+  var changePct = item.changePct;
+  return {
+    name: item.name,
+    code: item.displayCode || item.code,
+    price: price != null ? Number(price).toFixed(2) : '--',
+    changePct: changePct != null ? Number(Number(changePct).toFixed(2)) : 0,
+    klines: klines
+  };
+}
+
+function mapMarketIndices(list, period) {
+  return (list || []).map(function (item) {
+    return mapMarketIndex(item, period);
+  }).filter(Boolean);
+}
+
 function getStrategyApiParams(strategyId) {
   return STRATEGY_API[strategyId] || STRATEGY_API.trend;
 }
@@ -147,6 +245,8 @@ module.exports = {
   mapRecommendation: mapRecommendation,
   normalizeProfile: normalizeProfile,
   mapCompass: mapCompass,
+  mapMarketIndex: mapMarketIndex,
+  mapMarketIndices: mapMarketIndices,
   getStrategyApiParams: getStrategyApiParams,
   findMarketLabel: findMarketLabel
 };

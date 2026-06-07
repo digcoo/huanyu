@@ -18,9 +18,17 @@ public class QueryContextParam extends PageQuery {
      */
     private Integer lianBanDays = 1;
 
+    /** 单边趋势策略自定义参数 */
+    private UnilateralStrategyParams unilateral;
+
+    /** 深坑反弹策略自定义参数 */
+    private ReboundStrategyParams rebound;
+
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
+                .unilateral(UnilateralStrategyParams.defaults())
+                .rebound(ReboundStrategyParams.defaults())
                 .build();
     }
 	

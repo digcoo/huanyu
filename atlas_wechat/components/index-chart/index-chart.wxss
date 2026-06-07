@@ -49,8 +49,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.index-change.up { color: #0ecb81; }
-.index-change.down { color: #f6465d; }
+.index-change.up { color: #f6465d; }
+.index-change.down { color: #0ecb81; }
 
 .index-chart mini-kline {
   display: block;

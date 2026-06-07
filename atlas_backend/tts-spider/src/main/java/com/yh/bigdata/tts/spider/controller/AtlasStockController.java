@@ -2,6 +2,7 @@ package com.yh.bigdata.tts.spider.controller;
 
 import com.yh.bigdata.tts.common.dto.atlas.AtlasCompassModuleVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasKlineBarVo;
+import com.yh.bigdata.tts.common.dto.atlas.AtlasMarketIndexVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockDetailVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockSummaryVo;
 import com.yh.bigdata.tts.common.param.base.Response;
@@ -37,6 +38,14 @@ public class AtlasStockController {
             @RequestParam("q") String keyword,
             @RequestParam(value = "limit", defaultValue = "20") int limit) {
         return ResponseUtil.success(atlasStockApiService.search(keyword, limit));
+    }
+
+    @GetMapping("/indices")
+    public Response<List<AtlasMarketIndexVo>> getIndices(
+            @RequestParam(value = "market", defaultValue = "cn") String market,
+            @RequestParam(value = "period", defaultValue = "week") String period,
+            @RequestParam(value = "limit", defaultValue = "50") int limit) {
+        return ResponseUtil.success(atlasStockApiService.getMarketIndices(market, period, limit));
     }
 
     @GetMapping("/{code}")

@@ -113,6 +113,14 @@ Page({
       return;
     }
     this.setData({ needLogin: false });
+    const self = this;
+    const app = getApp();
+    if (require('../../utils/watchlist-api').isRemoteEnabled() && auth.isLoggedIn()) {
+      app.syncFromServer().finally(function () {
+        self.refreshList();
+      });
+      return;
+    }
     this.refreshList();
   },
 
@@ -176,7 +184,7 @@ Page({
     this.setData({ klineFlipped: klineFlipped });
     this.refreshList();
     wx.showToast({
-      title: klineFlipped ? 'K线已翻转' : 'K线已还原',
+      title: klineFlipped ? '坐标已翻转（低价在上）' : '坐标已还原',
       icon: 'none',
       duration: 800
     });
@@ -200,8 +208,10 @@ Page({
   onRemoveItem(e) {
     const item = e.detail && e.detail.item;
     if (!item || !item.id) return;
-    getApp().removeFromWatchlist(item.id, 'swipe');
-    this.refreshList();
+    const self = this;
+    getApp().removeFromWatchlist(item.id, 'swipe').then(function () {
+      self.refreshList();
+    });
   },
 
   onRemoveConfirm(e) {
@@ -215,9 +225,10 @@ Page({
       confirmColor: '#ff6b6b',
       success(res) {
         if (!res.confirm) return;
-        getApp().removeFromWatchlist(item.id, 'manual');
-        wx.showToast({ title: '已移出', icon: 'none', duration: 1000 });
-        self.refreshList();
+        getApp().removeFromWatchlist(item.id, 'manual').then(function () {
+          wx.showToast({ title: '已移出', icon: 'none', duration: 1000 });
+          self.refreshList();
+        });
       }
     });
   },
@@ -272,9 +283,12 @@ Page({
   },
 
   onTapLogin() {
+    const self = this;
     auth.promptLogin().then(function () {
-      this.setData({ needLogin: false });
-      this.refreshList();
-    }.bind(this)).catch(function () {});
+      return getApp().syncFromServer();
+    }).then(function () {
+      self.setData({ needLogin: false });
+      self.refreshList();
+    }).catch(function () {});
   }
 });

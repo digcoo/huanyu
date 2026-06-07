@@ -6,7 +6,9 @@
     "period-switcher": "../../components/period-switcher/period-switcher",
     "strategy-tabs": "../../components/strategy-tabs/strategy-tabs",
     "bottom-nav": "../../components/bottom-nav/bottom-nav",
-    "search-panel": "../../components/search-panel/search-panel"
+    "search-panel": "../../components/search-panel/search-panel",
+    "strategy-params-panel": "../../components/strategy-params-panel/strategy-params-panel"
   },
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "onReachBottomDistance": 120
 }

@@ -1,0 +1,65 @@
+<view wx:if="{{visible}}" class="params-mask" bindtap="onMaskTap" catchtouchmove="onPanelTap">
+  <view class="params-panel" catchtap="onPanelTap" style="padding-top: {{statusBarHeight}}px">
+    <view class="params-head">
+      <text class="params-title">策略参数</text>
+      <view class="params-head-actions">
+        <text class="params-reset" bindtap="onReset">恢复默认</text>
+        <text class="params-close" bindtap="onClose">×</text>
+      </view>
+    </view>
+
+    <scroll-view class="params-body" scroll-y enhanced show-scrollbar="{{false}}">
+      <block wx:for="{{schema}}" wx:key="key">
+        <view wx:if="{{item.type === 'slider'}}" class="field-block">
+          <view class="field-row">
+            <text class="field-label">{{item.label}}</text>
+            <text class="field-value">{{form[item.key]}}{{item.unit || ''}}</text>
+          </view>
+          <text wx:if="{{item.hint}}" class="field-hint">{{item.hint}}</text>
+          <slider
+            min="{{item.min}}"
+            max="{{item.max}}"
+            step="{{item.step}}"
+            value="{{form[item.key]}}"
+            activeColor="#f0b90b"
+            backgroundColor="#2b2f36"
+            block-size="20"
+            data-key="{{item.key}}"
+            bindchange="onSliderChange"
+          />
+        </view>
+
+        <view wx:elif="{{item.type === 'switch'}}" class="field-block switch-row">
+          <view class="switch-main">
+            <text class="field-label">{{item.label}}</text>
+            <text wx:if="{{item.hint}}" class="field-hint inline">{{item.hint}}</text>
+          </view>
+          <switch
+            checked="{{form[item.key]}}"
+            color="#f0b90b"
+            disabled="{{item.dependsOn && !form[item.dependsOn]}}"
+            data-key="{{item.key}}"
+            bindchange="onSwitchChange"
+          />
+        </view>
+
+        <view wx:elif="{{item.type === 'picker'}}" class="field-block">
+          <text class="field-label">{{item.label}}</text>
+          <picker mode="selector" range="{{tierLabels}}" value="{{tierIndex}}" bindchange="onTierChange">
+            <view class="picker-value">{{tierLabels[tierIndex] || '全部档位'}}</view>
+          </picker>
+        </view>
+      </block>
+
+      <view wx:if="{{!schema.length}}" class="empty-hint">
+        <text>当前策略暂无可调参数</text>
+      </view>
+    </scroll-view>
+
+    <view class="params-foot">
+      <text class="foot-hint">应用后将按当前参数重跑全市场扫描并刷新列表</text>
+      <button class="apply-btn" bindtap="onApply" loading="{{applying}}">应用并重跑</button>
+      <button class="preview-btn" bindtap="onPreviewOnly">仅预览（不重跑）</button>
+    </view>
+  </view>
+</view>

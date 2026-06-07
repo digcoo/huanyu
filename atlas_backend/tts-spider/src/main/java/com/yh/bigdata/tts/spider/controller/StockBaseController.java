@@ -15,12 +15,17 @@ import com.yh.bigdata.tts.common.param.base.Response;
 import com.yh.bigdata.tts.common.param.base.ResponseUtil;
 import com.yh.bigdata.tts.common.utils.MathUtil;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.scheduler.StockTargetScheduler;
 import com.yh.bigdata.tts.spider.strategy.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
@@ -71,8 +76,29 @@ public class StockBaseController {
     List<AbstractStrategy> strategies;
     Map<StrategyTypeEnum, AbstractStrategy> strategyMap;
 
+    @Autowired
+    StockTargetScheduler stockTargetScheduler;
+
+    @Value("${atlas.strategy.rescan-enabled:true}")
+    private boolean strategyRescanEnabled;
+
     String lastDay = null;
     final Set<String> oldStockTargetList = new HashSet<>();
+
+    private static final long RECOMMEND_CACHE_TTL_MS = 10 * 60 * 1000L;
+    private static final int DEFAULT_PAGE_SIZE = 12;
+
+    private final Map<String, CachedRecommendations> recommendCache = new HashMap<>();
+
+    private static final class CachedRecommendations {
+        private final List<StockTarget> items;
+        private final long cachedAt;
+
+        private CachedRecommendations(List<StockTarget> items, long cachedAt) {
+            this.items = items;
+            this.cachedAt = cachedAt;
+        }
+    }
 
     @PostConstruct
     public void init() {
@@ -80,14 +106,21 @@ public class StockBaseController {
         for (AbstractStrategy strategy : strategies) {
             strategyMap.put(strategy.getStrategy(), strategy);
         }
+    }
 
-        //取出昨天的推荐
-        lastDay = stockTargetMapper.selectLatestDay();
-        if (Objects.nonNull(lastDay)) {
-            List<StockTarget> stockTargets = stockTargetMapper.selectListByDay(lastDay);
-            for (StockTarget stockTarget : stockTargets) {
-                oldStockTargetList.add(stockTarget.getCode());
+    @EventListener(ApplicationReadyEvent.class)
+    public void loadHistoricalTargets() {
+        try {
+            lastDay = stockTargetMapper.selectLatestDay();
+            if (Objects.nonNull(lastDay)) {
+                List<StockTarget> stockTargets = stockTargetMapper.selectListByDay(lastDay);
+                for (StockTarget stockTarget : stockTargets) {
+                    oldStockTargetList.add(stockTarget.getCode());
+                }
             }
+            log.info("StockBaseController loaded {} historical targets, lastDay={}", oldStockTargetList.size(), lastDay);
+        } catch (Exception e) {
+            log.warn("load historical stock_target skipped: {}", e.getMessage());
         }
     }
 		
@@ -99,12 +132,19 @@ public class StockBaseController {
 		Stopwatch stopwatch = Stopwatch.createStarted();
 
         AbstractStrategy abstractStrategy = strategyMap.get(stockPageQuery.getStrategyTypeEnum());
+        if (abstractStrategy == null) {
+            log.warn("strategy not registered: {}", stockPageQuery.getStrategy());
+            return stockTargets;
+        }
 
         List<CheckResult> checkResults = abstractStrategy.doQuery(stockPageQuery.getTrendPeriodTypesEnum(), stockPageQuery.getOpPeriodTypeEnum(), buildQueryContextParam(stockPageQuery));
 
 		checkResults = checkResults.stream().filter(checkResult -> {
 			
 			StockBase stock = RealtimeStockCache.filterStockMap.get(checkResult.getCode());
+			if (stock == null) {
+			    return false;
+			}
 		
 				return stock.getIsTrade()
 	//				&& !stock.getCode().startsWith("sz3") 
@@ -177,19 +217,94 @@ public class StockBaseController {
 	 */
 	@RequestMapping(value = { "/findMy" }, method = { RequestMethod.GET })
 	public Response<PageResult<StockTarget>> query(StockPageQuery pageQuery) {
-//		Stopwatch stopwatch = Stopwatch.createStarted();
-
 		log.info("------------->/stock/findMy 选股入口: {}", JSON.toJSONString(pageQuery));
-		
-		PageResult<StockTarget> pageResult = new PageResult<StockTarget>();
-		List<StockTarget> targetStocks = doQuery(pageQuery);
-		pageResult.setItems(targetStocks);
-		
-		pageResult.setTotalPage(1);
-				
+
+        int page = pageQuery.getPage() == null || pageQuery.getPage() < 1 ? 1 : pageQuery.getPage();
+        int size = pageQuery.getSize() == null || pageQuery.getSize() < 1 ? DEFAULT_PAGE_SIZE : pageQuery.getSize();
+
+        List<StockTarget> allTargets = getOrQueryAll(pageQuery);
+        PageResult<StockTarget> pageResult = new PageResult<>(page, size, (long) allTargets.size());
+
+        int start = pageResult.getStartIndex();
+        if (start >= allTargets.size()) {
+            pageResult.setItems(Collections.emptyList());
+        } else {
+            int end = Math.min(start + size, allTargets.size());
+            pageResult.setItems(new ArrayList<>(allTargets.subList(start, end)));
+        }
+
+        log.info("findMy page={}/{}, size={}, total={}", page, pageResult.getTotalPage(),
+                pageResult.getItems().size(), pageResult.getTotalNum());
+
 		return ResponseUtil.success(pageResult);
-		
 	}
+
+    /**
+     * 按当前请求参数重跑策略扫描并写入 stock_target（小程序「重跑策略」）
+     */
+    @PostMapping("/strategy/rescan")
+    public Response<Map<String, Object>> rescanStrategy(StockPageQuery pageQuery) {
+        if (!strategyRescanEnabled) {
+            return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
+        }
+        if (pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.TREND_NEW
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.DEFAUL) {
+            log.warn("rescan unsupported strategy: {}", pageQuery.getStrategy());
+            return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
+        }
+        QueryContextParam contextParam = buildQueryContextParam(pageQuery);
+        int saved = stockTargetScheduler.recommendSaveInternal(
+                contextParam, true, pageQuery.getStrategyTypeEnum());
+        clearRecommendCache();
+        Map<String, Object> data = new HashMap<>();
+        data.put("strategy", pageQuery.getStrategyTypeEnum().getCode());
+        data.put("saved", saved);
+        log.info("strategy rescan done, strategy={}, saved={}", pageQuery.getStrategy(), saved);
+        return ResponseUtil.success(data);
+    }
+
+    private List<StockTarget> getOrQueryAll(StockPageQuery pageQuery) {
+        String cacheKey = buildRecommendCacheKey(pageQuery);
+        long now = System.currentTimeMillis();
+        CachedRecommendations cached = recommendCache.get(cacheKey);
+        if (cached != null && now - cached.cachedAt < RECOMMEND_CACHE_TTL_MS) {
+            return cached.items;
+        }
+        List<StockTarget> items = doQuery(pageQuery);
+        recommendCache.put(cacheKey, new CachedRecommendations(items, now));
+        return items;
+    }
+
+    private String buildRecommendCacheKey(StockPageQuery pageQuery) {
+        return String.join("|",
+                String.valueOf(pageQuery.getStrategyTypeEnum()),
+                String.valueOf(pageQuery.getTrendPeriodTypes()),
+                String.valueOf(pageQuery.getOpPeriodType()),
+                String.valueOf(pageQuery.isAll()),
+                String.valueOf(pageQuery.getUDayLookback()),
+                String.valueOf(pageQuery.getUStrongYangPct()),
+                String.valueOf(pageQuery.getUWeekContextMin()),
+                String.valueOf(pageQuery.getUMinAmountWan()),
+                String.valueOf(pageQuery.getUEnableModeB()),
+                String.valueOf(pageQuery.getUEnableModeA()),
+                String.valueOf(pageQuery.getUEnableModeBWeak()),
+                String.valueOf(pageQuery.getUTierMin()),
+                String.valueOf(pageQuery.getRMinAmountWan()),
+                String.valueOf(pageQuery.getRCapitulationDayPct()),
+                String.valueOf(pageQuery.getRCapitulationWeekPct()),
+                String.valueOf(pageQuery.getRMinDrawdownPct()),
+                String.valueOf(pageQuery.getRCapitulationLookbackDays()),
+                String.valueOf(pageQuery.getRCapitulationLookbackWeeks()),
+                String.valueOf(pageQuery.getREnableModeA()),
+                String.valueOf(pageQuery.getREnableModeB()),
+                String.valueOf(pageQuery.getREnableModeC()),
+                String.valueOf(pageQuery.getRTierMin()));
+    }
+
+    public void clearRecommendCache() {
+        recommendCache.clear();
+        log.info("recommend cache cleared");
+    }
 
     private StockTarget buildStockTarget(StockBase stockBase, StrategyTypeEnum strategyTypeEnum) {
         StockTarget stockTarget = new StockTarget();
@@ -209,6 +324,8 @@ public class StockBaseController {
     private QueryContextParam buildQueryContextParam(StockPageQuery stockPageQuery) {
         return QueryContextParam.builder()
                 .lianBanDays(Objects.nonNull(stockPageQuery.getLianBanDays())? stockPageQuery.getLianBanDays(): NumberUtils.INTEGER_ONE)
+                .unilateral(stockPageQuery.toUnilateralParams())
+                .rebound(stockPageQuery.toReboundParams())
                 .build();
 
     }

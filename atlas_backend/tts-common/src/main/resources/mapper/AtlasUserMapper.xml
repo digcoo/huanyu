@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.AtlasUserMapper">
+
+  <insert id="upsert">
+    insert into atlas_user(openid, nickname, create_time)
+    values (#{openid}, #{nickname}, now())
+    on duplicate key update nickname = values(nickname)
+  </insert>
+
+  <select id="selectByOpenid" resultType="com.yh.bigdata.tts.common.model.AtlasUser">
+    select openid, nickname, create_time as createTime from atlas_user where openid = #{openid}
+  </select>
+
+</mapper>

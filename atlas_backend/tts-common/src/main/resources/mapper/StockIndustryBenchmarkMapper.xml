@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.StockIndustryBenchmarkMapper">
+
+  <delete id="deleteAll">
+    delete from stock_industry_benchmark
+  </delete>
+
+  <insert id="upsert">
+    insert into stock_industry_benchmark(
+      industry, roe_avg, gross_margin_avg, net_margin_avg, revenue_yoy_avg, debt_ratio_avg, sample_count, update_time
+    ) values (
+      #{industry}, #{roeAvg}, #{grossMarginAvg}, #{netMarginAvg}, #{revenueYoyAvg}, #{debtRatioAvg}, #{sampleCount}, now()
+    )
+    on duplicate key update
+      roe_avg = values(roe_avg),
+      gross_margin_avg = values(gross_margin_avg),
+      net_margin_avg = values(net_margin_avg),
+      revenue_yoy_avg = values(revenue_yoy_avg),
+      debt_ratio_avg = values(debt_ratio_avg),
+      sample_count = values(sample_count),
+      update_time = now()
+  </insert>
+
+  <select id="selectByIndustry" resultType="com.yh.bigdata.tts.common.model.StockIndustryBenchmark">
+    select industry, roe_avg as roeAvg, gross_margin_avg as grossMarginAvg, net_margin_avg as netMarginAvg,
+           revenue_yoy_avg as revenueYoyAvg, debt_ratio_avg as debtRatioAvg, sample_count as sampleCount
+    from stock_industry_benchmark
+    where industry = #{industry}
+  </select>
+
+  <select id="selectAll" resultType="com.yh.bigdata.tts.common.model.StockIndustryBenchmark">
+    select industry, roe_avg as roeAvg, gross_margin_avg as grossMarginAvg, net_margin_avg as netMarginAvg,
+           revenue_yoy_avg as revenueYoyAvg, debt_ratio_avg as debtRatioAvg, sample_count as sampleCount
+    from stock_industry_benchmark
+  </select>
+
+</mapper>

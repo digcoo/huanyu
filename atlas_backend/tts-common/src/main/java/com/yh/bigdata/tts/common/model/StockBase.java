@@ -27,6 +27,26 @@ public class StockBase {
 
     private String mainBusiness;
 
+    private String industry;
+
+    private String industryCsrc;
+
+    private String orgProfile;
+
+    private Double peTtm;
+
+    private Double pb;
+
+    private Double psTtm;
+
+    private Double dividendYield;
+
+    private Double high52w;
+
+    private Double low52w;
+
+    private Double totalMvYi;
+
     private Boolean isSt;
 
     private Boolean isTrade;

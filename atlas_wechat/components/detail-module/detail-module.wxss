@@ -43,11 +43,11 @@
 }
 
 .kpi-badge.up {
-  background: rgba(14, 203, 129, 0.1);
+  background: rgba(246, 70, 93, 0.1);
 }
 
 .kpi-badge.down {
-  background: rgba(246, 70, 93, 0.1);
+  background: rgba(14, 203, 129, 0.1);
 }
 
 .kpi-name {
@@ -61,8 +61,8 @@
   font-family: 'SF Mono', 'Menlo', monospace;
 }
 
-.kpi-badge.up .kpi-change { color: #0ecb81; }
-.kpi-badge.down .kpi-change { color: #f6465d; }
+.kpi-badge.up .kpi-change { color: #f6465d; }
+.kpi-badge.down .kpi-change { color: #0ecb81; }
 .kpi-badge.flat .kpi-change { color: #848e9c; }
 
 .color-bar {

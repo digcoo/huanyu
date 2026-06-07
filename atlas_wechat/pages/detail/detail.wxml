@@ -11,7 +11,7 @@
       <view class="nav-title" wx:else>
         <text class="nav-name">标的详情</text>
       </view>
-      <view class="watch-btn" wx:if="{{detail}}" bindtap="onAddWatchlist">★</view>
+      <view class="watch-btn {{inWatchlist ? 'active' : ''}}" wx:if="{{detail}}" bindtap="onAddWatchlist">{{inWatchlist ? '★' : '☆'}}</view>
       <view class="watch-btn placeholder" wx:else></view>
     </view>
   </view>
@@ -26,9 +26,9 @@
     <!-- 价格条 -->
     <view class="detail-header" style="padding-top: {{statusBarHeight + 56}}px">
       <view class="price-row">
-        <view class="price-main {{detail.changePct > 0 ? 'up' : detail.changePct < 0 ? 'down' : 'flat'}}">
+        <view class="price-main">
           <text class="price-value">{{detail.price}}</text>
-          <text class="price-change">{{detail.changePct >= 0 ? '+' : ''}}{{detail.changePct}}%</text>
+          <text class="price-change {{detail.changePct > 0 ? 'up' : detail.changePct < 0 ? 'down' : 'flat'}}">{{detail.changePct >= 0 ? '+' : ''}}{{detail.changePct}}%</text>
         </view>
         <view class="badge-group">
           <view class="industry-badge">{{detail.industry}}</view>
@@ -146,7 +146,7 @@
     <view class="section">
       <view class="section-head">
         <text class="section-title">四维罗盘</text>
-        <text class="section-sub">近8年年度数据 · 点击展开</text>
+        <text class="section-sub">近15年年度数据 · 点击展开</text>
       </view>
 
       <detail-module

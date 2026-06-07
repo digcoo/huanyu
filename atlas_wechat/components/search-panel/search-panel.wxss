@@ -176,8 +176,8 @@
   font-family: 'SF Mono', 'Menlo', monospace;
 }
 
-.result-change.up { color: #0ecb81; }
-.result-change.down { color: #f6465d; }
+.result-change.up { color: #f6465d; }
+.result-change.down { color: #0ecb81; }
 
 .result-add {
   flex-shrink: 0;

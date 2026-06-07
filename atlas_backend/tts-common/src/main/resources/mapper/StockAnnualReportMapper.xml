@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.StockAnnualReportMapper">
+
+  <resultMap id="BaseResultMap" type="com.yh.bigdata.tts.common.model.StockAnnualReport">
+    <id column="id" property="id"/>
+    <result column="code" property="code"/>
+    <result column="name" property="name"/>
+    <result column="report_year" property="reportYear"/>
+    <result column="report_date" property="reportDate"/>
+    <result column="total_revenue" property="totalRevenue"/>
+    <result column="net_profit" property="netProfit"/>
+    <result column="parent_net_profit" property="parentNetProfit"/>
+    <result column="gross_margin" property="grossMargin"/>
+    <result column="net_margin" property="netMargin"/>
+    <result column="roe" property="roe"/>
+    <result column="operating_cash_flow" property="operatingCashFlow"/>
+    <result column="debt_ratio" property="debtRatio"/>
+    <result column="current_ratio" property="currentRatio"/>
+    <result column="inventory_days" property="inventoryDays"/>
+    <result column="receivable_days" property="receivableDays"/>
+    <result column="revenue_yoy" property="revenueYoy"/>
+    <result column="profit_yoy" property="profitYoy"/>
+    <result column="source" property="source"/>
+    <result column="create_time" property="createTime"/>
+    <result column="update_time" property="updateTime"/>
+  </resultMap>
+
+  <insert id="upsert" parameterType="com.yh.bigdata.tts.common.model.StockAnnualReport">
+    INSERT INTO stock_annual_report (
+      code, name, report_year, report_date,
+      total_revenue, net_profit, parent_net_profit,
+      gross_margin, net_margin, roe, operating_cash_flow,
+      debt_ratio, current_ratio, inventory_days, receivable_days,
+      revenue_yoy, profit_yoy, source
+    ) VALUES (
+      #{code}, #{name}, #{reportYear}, #{reportDate},
+      #{totalRevenue}, #{netProfit}, #{parentNetProfit},
+      #{grossMargin}, #{netMargin}, #{roe}, #{operatingCashFlow},
+      #{debtRatio}, #{currentRatio}, #{inventoryDays}, #{receivableDays},
+      #{revenueYoy}, #{profitYoy}, #{source}
+    )
+    ON DUPLICATE KEY UPDATE
+      name = VALUES(name),
+      report_date = VALUES(report_date),
+      total_revenue = VALUES(total_revenue),
+      net_profit = VALUES(net_profit),
+      parent_net_profit = VALUES(parent_net_profit),
+      gross_margin = VALUES(gross_margin),
+      net_margin = VALUES(net_margin),
+      roe = VALUES(roe),
+      operating_cash_flow = VALUES(operating_cash_flow),
+      debt_ratio = VALUES(debt_ratio),
+      current_ratio = VALUES(current_ratio),
+      inventory_days = VALUES(inventory_days),
+      receivable_days = VALUES(receivable_days),
+      revenue_yoy = VALUES(revenue_yoy),
+      profit_yoy = VALUES(profit_yoy),
+      source = VALUES(source),
+      update_time = CURRENT_TIMESTAMP
+  </insert>
+
+  <select id="selectByCode" resultMap="BaseResultMap">
+    SELECT *
+    FROM stock_annual_report
+    WHERE code = #{code}
+    ORDER BY report_year ASC
+    LIMIT #{limit}
+  </select>
+
+  <select id="selectLatestByCode" resultMap="BaseResultMap">
+    SELECT *
+    FROM stock_annual_report
+    WHERE code = #{code}
+    ORDER BY report_year DESC
+    LIMIT 1
+  </select>
+
+  <select id="selectByCodeAndYear" resultMap="BaseResultMap">
+    SELECT *
+    FROM stock_annual_report
+    WHERE code = #{code} AND report_year = #{reportYear}
+    LIMIT 1
+  </select>
+
+  <select id="countByCode" resultType="int">
+    SELECT COUNT(1) FROM stock_annual_report WHERE code = #{code}
+  </select>
+
+  <delete id="deleteDuplicateCodeYears">
+    DELETE t1 FROM stock_annual_report t1
+    INNER JOIN stock_annual_report t2
+      ON t1.code = t2.code
+     AND t1.report_year = t2.report_year
+     AND t1.id &lt; t2.id
+  </delete>
+</mapper>

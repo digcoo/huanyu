@@ -44,6 +44,11 @@
   background: rgba(240, 185, 11, 0.1);
 }
 
+.watch-btn.active {
+  color: #fff;
+  background: rgba(240, 185, 11, 0.85);
+}
+
 .watch-btn.placeholder {
   opacity: 0;
   pointer-events: none;
@@ -128,6 +133,7 @@
   line-height: 1.1;
   font-family: 'SF Mono', 'Menlo', monospace;
   letter-spacing: -1rpx;
+  color: #e8edf5;
 }
 
 .price-change {
@@ -138,20 +144,17 @@
   font-family: 'SF Mono', 'Menlo', monospace;
 }
 
-/* A股：红涨绿跌 */
-.price-main.up .price-value,
-.price-main.up .price-change {
+/* 涨跌率：A股红涨绿跌；价格保持与首页一致的中性色 */
+.price-change.up {
   color: #f6465d;
 }
 
-.price-main.down .price-value,
-.price-main.down .price-change {
+.price-change.down {
   color: #0ecb81;
 }
 
-.price-main.flat .price-value,
-.price-main.flat .price-change {
-  color: #e8edf5;
+.price-change.flat {
+  color: #8b95a8;
 }
 
 .badge-group {

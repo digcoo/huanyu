@@ -37,6 +37,13 @@
   margin-bottom: 4rpx;
 }
 
+.tab-icon-img {
+  width: 44rpx;
+  height: 44rpx;
+  margin-bottom: 4rpx;
+  display: block;
+}
+
 .tab-name {
   font-size: 22rpx;
   color: #848e9c;

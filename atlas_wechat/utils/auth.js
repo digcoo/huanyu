@@ -3,9 +3,14 @@ const api = require('./api');
 
 const TOKEN_KEY = 'authToken';
 const USER_KEY = 'authUser';
+const OPENID_KEY = 'authOpenid';
 
 function getToken() {
   return wx.getStorageSync(TOKEN_KEY) || '';
+}
+
+function getOpenid() {
+  return wx.getStorageSync(OPENID_KEY) || '';
 }
 
 function getUser() {
@@ -16,14 +21,16 @@ function isLoggedIn() {
   return !!getToken();
 }
 
-function saveSession(token, user) {
+function saveSession(token, user, openid) {
   wx.setStorageSync(TOKEN_KEY, token);
   if (user) wx.setStorageSync(USER_KEY, user);
+  if (openid) wx.setStorageSync(OPENID_KEY, openid);
 }
 
 function clearSession() {
   wx.removeStorageSync(TOKEN_KEY);
   wx.removeStorageSync(USER_KEY);
+  wx.removeStorageSync(OPENID_KEY);
 }
 
 function login() {
@@ -35,7 +42,7 @@ function login() {
           return;
         }
         if (config.useMock) {
-          saveSession('mock-' + res.code.slice(0, 8), { nickname: 'Atlas 用户' });
+          saveSession('mock-' + res.code.slice(0, 8), { nickname: 'Atlas 用户' }, 'mock-openid');
           resolve(getToken());
           return;
         }
@@ -44,7 +51,7 @@ function login() {
             reject(new Error(result.message || '登录失败'));
             return;
           }
-          saveSession(result.data.token, result.data.user || null);
+          saveSession(result.data.token, result.data.user || null, result.data.openid || null);
           resolve(result.data.token);
         }).catch(reject);
       },
@@ -78,6 +85,7 @@ function promptLogin(title) {
 
 module.exports = {
   getToken: getToken,
+  getOpenid: getOpenid,
   getUser: getUser,
   isLoggedIn: isLoggedIn,
   login: login,

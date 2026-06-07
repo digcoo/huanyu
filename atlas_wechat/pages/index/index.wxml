@@ -4,7 +4,7 @@
 
   <view class="nav-sticky" style="padding-top: {{statusBarHeight}}px">
 
-    <view class="nav-content">
+    <view class="nav-content" style="padding-right: {{navPaddingRight}}px">
 
       <view class="brand">
 
@@ -20,14 +20,8 @@
 
       </view>
 
-      <view class="nav-actions" style="margin-right: {{navPaddingRight}}px">
-        <view class="search-btn" bindtap="onOpenSearch">
-          <text class="search-icon">⌕</text>
-        </view>
-        <view class="nav-stats">
-          <text class="stat-num">{{recommendations.length}}</text>
-          <text class="stat-label">推荐</text>
-        </view>
+      <view class="search-btn" bindtap="onOpenSearch">
+        <text class="search-icon">⌕</text>
       </view>
 
     </view>
@@ -102,7 +96,25 @@
 
     <view class="list-header">
 
-      <text class="list-subtitle">{{activeStrategyMeta.desc}}</text>
+      <view class="list-header-main">
+        <text class="list-subtitle">{{activeStrategyMeta.desc}}</text>
+        <text wx:if="{{paramsSummary}}" class="list-params">{{paramsSummary}}</text>
+      </view>
+
+      <view wx:if="{{showStrategyParams}}" class="list-header-actions">
+        <view
+          class="params-btn rescan-btn {{rescanning ? 'disabled' : ''}}"
+          bindtap="onRescanStrategy"
+        >
+          <text class="params-icon">↻</text>
+        </view>
+        <view
+          class="params-btn {{paramsCustomized ? 'active' : ''}}"
+          bindtap="onOpenStrategyParams"
+        >
+          <text class="params-icon">⚙</text>
+        </view>
+      </view>
 
     </view>
 
@@ -144,7 +156,10 @@
 
     <view class="list-footer">
 
-      <text>— 左滑忽略 · 右滑自选 · 点击查看详情 —</text>
+      <text wx:if="{{rescanning}}">策略重跑中…</text>
+      <text wx:elif="{{loadingMore}}">加载中…</text>
+      <text wx:elif="{{hasMore}}">上拉加载更多（{{recommendations.length}}/{{totalCount}}）</text>
+      <text wx:else>— 左滑忽略 · 右滑自选 · 点击查看详情 —</text>
 
     </view>
 
@@ -161,6 +176,15 @@
     bind:close="onSearchClose"
     bind:select="onSearchSelect"
     bind:addwatchlist="onSearchAddWatchlist"
+  />
+
+  <strategy-params-panel
+    id="strategyParamsPanel"
+    visible="{{paramsVisible}}"
+    strategyId="{{activeStrategy}}"
+    statusBarHeight="{{statusBarHeight}}"
+    bind:close="onParamsClose"
+    bind:apply="onParamsApply"
   />
 </view>
 

@@ -560,9 +560,9 @@ function buildDetailFromStock(base, overrides) {
     || ((INDUSTRY_MAP[base.market] && INDUSTRY_MAP[base.market][adapter.displayCode(base.code)])
       || INDUSTRY_MAP[base.market] && INDUSTRY_MAP[base.market][base.code])
     || '综合';
-  const stage = pickStage(base.resonance, base.changePct);
-  const healthScore = Math.min(95, 58 + (seed % 38));
-  const radar = buildRadar(seed, stage.id);
+  const stage = overrides.stage || pickStage(base.resonance, base.changePct);
+  const healthScore = overrides.healthScore != null ? overrides.healthScore : Math.min(95, 58 + (seed % 38));
+  const radar = overrides.radar || buildRadar(seed, stage.id);
   const maxRadar = radar.dimensions.map(function (_, i) {
     return Math.max(radar.company[i], radar.industry[i]) * 1.2;
   });
@@ -571,8 +571,8 @@ function buildDetailFromStock(base, overrides) {
   const compass = overrides.compass || buildCompass(createSeededRandom(seed + 200), priceBase, stage.id);
 
   const profile = overrides.profile || getCompanyProfile(base.code, base.name, industry);
-  const radarInsights = buildRadarInsights(radar);
-  const healthBreakdown = {
+  const radarInsights = radar.insights || buildRadarInsights(radar);
+  const healthBreakdown = overrides.healthBreakdown || {
     profit: Math.min(99, healthScore + 5),
     growth: Math.min(99, healthScore - 3),
     debt: Math.min(99, healthScore + 8),
@@ -583,17 +583,17 @@ function buildDetailFromStock(base, overrides) {
     id: id,
     industry: industry,
     stage: stage,
-    stageHint: STAGE_HINTS[stage.id] || '',
+    stageHint: overrides.stageHint || STAGE_HINTS[stage.id] || '',
     healthScore: healthScore,
-    healthRank: '盈利力超过' + industry + '行业 ' + healthScore + '% 的公司',
+    healthRank: overrides.healthRank || ('盈利力超过' + industry + '行业 ' + healthScore + '% 的公司'),
     healthBreakdown: healthBreakdown,
     profile: profile,
-    portraitDimensions: buildPortraitDimensions(stage, healthBreakdown, radarInsights),
+    portraitDimensions: overrides.portraitDimensions || buildPortraitDimensions(stage, healthBreakdown, radarInsights),
     strategySummary: base.summary,
     radar: Object.assign({}, radar, {
-      companyPoints: radarToPoints(radar.company, maxRadar),
-      industryPoints: radarToPoints(radar.industry, maxRadar),
-      gridLevels: [20, 35, 50],
+      companyPoints: radar.companyPoints || radarToPoints(radar.company, maxRadar),
+      industryPoints: radar.industryPoints || radarToPoints(radar.industry, maxRadar),
+      gridLevels: radar.gridLevels || [20, 35, 50],
       insights: radarInsights
     }),
     compass: compass,
@@ -603,7 +603,8 @@ function buildDetailFromStock(base, overrides) {
       compass.chain,
       compass.capital
     ],
-    keyMetrics: overrides.keyMetrics || buildKeyMetrics(base, seed, radar)
+    keyMetrics: overrides.keyMetrics || buildKeyMetrics(base, seed, radar),
+    competitors: overrides.competitors || []
   });
 }
 

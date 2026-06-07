@@ -21,4 +21,16 @@ public final class StockCodeUtil {
         }
         return normalized;
     }
+
+    /** 600519 */
+    public static String toSecurityCode(String code) {
+        String normalized = normalizeCnCode(code);
+        if (normalized == null) {
+            return null;
+        }
+        if (normalized.startsWith("sh") || normalized.startsWith("sz")) {
+            return normalized.substring(2);
+        }
+        return normalized;
+    }
 }

@@ -8,8 +8,12 @@ const { buildMarketsForUI } = require('../../utils/markets');
 const config = require('../../utils/config');
 const auth = require('../../utils/auth');
 const stockApi = require('../../utils/stock-api');
+const adapter = require('../../utils/adapter');
+const strategyParams = require('../../utils/strategy-params');
 
 const app = getApp();
+
+const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
 
 function mapChartKlines(list, period) {
   return list.map(function (item) {
@@ -42,7 +46,14 @@ Page({
     klineFlipped: false,
     searchVisible: false,
     watchlistIds: [],
-    loading: false
+    loading: false,
+    loadingMore: false,
+    hasMore: false,
+    paramsVisible: false,
+    showStrategyParams: false,
+    paramsSummary: '',
+    paramsCustomized: false,
+    rescanning: false
   },
 
   onLoad() {
@@ -65,6 +76,7 @@ Page({
     });
 
     this._allRecommendations = buildStrategyRecommendations();
+    this.refreshParamsBadge(savedStrategy);
     if (config.useMock) {
       this.loadMarket('cn');
     } else {
@@ -90,6 +102,143 @@ Page({
       watchlistCount: app.globalData.watchlist.length,
       watchlistIds: app.globalData.watchlist.map(function (w) { return w.id; }),
       klineFlipped: !!wx.getStorageSync('klineFlipped')
+    });
+  },
+
+  refreshParamsBadge(strategyId) {
+    strategyId = strategyId || this.data.activeStrategy;
+    var show = !config.useMock && strategyParams.hasCustomParams(strategyId);
+    this.setData({
+      showStrategyParams: show,
+      paramsSummary: show ? strategyParams.formatSummary(strategyId) : '',
+      paramsCustomized: show && strategyParams.isCustomized(strategyId)
+    });
+  },
+
+  onOpenStrategyParams() {
+    this.setData({ paramsVisible: true });
+  },
+
+  onParamsClose() {
+    this.setData({ paramsVisible: false });
+  },
+
+  onParamsApply(e) {
+    var detail = (e && e.detail) || {};
+    var strategyId = detail.strategyId || this.data.activeStrategy;
+    var shouldRescan = detail.rescan !== false;
+    this.refreshParamsBadge(strategyId);
+
+    if (config.useMock) {
+      wx.showToast({ title: 'Mock 模式参数不生效', icon: 'none' });
+      this.setData({ paramsVisible: false });
+      return;
+    }
+
+    if (shouldRescan) {
+      var self = this;
+      this.runStrategyRescanAndReload(true).then(function () {
+        self.setData({ paramsVisible: false });
+      });
+      return;
+    }
+
+    this.setData({ paramsVisible: false });
+    this.loadMarketFromApi(this.data.activeMarket);
+    wx.showToast({ title: '参数已应用（预览）', icon: 'success' });
+  },
+
+  onRescanStrategy() {
+    if (this.data.rescanning || this.data.loading) return;
+    this.runStrategyRescanAndReload(true);
+  },
+
+  runStrategyRescanAndReload(showToast) {
+    if (config.useMock) {
+      return Promise.resolve({ ok: false, saved: 0 });
+    }
+    if (this.data.rescanning) {
+      return Promise.resolve();
+    }
+
+    var self = this;
+    var strategyId = this.data.activeStrategy;
+    var panel = this.selectComponent('#strategyParamsPanel');
+
+    this.setData({ rescanning: true });
+    if (panel) panel.setApplying(true);
+    wx.showLoading({ title: '重跑策略中…', mask: true });
+
+    return stockApi.triggerStrategyRescan(strategyId).then(function (result) {
+      return self.loadMarketFromApi(self.data.activeMarket).then(function () {
+        return result;
+      });
+    }).then(function (result) {
+      if (showToast) {
+        var saved = result && result.saved != null ? result.saved : 0;
+        var ok = result && result.ok;
+        wx.showToast({
+          title: ok ? '已重跑 ' + saved + ' 只' : '重跑失败',
+          icon: ok ? 'success' : 'none',
+          duration: 2000
+        });
+      }
+      return result;
+    }).catch(function () {
+      if (showToast) {
+        wx.showToast({ title: '重跑失败', icon: 'none' });
+      }
+    }).finally(function () {
+      wx.hideLoading();
+      self.setData({ rescanning: false });
+      if (panel) panel.setApplying(false);
+    });
+  },
+
+  _fetchRecommendPage(strategyId, period, page, ignored) {
+    return stockApi.fetchRecommendations(strategyId, page, RECOMMEND_PAGE_SIZE).then(function (result) {
+      var items = (result.items || []).filter(function (item) {
+        return !ignored.includes(item.id);
+      });
+      return stockApi.attachKlinesToItems(items, period).then(function (withKlines) {
+        return {
+          items: withKlines,
+          page: result.page,
+          totalNum: result.totalNum,
+          hasMore: result.hasMore
+        };
+      });
+    });
+  },
+
+  onReachBottom() {
+    if (config.useMock || this.data.activeMarket !== 'cn') return;
+    this.loadMoreRecommendations();
+  },
+
+  loadMoreRecommendations() {
+    if (!this.data.hasMore || this.data.loadingMore || this.data.loading) return;
+
+    const self = this;
+    const strategyId = this.data.activeStrategy;
+    const period = this.data.activePeriod;
+    const ignored = app.globalData.ignoredIds;
+    const nextPage = (this._loadPage || 1) + 1;
+
+    this.setData({ loadingMore: true });
+
+    this._fetchRecommendPage(strategyId, period, nextPage, ignored).then(function (result) {
+      self._loadPage = result.page;
+      self._baseList = (self._baseList || []).concat(result.items);
+      self.setData({
+        recommendations: mapChartKlines(self._baseList, period),
+        totalCount: result.totalNum,
+        hasMore: result.hasMore,
+        loadingMore: false
+      });
+    }).catch(function () {
+      self.setData({ loadingMore: false });
+      wx.showToast({ title: '加载更多失败', icon: 'none' });
     });
   },
 
@@ -123,7 +272,7 @@ Page({
         totalCount: 0,
         loading: false
       });
-      return;
+      return Promise.resolve();
     }
 
     const self = this;
@@ -131,20 +280,29 @@ Page({
     const period = this.data.activePeriod;
     const ignored = app.globalData.ignoredIds;
 
-    this.setData({ loading: true });
+    this.setData({ loading: true, hasMore: false, loadingMore: false });
+    this._loadPage = 1;
 
-    stockApi.fetchRecommendations(strategyId).then(function (items) {
-      self._baseList = (items || []).filter(function (item) {
-        return !ignored.includes(item.id);
-      });
-      return stockApi.attachKlinesToItems(self._baseList, period);
-    }).then(function (withKlines) {
-      self._baseList = withKlines;
+    return this._fetchRecommendPage(strategyId, period, 1, ignored).then(function (result) {
+      return Promise.all([
+        Promise.resolve(result),
+        stockApi.fetchMarketIndices('cn', period).then(function (raw) {
+          return adapter.mapMarketIndices(raw, period);
+        }).catch(function () {
+          return MARKET_INDICES.cn || [];
+        })
+      ]);
+    }).then(function (results) {
+      var pageResult = results[0];
+      var indices = results[1];
+      self._loadPage = pageResult.page;
+      self._baseList = pageResult.items;
       self.setData({
         activeMarket: marketId,
-        indices: MARKET_INDICES[marketId] || [],
-        recommendations: mapChartKlines(withKlines, period),
-        totalCount: withKlines.length,
+        indices: indices,
+        recommendations: mapChartKlines(pageResult.items, period),
+        totalCount: pageResult.totalNum,
+        hasMore: pageResult.hasMore,
         loading: false
       });
     }).catch(function () {
@@ -154,7 +312,7 @@ Page({
         wx.showToast({ title: '已使用离线数据', icon: 'none' });
         return;
       }
-      self.setData({ loading: false, recommendations: [], totalCount: 0 });
+      self.setData({ loading: false, recommendations: [], totalCount: 0, hasMore: false });
       wx.showToast({ title: '加载失败', icon: 'none' });
     });
   },
@@ -183,6 +341,7 @@ Page({
       activeStrategy: strategyId,
       activeStrategyMeta: findStrategyMeta(strategyId)
     });
+    this.refreshParamsBadge(strategyId);
     if (config.useMock) {
       this.loadMarket(this.data.activeMarket);
     } else {
@@ -201,12 +360,28 @@ Page({
       return;
     }
     const self = this;
+    this.setData({ loading: true });
     stockApi.attachKlinesToItems(this._baseList || [], period).then(function (list) {
+      return Promise.all([
+        Promise.resolve(list),
+        stockApi.fetchMarketIndices('cn', period).then(function (raw) {
+          return adapter.mapMarketIndices(raw, period);
+        }).catch(function () {
+          return self.data.indices.length ? self.data.indices : (MARKET_INDICES.cn || []);
+        })
+      ]);
+    }).then(function (results) {
+      var list = results[0];
+      var indices = results[1];
       self._baseList = list;
       self.setData({
         activePeriod: period,
-        recommendations: mapChartKlines(list, period)
+        indices: indices,
+        recommendations: mapChartKlines(list, period),
+        loading: false
       });
+    }).catch(function () {
+      self.setData({ loading: false });
     });
   },
 
@@ -215,7 +390,7 @@ Page({
     wx.setStorageSync('klineFlipped', klineFlipped);
     this.setData({ klineFlipped });
     wx.showToast({
-      title: klineFlipped ? 'K线已翻转' : 'K线已还原',
+      title: klineFlipped ? '坐标已翻转（低价在上）' : '坐标已还原',
       icon: 'none',
       duration: 800
     });

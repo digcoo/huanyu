@@ -52,7 +52,15 @@ function loadDetail(id, period) {
       industry: d.industry,
       profile: adapter.normalizeProfile(d.profile),
       compass: compass,
-      keyMetrics: d.keyMetrics
+      keyMetrics: d.keyMetrics,
+      stage: d.stage,
+      stageHint: d.stageHint,
+      healthScore: d.healthScore,
+      healthRank: d.healthRank,
+      healthBreakdown: d.healthBreakdown,
+      radar: d.radar,
+      portraitDimensions: d.portraitDimensions,
+      competitors: d.competitors
     });
   }).catch(function () {
     if (config.fallbackOnError) return detailMock.getDetailById(id);

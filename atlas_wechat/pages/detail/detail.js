@@ -21,7 +21,8 @@ Page({
       capital: false
     },
     loading: true,
-    notFound: false
+    notFound: false,
+    inWatchlist: false
   },
 
   onLoad(options) {
@@ -49,6 +50,8 @@ Page({
         chartKlines: mapChartKlines(detail, savedPeriod),
         loading: false,
         notFound: false
+      }, function () {
+        self.updateWatchState();
       });
     }).catch(function () {
       self.setData({ loading: false, notFound: true });
@@ -59,6 +62,16 @@ Page({
     this.setData({
       klineFlipped: !!wx.getStorageSync('klineFlipped'),
       activePeriod: wx.getStorageSync('activePeriod') || this.data.activePeriod
+    });
+    this.updateWatchState();
+  },
+
+  updateWatchState() {
+    const app = getApp();
+    const detail = this.data.detail;
+    if (!detail) return;
+    this.setData({
+      inWatchlist: app.isInWatchlist(detail.id)
     });
   },
 
@@ -96,7 +109,7 @@ Page({
     wx.setStorageSync('klineFlipped', klineFlipped);
     this.setData({ klineFlipped });
     wx.showToast({
-      title: klineFlipped ? 'K线已翻转' : 'K线已还原',
+      title: klineFlipped ? '坐标已翻转（低价在上）' : '坐标已还原',
       icon: 'none',
       duration: 800
     });
@@ -115,18 +128,29 @@ Page({
     const app = getApp();
     const detail = this.data.detail;
     if (!detail) return;
+    const self = this;
     app.addToWatchlist(detail).then(function (result) {
       if (result && result.needLogin) {
         auth.promptLogin().then(function () {
           return app.addToWatchlist(detail);
         }).then(function (r2) {
-          if (r2 && r2.added) wx.showToast({ title: '已加入自选', icon: 'success' });
-          else if (r2 && r2.duplicate) wx.showToast({ title: '已在自选', icon: 'none' });
+          if (r2 && r2.added) {
+            wx.showToast({ title: '已加入自选', icon: 'success' });
+            self.setData({ inWatchlist: true });
+          } else if (r2 && r2.duplicate) {
+            wx.showToast({ title: '已在自选', icon: 'none' });
+            self.setData({ inWatchlist: true });
+          }
         }).catch(function () {});
         return;
       }
-      if (result && result.added) wx.showToast({ title: '已加入自选', icon: 'success' });
-      else if (result && result.duplicate) wx.showToast({ title: '已在自选', icon: 'none' });
+      if (result && result.added) {
+        wx.showToast({ title: '已加入自选', icon: 'success' });
+        self.setData({ inWatchlist: true });
+      } else if (result && result.duplicate) {
+        wx.showToast({ title: '已在自选', icon: 'none' });
+        self.setData({ inWatchlist: true });
+      }
     });
   }
 });

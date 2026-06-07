@@ -1,7 +1,7 @@
 <view class="period-switcher">
   <view class="period-toolbar">
     <view class="flip-btn {{flipped ? 'active' : ''}}" bindtap="onFlip">
-      <text class="flip-icon">⇄</text>
+      <text class="flip-icon">{{flipped ? '↕' : '⇅'}}</text>
     </view>
     <view class="period-tabs">
       <view

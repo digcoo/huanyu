@@ -1,5 +1,12 @@
 const { calcPriceRange } = require('../../utils/kline');
 
+const MA_CONFIGS = [
+  { period: 5, key: 'm5', label: 'M5', color: '#f0b90b' },
+  { period: 10, key: 'm10', label: 'M10', color: '#e040fb' },
+  { period: 20, key: 'm20', label: 'M20', color: '#00d4ff' },
+  { period: 30, key: 'm30', label: 'M30', color: '#ff9500' }
+];
+
 function calcMA(klines, period) {
   return klines.map((_, i) => {
     if (i < period - 1) return null;
@@ -17,11 +24,34 @@ function maToPoints(klines, period, range) {
   ma.forEach((v, i) => {
     if (v == null) return;
     points.push({
-      x: (i * slotW + slotW / 2).toFixed(2),
-      y: ((range.max - v) / range.span * 100).toFixed(2)
+      x: +(i * slotW + slotW / 2).toFixed(2),
+      y: +(((range.max - v) / range.span) * 100).toFixed(2)
     });
   });
   return points;
+}
+
+function pointsToPolyline(points) {
+  if (!points || points.length < 2) return '';
+  return points.map(function (p) {
+    return p.x + ',' + p.y;
+  }).join(' ');
+}
+
+function buildMaLines(klines, range, count) {
+  return MA_CONFIGS.filter(function (cfg) {
+    return count >= cfg.period;
+  }).map(function (cfg) {
+    const points = maToPoints(klines, cfg.period, range);
+    return {
+      key: cfg.key,
+      label: cfg.label,
+      color: cfg.color,
+      points: pointsToPolyline(points)
+    };
+  }).filter(function (line) {
+    return !!line.points;
+  });
 }
 
 Component({
@@ -53,13 +83,16 @@ Component({
     markerLabel: {
       type: String,
       value: ''
+    },
+    updatedLabel: {
+      type: String,
+      value: ''
     }
   },
 
   data: {
     bars: [],
-    ma7Points: [],
-    ma25Points: [],
+    maLines: [],
     maLegend: false,
     markerLeft: null
   },
@@ -94,7 +127,7 @@ Component({
       const maxBars = this.properties.maxBars || 50;
 
       if (!klines || !klines.length) {
-        this.setData({ bars: [], ma7Points: [], ma25Points: [], maLegend: false, markerLeft: null });
+        this.setData({ bars: [], maLines: [], maLegend: false, markerLeft: null });
         return;
       }
 
@@ -123,7 +156,6 @@ Component({
         let bodyTop = ((max - bodyTopVal) / span * 100);
         let bodyH = Math.max((bodyTopVal - bodyBotVal) / span * 100, minBodyPct);
 
-        // 十字星：居中画短柱
         if ((bodyTopVal - bodyBotVal) / span * 100 < 0.4) {
           bodyH = minBodyPct;
           bodyTop = ((max - (bodyTopVal + bodyBotVal) / 2) / span * 100) - bodyH / 2;
@@ -153,13 +185,12 @@ Component({
         ? ((count - 1) * slotW + slotW / 2).toFixed(2)
         : null;
 
-      const showMA = isCard && count >= 7;
+      const showMA = isCard && count >= 5;
       this.setData({
         bars,
         markerLeft,
         maLegend: showMA,
-        ma7Points: showMA ? maToPoints(sliced, 7, range) : [],
-        ma25Points: showMA && count >= 25 ? maToPoints(sliced, 25, range) : []
+        maLines: showMA ? buildMaLines(sliced, range, count) : []
       });
     }
   }
