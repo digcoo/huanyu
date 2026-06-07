@@ -22,6 +22,10 @@ public final class MultiStrengthEvaluator {
         MultiResonanceTools.ResonanceSnapshot resonance = MultiResonanceTools.evaluate(stock);
         MultiBreakoutTools.BreakoutSnapshot breakout = MultiBreakoutTools.evaluate(stock, p);
 
+        if (resonance.coreCount() < p.getMinResonancePeriods()) {
+            return new MultiEvaluation(resonance, breakout, false);
+        }
+
         MultiEvaluation eval = new MultiEvaluation(resonance, breakout, false);
 
         char tier = MultiScoreCalculator.computeTier(eval, p);

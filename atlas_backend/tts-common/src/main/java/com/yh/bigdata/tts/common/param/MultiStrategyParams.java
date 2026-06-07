@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MultiStrategyParams {
 
-    public static final int DEFAULT_MIN_RESONANCE_PERIODS = 2;
+    public static final int DEFAULT_MIN_RESONANCE_PERIODS = 4;
     public static final double DEFAULT_MIN_AVG_AMOUNT = 50_000_000D;
     /** 默认仅 S/A 进池 */
     public static final String DEFAULT_TIER_MIN = "A";
@@ -55,7 +55,7 @@ public class MultiStrategyParams {
         }
         MultiStrategyParams d = defaults();
         if (incoming.minResonancePeriods > 0) {
-            d.minResonancePeriods = Math.min(3, Math.max(1, incoming.minResonancePeriods));
+            d.minResonancePeriods = Math.min(4, Math.max(1, incoming.minResonancePeriods));
         }
         if (incoming.minAvgAmount > 0) {
             d.minAvgAmount = incoming.minAvgAmount;

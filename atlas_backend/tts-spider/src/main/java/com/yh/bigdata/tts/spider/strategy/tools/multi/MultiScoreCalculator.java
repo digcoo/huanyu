@@ -16,9 +16,10 @@ public final class MultiScoreCalculator {
         MultiBreakoutTools.BreakoutSnapshot breakout = eval.getBreakout();
 
         int core = resonance.coreCount();
+        boolean full = resonance.fullResonance();
         boolean hasTrigger = breakout.hasTrigger();
 
-        if (core >= 3 && hasTrigger
+        if (full && hasTrigger
                 && (breakout.signalPeriodCount >= 2 || breakout.triggerKindCount() >= 2)) {
             return 'S';
         }
@@ -39,16 +40,19 @@ public final class MultiScoreCalculator {
         MultiResonanceTools.ResonanceSnapshot resonance = eval.getResonance();
         MultiBreakoutTools.BreakoutSnapshot breakout = eval.getBreakout();
 
-        if (resonance.day != null && resonance.day.coreResonance()) {
-            score += 20;
+        if (resonance.year != null && resonance.year.coreResonance()) {
+            score += 25;
+        }
+        if (resonance.month != null && resonance.month.coreResonance()) {
+            score += 22;
         }
         if (resonance.week != null && resonance.week.coreResonance()) {
             score += 20;
         }
-        if (resonance.month != null && resonance.month.coreResonance()) {
-            score += 20;
+        if (resonance.day != null && resonance.day.coreResonance()) {
+            score += 18;
         }
-        score += resonance.bonusCount() * 5;
+        score += countStructureBonus(resonance) * 3;
 
         if (breakout.bandHits > 0) {
             score += 18 * breakout.bandHits;
@@ -62,8 +66,8 @@ public final class MultiScoreCalculator {
         if (breakout.triggerKindCount() >= 2) {
             score += 15;
         }
-        if (resonance.coreCount() >= 3 && breakout.hasTrigger()) {
-            score += 25;
+        if (resonance.fullResonance() && breakout.hasTrigger()) {
+            score += 30;
         }
         if (breakout.signalPeriodCount >= 2) {
             score += 20;
@@ -80,14 +84,30 @@ public final class MultiScoreCalculator {
         return score;
     }
 
+    private static int countStructureBonus(MultiResonanceTools.ResonanceSnapshot resonance) {
+        int n = 0;
+        for (MultiResonanceTools.PeriodResonance pr : new MultiResonanceTools.PeriodResonance[]{
+                resonance.year, resonance.month, resonance.week, resonance.day}) {
+            if (pr != null && pr.coreResonance()) {
+                if (pr.prevYang) {
+                    n++;
+                }
+                if (pr.prevHighAboveZuojia) {
+                    n++;
+                }
+            }
+        }
+        return n;
+    }
+
     public static String buildTrendLabel(char tier) {
         switch (tier) {
             case 'S':
-                return "多周期共振·突破";
+                return "四周期共振·突破";
             case 'A':
-                return "波段/梯子突破";
+                return "多周期共振·突破";
             case 'B':
-                return "结构对齐·待确认";
+                return "共振对齐·待确认";
             case 'C':
                 return "单周期观察";
             default:
@@ -97,16 +117,23 @@ public final class MultiScoreCalculator {
 
     public static String buildTrendDetail(MultiResonanceTools.ResonanceSnapshot resonance) {
         StringBuilder sb = new StringBuilder();
-        sb.append("共振").append(resonance.coreCount()).append("/3");
-        if (resonance.day != null && resonance.day.coreResonance()) {
-            sb.append(",日对齐");
-        }
-        if (resonance.week != null && resonance.week.coreResonance()) {
-            sb.append(",周对齐");
-        }
-        if (resonance.month != null && resonance.month.coreResonance()) {
-            sb.append(",月对齐");
-        }
+        sb.append("共振").append(resonance.coreCount()).append("/4");
+        appendPeriod(sb, "年", resonance.year);
+        appendPeriod(sb, "月", resonance.month);
+        appendPeriod(sb, "周", resonance.week);
+        appendPeriod(sb, "日", resonance.day);
         return sb.toString();
+    }
+
+    private static void appendPeriod(StringBuilder sb, String label,
+                                     MultiResonanceTools.PeriodResonance pr) {
+        if (pr != null && pr.coreResonance()) {
+            sb.append(',').append(label).append("阳");
+            if (pr.prevYang) {
+                sb.append("+上阳");
+            } else if (pr.prevHighAboveZuojia) {
+                sb.append("+破座架");
+            }
+        }
     }
 }

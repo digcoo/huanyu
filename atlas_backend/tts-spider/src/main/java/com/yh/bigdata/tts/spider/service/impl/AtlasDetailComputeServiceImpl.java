@@ -117,10 +117,20 @@ public class AtlasDetailComputeServiceImpl implements AtlasDetailComputeService 
         String[] loseTexts = {"资本回报落后于行业", "盈利空间弱于同业", "营收增长落后于同业", "负债压力高于行业", "净利率低于同业"};
         for (int i = 0; i < 5; i++) {
             boolean win = higherBetter[i] ? company[i] >= industry[i] : company[i] <= industry[i];
+            String unit = units.get(i);
+            String cmp = win ? "高于" : "低于";
+            String dim = dimensions.get(i);
+            double cVal = round2(company[i]);
+            double iVal = round2(industry[i]);
             Map<String, Object> ins = new LinkedHashMap<>();
-            ins.put("dim", dimensions.get(i));
+            ins.put("dim", dim);
+            ins.put("company", cVal);
+            ins.put("industry", iVal);
+            ins.put("unit", unit);
             ins.put("win", win);
-            ins.put("text", win ? winTexts[i] : loseTexts[i]);
+            ins.put("tag", win ? "优势" : "关注");
+            ins.put("text", dim + " " + cVal + unit + "，" + cmp + "行业 " + iVal + unit + "，"
+                    + (win ? winTexts[i] : loseTexts[i]));
             insights.add(ins);
         }
 
@@ -129,8 +139,8 @@ public class AtlasDetailComputeServiceImpl implements AtlasDetailComputeService 
         radar.put("unit", units);
         radar.put("company", toList(company));
         radar.put("industry", toList(industry));
-        radar.put("companyPoints", toPoints(company, maxRadar));
-        radar.put("industryPoints", toPoints(industry, maxRadar));
+        radar.put("companyPoints", toRadarPoints(company, maxRadar));
+        radar.put("industryPoints", toRadarPoints(industry, maxRadar));
         radar.put("gridLevels", Arrays.asList(20, 35, 50));
         radar.put("insights", insights);
         return radar;
@@ -214,11 +224,20 @@ public class AtlasDetailComputeServiceImpl implements AtlasDetailComputeService 
         return list;
     }
 
-    private List<Double> toPoints(double[] values, List<Double> maxValues) {
-        List<Double> points = new ArrayList<>();
-        for (int i = 0; i < values.length; i++) {
+    /** 与小程序 detail-mock radarToPoints 一致的极坐标布局 */
+    private List<Map<String, Object>> toRadarPoints(double[] values, List<Double> maxValues) {
+        int count = values.length;
+        List<Map<String, Object>> points = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            double angle = (Math.PI * 2 * i / count) - Math.PI / 2;
             double max = maxValues.get(i);
-            points.add(max <= 0 ? 0 : round2(values[i] / max * 50));
+            double ratio = max <= 0 ? 0 : values[i] / max;
+            ratio = Math.min(ratio, 1.15);
+            double r = ratio * 42;
+            Map<String, Object> pt = new LinkedHashMap<>();
+            pt.put("x", String.format(Locale.US, "%.2f", 50 + r * Math.cos(angle)));
+            pt.put("y", String.format(Locale.US, "%.2f", 50 + r * Math.sin(angle)));
+            points.add(pt);
         }
         return points;
     }

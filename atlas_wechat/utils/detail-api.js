@@ -39,7 +39,8 @@ function loadDetail(id, period) {
       strategy: strategy,
       summary: d.mainBusiness || '',
       tags: [],
-      resonance: d.changePct > 2 ? 'strong' : d.changePct > 0 ? 'medium' : 'weak',
+      showStrategy: false,
+      resonance: null,
       klines: {}
     };
     base.klines[period] = klines;
@@ -58,7 +59,7 @@ function loadDetail(id, period) {
       healthScore: d.healthScore,
       healthRank: d.healthRank,
       healthBreakdown: d.healthBreakdown,
-      radar: d.radar,
+      radar: adapter.normalizeRadar(d.radar),
       portraitDimensions: d.portraitDimensions,
       competitors: d.competitors
     });

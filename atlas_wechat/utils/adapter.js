@@ -7,7 +7,7 @@ const { formatDataUpdatedLabel } = require('./time');
 const STRATEGY_API = {
   trend: { strategy: 'qsn', trendPeriodTypes: 'week,month', opPeriodType: 'day' },
   rebound: { strategy: 'default', trendPeriodTypes: 'week,month', opPeriodType: 'day' },
-  multi: { strategy: 'multi', trendPeriodTypes: 'day,week,month', opPeriodType: 'day' }
+  multi: { strategy: 'multi', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' }
 };
 
 function normalizeCode(code) {
@@ -224,6 +224,46 @@ function normalizeProfile(profile) {
   };
 }
 
+function radarToPoints(values, maxValues) {
+  if (!values || !values.length) return [];
+  var count = values.length;
+  var points = [];
+  for (var i = 0; i < count; i++) {
+    var angle = (Math.PI * 2 * i / count) - Math.PI / 2;
+    var max = maxValues[i] || 1;
+    var ratio = max <= 0 ? 0 : values[i] / max;
+    ratio = Math.min(ratio, 1.15);
+    var r = ratio * 42;
+    points.push({
+      x: (50 + r * Math.cos(angle)).toFixed(2),
+      y: (50 + r * Math.sin(angle)).toFixed(2)
+    });
+  }
+  return points;
+}
+
+function hasRadarPointShape(points) {
+  return points && points.length && points[0] && points[0].x != null && points[0].y != null;
+}
+
+/** 兼容后端 radar：补全极坐标点位 */
+function normalizeRadar(radar) {
+  if (!radar || !radar.dimensions) return radar;
+  var company = radar.company || [];
+  var industry = radar.industry || [];
+  var maxRadar = radar.dimensions.map(function (_, i) {
+    return Math.max(company[i] || 0, industry[i] || 0) * 1.2 + 0.01;
+  });
+  return Object.assign({}, radar, {
+    companyPoints: hasRadarPointShape(radar.companyPoints)
+      ? radar.companyPoints
+      : radarToPoints(company, maxRadar),
+    industryPoints: hasRadarPointShape(radar.industryPoints)
+      ? radar.industryPoints
+      : radarToPoints(industry, maxRadar)
+  });
+}
+
 function mapCompass(raw) {
   if (!raw) return null;
   return {
@@ -286,6 +326,7 @@ module.exports = {
   mapSearchItem: mapSearchItem,
   mapRecommendation: mapRecommendation,
   normalizeProfile: normalizeProfile,
+  normalizeRadar: normalizeRadar,
   mapCompass: mapCompass,
   mapMarketIndex: mapMarketIndex,
   mapMarketIndices: mapMarketIndices,

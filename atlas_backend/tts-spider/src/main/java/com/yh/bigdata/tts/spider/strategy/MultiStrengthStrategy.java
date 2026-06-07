@@ -36,7 +36,11 @@ public class MultiStrengthStrategy extends AbstractStrategy {
 
     @Override
     public List<PeriodTypeEnum> getTrendPeriodTypes() {
-        return Arrays.asList(PeriodTypeEnum.DAY, PeriodTypeEnum.WEEK, PeriodTypeEnum.MONTH);
+        return Arrays.asList(
+                PeriodTypeEnum.YEAR,
+                PeriodTypeEnum.MONTH,
+                PeriodTypeEnum.WEEK,
+                PeriodTypeEnum.DAY);
     }
 
     @Override

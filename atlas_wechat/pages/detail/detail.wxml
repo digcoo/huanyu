@@ -32,7 +32,7 @@
         </view>
         <view class="badge-group">
           <view class="industry-badge">{{detail.industry}}</view>
-          <view class="resonance-badge {{detail.resonance}}">
+          <view wx:if="{{detail.resonance}}" class="resonance-badge {{detail.resonance}}">
             {{detail.resonance === 'strong' ? '强共振' : detail.resonance === 'medium' ? '中共振' : '弱共振'}}
           </view>
         </view>

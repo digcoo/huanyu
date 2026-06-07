@@ -29,7 +29,7 @@ var REBOUND_DEFAULTS = {
 };
 
 var MULTI_DEFAULTS = {
-  mMinResonancePeriods: 2,
+  mMinResonancePeriods: 4,
   mMinAmountWan: 5000,
   mEnableModeA: true,
   mEnableModeB: true,
@@ -198,10 +198,10 @@ var MULTI_SCHEMA = [
   {
     key: 'mMinResonancePeriods',
     label: '最少共振周期',
-    hint: '日/周/月结构对齐至少几项',
+    hint: '年/月/周/日四周期至少满足几项（默认4=全部）',
     type: 'slider',
     min: 1,
-    max: 3,
+    max: 4,
     step: 1
   },
   {
@@ -376,7 +376,7 @@ function formatSummary(strategyId) {
       + tierLabelFrom(TIER_PICKER, p.uTierMin);
   }
   if (strategyId === 'multi') {
-    return '共振' + p.mMinResonancePeriods + '/3 · '
+    return '共振' + p.mMinResonancePeriods + '/4 · '
       + tierLabelFrom(MULTI_TIER_PICKER, p.mTierMin);
   }
   return '';
