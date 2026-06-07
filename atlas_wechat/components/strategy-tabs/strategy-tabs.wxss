@@ -42,6 +42,7 @@
   height: 44rpx;
   margin-bottom: 4rpx;
   display: block;
+  flex-shrink: 0;
 }
 
 .tab-name {

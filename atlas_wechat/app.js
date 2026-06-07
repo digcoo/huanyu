@@ -13,6 +13,7 @@ App({
   onLaunch() {
     const { loadWatchlistLocal, saveWatchlistLocal } = require('./utils/watchlist');
     const { loadHistoryLocal } = require('./utils/history');
+    auth.sanitizeStoredSession();
     this.globalData.watchlist = loadWatchlistLocal();
     this.globalData.history = loadHistoryLocal();
     this.globalData.ignoredIds = wx.getStorageSync('ignoredIds') || [];
@@ -31,8 +32,10 @@ App({
       return Promise.resolve();
     };
 
-    if (config.requireLoginForWatchlist && !auth.isLoggedIn()) {
-      auth.login().then(afterAuth).catch(function () {});
+    if (watchlistApi.isRemoteEnabled()) {
+      auth.ensureLogin().then(afterAuth).catch(function (err) {
+        console.warn('[app] login failed', err);
+      });
     } else {
       afterAuth();
     }

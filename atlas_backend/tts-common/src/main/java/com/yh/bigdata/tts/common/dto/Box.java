@@ -59,23 +59,21 @@ public class Box {
 	}
 	
 
+	public Double getClose() {
+		return getTrades().stream().map(x -> x.getClose()).max(Comparator.comparing(Double::doubleValue)).get();
+	}
+
+	@Deprecated
 	public Double getTrade() {
-//		return allTrades.get(tail).getTrade();
-		return getTrades().stream().map(x -> x.getTrade()).max(Comparator.comparing(Double::doubleValue)).get();
+		return getClose();
 	}
 	
 	public Double getShitiMax() {
-//		return allTrades.get(tail).getTrade();
-		return getTrades().stream().map(x -> x.getTrade()).max(Comparator.comparing(Double::doubleValue)).get();
+		return getTrades().stream().map(x -> x.getClose()).max(Comparator.comparing(Double::doubleValue)).get();
 	}
-
-	public Double getClose() {
-		return getTrade();
-	}
-	
 
 	public Double getShitiRate() {
-		return (getTrade() - getOpen()) / getOpen();
+		return (getClose() - getOpen()) / getOpen();
 	}
 
 	public Double getZhenfuRate() {

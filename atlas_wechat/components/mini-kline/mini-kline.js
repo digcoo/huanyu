@@ -1,56 +1,17 @@
-const { calcPriceRange } = require('../../utils/kline');
+const { calcPriceRange, buildCloseMaSegments, MA_LINE_CONFIGS } = require('../../utils/kline');
 
-const MA_CONFIGS = [
-  { period: 5, key: 'm5', label: 'M5', color: '#f0b90b' },
-  { period: 10, key: 'm10', label: 'M10', color: '#e040fb' },
-  { period: 20, key: 'm20', label: 'M20', color: '#00d4ff' },
-  { period: 30, key: 'm30', label: 'M30', color: '#ff9500' }
-];
+const MA_LEGEND = MA_LINE_CONFIGS.map(function (cfg) {
+  return {
+    key: 'ma' + cfg.period,
+    label: 'MA' + cfg.period,
+    color: cfg.color,
+    period: cfg.period
+  };
+});
 
-function calcMA(klines, period) {
-  return klines.map((_, i) => {
-    if (i < period - 1) return null;
-    let sum = 0;
-    for (let j = i - period + 1; j <= i; j++) sum += klines[j].close;
-    return sum / period;
-  });
-}
-
-function maToPoints(klines, period, range) {
-  const ma = calcMA(klines, period);
-  const count = klines.length;
-  const slotW = 100 / count;
-  const points = [];
-  ma.forEach((v, i) => {
-    if (v == null) return;
-    points.push({
-      x: +(i * slotW + slotW / 2).toFixed(2),
-      y: +(((range.max - v) / range.span) * 100).toFixed(2)
-    });
-  });
-  return points;
-}
-
-function pointsToPolyline(points) {
-  if (!points || points.length < 2) return '';
-  return points.map(function (p) {
-    return p.x + ',' + p.y;
-  }).join(' ');
-}
-
-function buildMaLines(klines, range, count) {
-  return MA_CONFIGS.filter(function (cfg) {
-    return count >= cfg.period;
-  }).map(function (cfg) {
-    const points = maToPoints(klines, cfg.period, range);
-    return {
-      key: cfg.key,
-      label: cfg.label,
-      color: cfg.color,
-      points: pointsToPolyline(points)
-    };
-  }).filter(function (line) {
-    return !!line.points;
+function buildMaLegend(count) {
+  return MA_LEGEND.filter(function (item) {
+    return count >= item.period;
   });
 }
 
@@ -93,6 +54,7 @@ Component({
   data: {
     bars: [],
     maLines: [],
+    maSegments: [],
     maLegend: false,
     markerLeft: null
   },
@@ -101,7 +63,7 @@ Component({
     klines(klines) {
       this.render(klines);
     },
-    size(size) {
+    size() {
       this.render(this.properties.klines);
     },
     maxBars() {
@@ -127,12 +89,18 @@ Component({
       const maxBars = this.properties.maxBars || 50;
 
       if (!klines || !klines.length) {
-        this.setData({ bars: [], maLines: [], maLegend: false, markerLeft: null });
+        this._maBuild = null;
+        this.setData({
+          bars: [],
+          maLines: [],
+          maSegments: [],
+          maLegend: false,
+          markerLeft: null
+        });
         return;
       }
 
       const markerLabel = this.properties.markerLabel;
-
       const isCard = size === 'card' || size === 'wide';
       const limit = maxBars > 0 ? maxBars : 50;
       const sliced = klines.length > limit ? klines.slice(-limit) : klines.slice();
@@ -186,12 +154,37 @@ Component({
         : null;
 
       const showMA = isCard && count >= 5;
+      this._maBuild = showMA ? { sliced: sliced, range: range } : null;
+
       this.setData({
-        bars,
-        markerLeft,
+        bars: bars,
+        markerLeft: markerLeft,
         maLegend: showMA,
-        maLines: showMA ? buildMaLines(sliced, range, count) : []
+        maLines: showMA ? buildMaLegend(count) : [],
+        maSegments: []
+      }, () => {
+        if (showMA) {
+          wx.nextTick(() => this.paintMaSegments());
+        }
       });
+    },
+
+    paintMaSegments() {
+      const payload = this._maBuild;
+      if (!payload) return;
+
+      const query = this.createSelectorQuery();
+      query.select('.chart-wrap').boundingClientRect((rect) => {
+        if (!rect || !rect.width || !rect.height) return;
+        const segments = buildCloseMaSegments(
+          payload.sliced,
+          payload.range,
+          rect.width,
+          rect.height,
+          MA_LINE_CONFIGS
+        );
+        this.setData({ maSegments: segments });
+      }).exec();
     }
   }
 });

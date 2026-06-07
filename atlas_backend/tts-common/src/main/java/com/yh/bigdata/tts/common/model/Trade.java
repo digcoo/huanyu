@@ -4,14 +4,9 @@ import java.text.ParseException;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 
-import com.alibaba.fastjson.JSON;
 import com.yh.bigdata.tts.common.constants.MATypeEnum;
-import com.yh.bigdata.tts.common.utils.DateUtil;
-
-import lombok.Builder;
 
 @Data
 @Slf4j
@@ -25,8 +20,6 @@ public class Trade extends StockBase implements Comparable<Trade> {
 
 	private Double ma_price30;
 
-	private Double close;
-
 	public Trade() {
 		
 	}
@@ -36,15 +29,6 @@ public class Trade extends StockBase implements Comparable<Trade> {
 		setClose(close);
 		setHigh(high);
 		setLow(low);
-	}
-
-	public void setClose(Double close) {
-        this.close = close;
-		setTrade(close);
-	}
-
-    public Double getClose() {
-		return getTrade();
 	}
 
 	public void setMa_price5(Double ma_price5) {
@@ -84,7 +68,7 @@ public class Trade extends StockBase implements Comparable<Trade> {
 	public Double getMA(MATypeEnum ma) {
 		switch (ma) {
 		case MA1:
-			return getTrade();
+			return getClose();
 		case MA5:
 			return getMa5();
 		case MA10:
@@ -103,18 +87,12 @@ public class Trade extends StockBase implements Comparable<Trade> {
 		}
 		return null;
 	}
-//
-//	@Override
-//	public String toString() {
-//		return "trade : " + JSON.toJSONString(this);
-//	}
-	
+
 	public void replace(Trade obj) {
 		setCode(obj.getCode());
 		setOpen(obj.getOpen());
 		setHigh(obj.getHigh());
 		setLow(obj.getLow());
-		setTrade(obj.getTrade());
 		setClose(obj.getClose());
 		setMa5(obj.getMa5());
 		setMa10(obj.getMa10());
@@ -124,7 +102,7 @@ public class Trade extends StockBase implements Comparable<Trade> {
 		setMa120(obj.getMa120());
 		setAmount(obj.getAmount());
 		setVolume(obj.getVolume());
-		setLastTrade(obj.getLastTrade());
+		setPrevClose(obj.getPrevClose());
 	}
 
 	@Override

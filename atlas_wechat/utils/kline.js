@@ -36,13 +36,99 @@ function priceToY(price, range, chartTop, chartH) {
   return chartTop + chartH - ((price - range.min) / range.span) * chartH;
 }
 
-/** 简单 MA 均线 */
+/** 按收盘价计算 SMA，滑动窗口 O(n) */
+function calcCloseMASeries(klines, period) {
+  if (!klines || !klines.length || period < 1) return [];
+  const result = new Array(klines.length).fill(null);
+  let sum = 0;
+  for (let i = 0; i < klines.length; i++) {
+    sum += Number(klines[i].close) || 0;
+    if (i >= period) sum -= Number(klines[i - period].close) || 0;
+    if (i >= period - 1) result[i] = sum / period;
+  }
+  return result;
+}
+
+/** 简单 MA 均线（兼容旧调用） */
 function calcMA(klines, period) {
-  return klines.map((_, i) => {
-    if (i < period - 1) return null;
-    let sum = 0;
-    for (let j = i - period + 1; j <= i; j++) sum += klines[j].close;
-    return sum / period;
+  return calcCloseMASeries(klines, period);
+}
+
+const MA_LINE_CONFIGS = [
+  { period: 5, color: '#f0b90b', lineWidth: 0.75 },
+  { period: 10, color: '#e040fb', lineWidth: 0.75 },
+  { period: 20, color: '#00d4ff', lineWidth: 0.75 },
+  { period: 30, color: '#ff9500', lineWidth: 0.75 }
+];
+
+/** 按像素坐标生成 CSS 均线线段（与 K 线同层，避免 canvas 滚动遮挡） */
+function buildCloseMaSegments(klines, range, width, height, configs) {
+  if (!klines || !klines.length || !width || !height) return [];
+  const count = klines.length;
+  const slotW = width / count;
+  const list = configs || MA_LINE_CONFIGS;
+  const segments = [];
+
+  list.forEach(function (cfg) {
+    if (count < cfg.period) return;
+    const series = calcCloseMASeries(klines, cfg.period);
+    const points = [];
+    series.forEach(function (v, i) {
+      if (v == null) return;
+      points.push({
+        x: i * slotW + slotW / 2,
+        y: ((range.max - v) / range.span) * height
+      });
+    });
+    for (let i = 1; i < points.length; i++) {
+      const p0 = points[i - 1];
+      const p1 = points[i];
+      const dx = p1.x - p0.x;
+      const dy = p1.y - p0.y;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      if (len < 0.5) continue;
+      segments.push({
+        id: 'ma' + cfg.period + '-' + i,
+        left: p0.x.toFixed(2),
+        top: p0.y.toFixed(2),
+        width: len.toFixed(2),
+        angle: (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(2),
+        color: cfg.color
+      });
+    }
+  });
+  return segments;
+}
+
+/** 在 canvas 上按收盘价 MA 平滑绘线 */
+function drawCloseMaLines(ctx, klines, width, height, range, configs, offset) {
+  if (!ctx || !klines || !klines.length || !width || !height) return;
+  offset = offset || { left: 0, top: 0 };
+  const count = klines.length;
+  const slotW = width / count;
+  const list = configs || MA_LINE_CONFIGS;
+
+  list.forEach(function (cfg) {
+    if (count < cfg.period) return;
+    const series = calcCloseMASeries(klines, cfg.period);
+    ctx.strokeStyle = cfg.color;
+    ctx.lineWidth = cfg.lineWidth != null ? cfg.lineWidth : 0.75;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    let started = false;
+    series.forEach(function (v, i) {
+      if (v == null) return;
+      const x = offset.left + i * slotW + slotW / 2;
+      const y = offset.top + ((range.max - v) / range.span) * height;
+      if (!started) {
+        ctx.moveTo(x, y);
+        started = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+    if (started) ctx.stroke();
   });
 }
 
@@ -115,36 +201,9 @@ function drawBinanceKlines(ctx, klines, width, height, options) {
     ctx.fillRect(x, bodyTop, bodyW, bodyH);
   });
 
-  // MA 均线（宽图可选）
-  if (showMA && count >= 7) {
-    const ma7 = calcMA(klines, 7);
-    ctx.strokeStyle = BINANCE.ma7;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    let started = false;
-    ma7.forEach((v, i) => {
-      if (v == null) return;
-      const x = padding.left + i * slotW + slotW / 2;
-      const y = priceToY(v, range, padding.top, chartH);
-      if (!started) { ctx.moveTo(x, y); started = true; }
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-
-    if (count >= 25) {
-      const ma25 = calcMA(klines, 25);
-      ctx.strokeStyle = BINANCE.ma25;
-      ctx.beginPath();
-      started = false;
-      ma25.forEach((v, i) => {
-        if (v == null) return;
-        const x = padding.left + i * slotW + slotW / 2;
-        const y = priceToY(v, range, padding.top, chartH);
-        if (!started) { ctx.moveTo(x, y); started = true; }
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-    }
+  // MA 均线（宽图可选，按收盘价 SMA）
+  if (showMA && count >= 5) {
+    drawCloseMaLines(ctx, klines, chartW, chartH, range, MA_LINE_CONFIGS, { left: padding.left, top: padding.top });
   }
 }
 
@@ -220,6 +279,11 @@ module.exports = {
     day: 50
   },
   calcPriceRange,
+  calcCloseMASeries,
+  calcMA,
+  MA_LINE_CONFIGS,
+  buildCloseMaSegments,
+  drawCloseMaLines,
   drawBinanceKlines,
   drawKlines,
   drawMultiLineChart,

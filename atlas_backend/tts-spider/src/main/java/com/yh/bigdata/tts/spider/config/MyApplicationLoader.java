@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import com.yh.bigdata.tts.common.model.*;
-import com.yh.bigdata.tts.common.param.TradeConvertHelper;
+import com.yh.bigdata.tts.common.utils.StockQuoteUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +17,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
+import com.yh.bigdata.tts.common.param.TradeConvertHelper;
 import com.yh.bigdata.tts.spider.service.StockService;
 
 @Configuration
@@ -56,6 +57,7 @@ public class MyApplicationLoader {
             //初步筛选
             List<StockBase> filterStocks = commonFilter(stocks, RealtimeStockCache.dayMap, RealtimeStockCache.weekMap, RealtimeStockCache.monthMap);
             RealtimeStockCache.filterStockMap = filterStocks.stream().collect(Collectors.toMap(StockBase::getCode, p -> {
+                StockQuoteUtils.overlayLatestDayQuote(p);
                 return p;
             }));
 

@@ -66,6 +66,18 @@ public class StockPageQuery extends PageQuery {
     /** 深坑反弹 · 最低档位 ALL/S/A/B/C */
     private String rTierMin;
 
+    /** 多周期强势 · 最少共振周期数 1-3 */
+    private Integer mMinResonancePeriods;
+    /** 多周期强势 · 最低日均成交额（万） */
+    private Integer mMinAmountWan;
+    private Boolean mEnableModeA;
+    private Boolean mEnableModeB;
+    private Boolean mEnableModeC;
+    private Boolean mEnableWeakContext;
+    private Boolean mEnableWeakSingle;
+    /** 多周期强势 · 最低档位 ALL/S/A/B/C */
+    private String mTierMin;
+
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
 	}
@@ -155,6 +167,35 @@ public class StockPageQuery extends PageQuery {
             incoming.setTierMin(rTierMin);
         }
         return ReboundStrategyParams.merge(incoming);
+    }
+
+    public MultiStrategyParams toMultiParams() {
+        MultiStrategyParams.MultiStrategyParamsBuilder b = MultiStrategyParams.builder();
+        if (mMinResonancePeriods != null) {
+            b.minResonancePeriods(mMinResonancePeriods);
+        }
+        if (mMinAmountWan != null) {
+            b.minAvgAmount(mMinAmountWan * 10_000D);
+        }
+        if (mEnableModeA != null) {
+            b.enableModeA(mEnableModeA);
+        }
+        if (mEnableModeB != null) {
+            b.enableModeB(mEnableModeB);
+        }
+        if (mEnableModeC != null) {
+            b.enableModeC(mEnableModeC);
+        }
+        if (mEnableWeakContext != null) {
+            b.enableWeakContext(mEnableWeakContext);
+        }
+        if (mEnableWeakSingle != null) {
+            b.enableWeakSinglePeriod(mEnableWeakSingle);
+        }
+        if (mTierMin != null && !mTierMin.isEmpty()) {
+            b.tierMin(mTierMin);
+        }
+        return MultiStrategyParams.merge(b.build());
     }
 	
 }

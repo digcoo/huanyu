@@ -7,7 +7,7 @@ const { formatDataUpdatedLabel } = require('./time');
 const STRATEGY_API = {
   trend: { strategy: 'qsn', trendPeriodTypes: 'week,month', opPeriodType: 'day' },
   rebound: { strategy: 'default', trendPeriodTypes: 'week,month', opPeriodType: 'day' },
-  multi: { strategy: 'cross_band_pressure', trendPeriodTypes: 'week,month,day', opPeriodType: 'day' }
+  multi: { strategy: 'multi', trendPeriodTypes: 'day,week,month', opPeriodType: 'day' }
 };
 
 function normalizeCode(code) {
@@ -115,6 +115,29 @@ function buildUnilateralTags(item) {
   return tags;
 }
 
+function buildMultiTags(item) {
+  var tags = [];
+  var tier = parseUnilateralTier(item.trendMessage);
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (tier === 'S') tags.push('多周期共振');
+  else if (tier === 'A') tags.push('波段突破');
+  else if (tier === 'B') tags.push('待突破');
+  else if (tier === 'C') tags.push('单周期');
+  if (item.signalMessage && item.signalMessage.indexOf('梯子突破') >= 0) {
+    tags.push('梯子突破');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('趋势波段') >= 0) {
+    tags.push('趋势波段');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('反转波段') >= 0) {
+    tags.push('反转波段');
+  }
+  if (label && tags.indexOf(label) < 0 && label.length <= 12) {
+    tags.push(label);
+  }
+  return tags;
+}
+
 function buildReboundTags(item) {
   var tags = [];
   var tier = parseUnilateralTier(item.trendMessage);
@@ -154,6 +177,8 @@ function mapRecommendation(item, strategyId) {
     tags = tags.concat(buildUnilateralTags(item));
   } else if (strategyId === 'rebound') {
     tags = tags.concat(buildReboundTags(item));
+  } else if (strategyId === 'multi') {
+    tags = tags.concat(buildMultiTags(item));
   } else {
     if (item.signalMessage) tags.push('信号');
     else if (item.trendMessage) tags.push('趋势');
@@ -172,7 +197,10 @@ function mapRecommendation(item, strategyId) {
     changePct: changePct,
     tags: tags,
     summary: summaryParts.length ? summaryParts[0] : '',
-    resonance: changePct > 2 ? 'strong' : changePct > 0 ? 'medium' : 'weak',
+    resonance: strategyId === 'multi'
+      ? (parseUnilateralTier(item.trendMessage) === 'S' ? 'strong'
+        : parseUnilateralTier(item.trendMessage) === 'A' ? 'medium' : 'weak')
+      : (changePct > 2 ? 'strong' : changePct > 0 ? 'medium' : 'weak'),
     mainBusiness: item.mainBusiness,
     dataDay: item.day || '',
     dataUpdatedLabel: formatDataUpdatedLabel(item.day)
@@ -206,10 +234,24 @@ function mapCompass(raw) {
   };
 }
 
+function findMockIndexKlines(code, displayCode, period) {
+  var cn = require('./mock').MARKET_INDICES.cn || [];
+  var key = String(code || '').toLowerCase();
+  var display = String(displayCode || '');
+  var mock = cn.find(function (item) {
+    return item.code === display || item.code === key.replace(/^sh|^sz/, '');
+  });
+  if (!mock || !mock.klines || !mock.klines[period]) return [];
+  return mock.klines[period].slice();
+}
+
 function mapMarketIndex(item, period) {
   if (!item) return null;
   period = period || 'week';
   var bars = barsToKlines(item.klines || []);
+  if (!bars.length) {
+    bars = findMockIndexKlines(item.code, item.displayCode, period);
+  }
   var klines = {};
   klines[period] = bars;
   var price = item.price;

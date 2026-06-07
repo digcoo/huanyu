@@ -24,4 +24,5 @@
     flipped="{{flipped}}"
     resonance="none"
   />
+  <view wx:else class="chart-empty">K线加载中...</view>
 </view>

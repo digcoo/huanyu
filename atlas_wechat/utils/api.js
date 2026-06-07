@@ -19,7 +19,8 @@ function normalizeResponse(body) {
   return { ok: true, code: 0, message: 'ok', data: body };
 }
 
-function request(options) {
+function request(options, authRetry) {
+  authRetry = authRetry || 0;
   return new Promise(function (resolve, reject) {
     wx.request({
       url: config.baseUrl + options.path,
@@ -30,6 +31,14 @@ function request(options) {
       }, options.header || {}),
       timeout: config.apiTimeout,
       success: function (res) {
+        if (res.statusCode === 401 && authRetry < 1 && options.skipAuthRetry !== true) {
+          var auth = require('./auth');
+          auth.clearSession();
+          auth.login().then(function () {
+            request(options, authRetry + 1).then(resolve).catch(reject);
+          }).catch(reject);
+          return;
+        }
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(normalizeResponse(res.data));
         } else {
@@ -43,16 +52,16 @@ function request(options) {
   });
 }
 
-function get(path, data, header) {
-  return request({ path: path, method: 'GET', data: data, header: withAuth(header) });
+function get(path, data, header, extraOptions) {
+  return request(Object.assign({ path: path, method: 'GET', data: data, header: withAuth(header) }, extraOptions || {}));
 }
 
-function post(path, data, header) {
-  return request({ path: path, method: 'POST', data: data, header: withAuth(header) });
+function post(path, data, header, extraOptions) {
+  return request(Object.assign({ path: path, method: 'POST', data: data, header: withAuth(header) }, extraOptions || {}));
 }
 
-function del(path, data, header) {
-  return request({ path: path, method: 'DELETE', data: data, header: withAuth(header) });
+function del(path, data, header, extraOptions) {
+  return request(Object.assign({ path: path, method: 'DELETE', data: data, header: withAuth(header) }, extraOptions || {}));
 }
 
 function withAuth(header) {

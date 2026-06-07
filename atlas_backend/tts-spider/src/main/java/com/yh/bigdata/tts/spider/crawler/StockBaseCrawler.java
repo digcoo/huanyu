@@ -103,7 +103,7 @@ public class StockBaseCrawler {
 				StockBase stockBase = new StockBase(jsonObject.getString("symbol"),
 						jsonObject.getString("symbol").substring(0, 2), jsonObject.getString("name"),
 						jsonObject.getString("name").toLowerCase().contains("st"), jsonObject.getDouble("trade"));
-				stockBase.setLastTrade(jsonObject.getDouble("settlement"));
+				stockBase.setPrevClose(jsonObject.getDouble("settlement"));
 				stockBase.setOpen(jsonObject.getDouble("open"));
 				stockBase.setHigh(jsonObject.getDouble("high"));
 				stockBase.setLow(jsonObject.getDouble("low"));
@@ -143,11 +143,11 @@ public class StockBaseCrawler {
 		StockDay stockDay = new StockDay();
 		stockDay.setCode(stockBase.getCode());
 		stockDay.setName(stockBase.getName());
-		stockDay.setTrade(stockBase.getTrade());
+		stockDay.setClose(stockBase.getClose());
 		stockDay.setOpen(stockBase.getOpen());
 		stockDay.setHigh(stockBase.getHigh());
 		stockDay.setLow(stockBase.getLow());
-		stockDay.setLastTrade(stockBase.getLastTrade());
+		stockDay.setPrevClose(stockBase.getPrevClose());
 		stockDay.setVolume(stockBase.getVolume());
 		stockDay.setAmount(stockBase.getAmount());
 		stockDay.setDay(thisDay);
@@ -166,18 +166,18 @@ public class StockBaseCrawler {
 			StockWeek stockWeek = new StockWeek();
 			stockWeek.setCode(stockBase.getCode());
 			stockWeek.setName(stockBase.getName());
-			stockWeek.setTrade(stockBase.getTrade());
+			stockWeek.setClose(stockBase.getClose());
 			stockWeek.setOpen(stockBase.getOpen());
 			stockWeek.setHigh(stockBase.getHigh());
 			stockWeek.setLow(stockBase.getLow());
-			stockWeek.setLastTrade(stockBase.getLastTrade());
+			stockWeek.setPrevClose(stockBase.getPrevClose());
 			stockWeek.setVolume(stockBase.getVolume());
 			stockWeek.setAmount(stockBase.getAmount());
 			stockWeek.setDay(thisWeek);
 			stockWeek.setSourceType(SourceTypeEnum.DAY.getCode());
 			stockWeekMapper.insert(stockWeek);
 		}else {
-			localStockWeek.setTrade(stockBase.getTrade());
+			localStockWeek.setClose(stockBase.getClose());
 			localStockWeek.setHigh(stockBase.getHigh() > localStockWeek.getHigh()?stockBase.getHigh():localStockWeek.getHigh());
 			localStockWeek.setLow(stockBase.getLow() < localStockWeek.getLow()?stockBase.getLow():localStockWeek.getLow());
 			localStockWeek.setCode(stockBase.getCode());
@@ -236,7 +236,7 @@ public class StockBaseCrawler {
 				
 					
 					stockBase.setName(stockFenshi.getName());
-					stockBase.setIsTrade(!stockBase.getName().contains("退") && stockFenshi.getTrade() > 0.1);	
+					stockBase.setIsTrade(!stockBase.getName().contains("退") && stockFenshi.getClose() > 0.1);	
 					
 					if(!stockBase.getIsTrade())	{
 						stockBaseMapper.updateByPrimaryKeySelective(stockBase);

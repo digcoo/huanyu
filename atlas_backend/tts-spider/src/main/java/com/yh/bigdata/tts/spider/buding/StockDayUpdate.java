@@ -36,8 +36,8 @@ public class StockDayUpdate {
 	 * 
 
 	update dayk dk
-		LEFT JOIN (select dk.code, dk.day, dk.last_trade, (select k.trade from dayk k where k.code = dk.code and k.day  < dk.day order by k.day desc limit 1) last_trade1  from dayk dk) nt on (nt.code = dk.code and nt.day = dk.day)
-	set dk.last_trade = nt.last_trade1, update_time = now()
+		LEFT JOIN (select dk.code, dk.day, dk.prev_close, (select k.close from dayk k where k.code = dk.code and k.day  < dk.day order by k.day desc limit 1) prev_close1  from dayk dk) nt on (nt.code = dk.code and nt.day = dk.day)
+	set dk.prev_close = nt.prev_close1, update_time = now()
 
 	 * 
 	 * 

@@ -66,10 +66,10 @@ public class SinaHttpUtils {
 			stockFenshi.setDay(day);
 			stockFenshi.setTime(time);
 			stockFenshi.setOpen(open);
-			stockFenshi.setTrade(trade);
+			stockFenshi.setClose(trade);
 			stockFenshi.setHigh(high);
 			stockFenshi.setLow(low);
-			stockFenshi.setLastTrade(last_trade);
+			stockFenshi.setPrevClose(last_trade);
 			stockFenshi.setAmount(amount);
 			stockFenshi.setVolume(volume);
 			stockFenshi.setBuy1Price(buy1Price);

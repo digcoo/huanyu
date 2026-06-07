@@ -8,8 +8,8 @@
     <result column="open" property="open" jdbcType="DOUBLE" />
     <result column="high" property="high" jdbcType="DOUBLE" />
     <result column="low" property="low" jdbcType="DOUBLE" />
-    <result column="trade" property="trade" jdbcType="DOUBLE" />
-    <result column="last_trade" property="lastTrade" jdbcType="DOUBLE" />
+    <result column="close" property="close" jdbcType="DOUBLE" />
+    <result column="prev_close" property="prevClose" jdbcType="DOUBLE" />
     <result column="percent" property="percent" jdbcType="DOUBLE" />
     <result column="volume" property="volume" jdbcType="BIGINT" />
     <result column="amount" property="amount" jdbcType="DOUBLE" />
@@ -23,7 +23,7 @@
     <result column="cross_params" property="crossParams" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Base_Column_List" >
-    code, day, name, open, high, low, trade, last_trade, percent, volume, amount, ma5, ma10, ma20, ma30, dea, dif, macd, cross_params
+    code, day, name, open, high, low, `close`, prev_close, percent, volume, amount, ma5, ma10, ma20, ma30, dea, dif, macd, cross_params
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" >
     select * from quarterk where code = #{code} and day = #{day}
@@ -32,8 +32,8 @@
     delete from quarterk where code = #{code} and day = #{day}
   </delete>
   <insert id="insert" parameterType="com.yh.bigdata.tts.common.model.StockYear" >
-    insert into quarterk (code, day, name, open, high, low, trade, last_trade, percent, volume, amount, ma5, ma10, ma20, ma30, dea, dif, macd, cross_params, create_time, update_time)
-    values (#{code}, #{day}, #{name}, #{open}, #{high}, #{low}, #{trade}, #{lastTrade}, #{percent}, #{volume}, #{amount}, #{ma5}, #{ma10}, #{ma20}, #{ma30}, #{dea}, #{dif}, #{macd}, #{crossParams}, now(), now())
+    insert into quarterk (code, day, name, open, high, low, `close`, prev_close, percent, volume, amount, ma5, ma10, ma20, ma30, dea, dif, macd, cross_params, create_time, update_time)
+    values (#{code}, #{day}, #{name}, #{open}, #{high}, #{low}, #{close}, #{prevClose}, #{percent}, #{volume}, #{amount}, #{ma5}, #{ma10}, #{ma20}, #{ma30}, #{dea}, #{dif}, #{macd}, #{crossParams}, now(), now())
   </insert>
   
   <update id="updateByPrimaryKey" parameterType="com.yh.bigdata.tts.common.model.StockYear" >
@@ -50,11 +50,11 @@
         <if test="low != null">
            , low = #{low}
         </if>
-        <if test="trade != null">
-           , trade = #{trade}
+        <if test="close != null">
+           , `close` = #{close}
         </if>                    
-        <if test="lastTrade != null">
-           , last_trade = #{lastTrade}
+        <if test="prevClose != null">
+           , prev_close = #{prevClose}
         </if>                     
         <if test="percent != null">
            , percent = #{percent}
@@ -123,7 +123,7 @@
   
         
   <select id="selectLatestYearList" resultMap="BaseResultMap" >
-   	select y.code, y.day, y.open, y.trade, y.last_trade, y.high, y.low, y.ma5, y.ma10, y.ma20, y.ma30, y.dea, y.dif, y.macd from quarterk y
+   	select y.code, y.day, y.open, y.`close`, y.prev_close, y.high, y.low, y.ma5, y.ma10, y.ma20, y.ma30, y.dea, y.dif, y.macd from quarterk y
 		 <where>
 		    <if test="code != null and code != '' ">
 		  		and y.code = #{code}

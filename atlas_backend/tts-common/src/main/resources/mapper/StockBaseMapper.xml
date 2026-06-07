@@ -7,8 +7,8 @@
     <result column="exchange" property="exchange" jdbcType="VARCHAR" />
     <result column="is_st" property="isSt" jdbcType="BIT" />
     <result column="is_trade" property="isTrade" jdbcType="BIT" />
-    <result column="trade" property="trade" jdbcType="DOUBLE" />
-    <result column="last_trade" property="lastTrade" jdbcType="DOUBLE" />
+    <result column="close" property="close" jdbcType="DOUBLE" />
+    <result column="prev_close" property="prevClose" jdbcType="DOUBLE" />
     <result column="open" property="open" jdbcType="DOUBLE" />
     <result column="high" property="high" jdbcType="DOUBLE" />
     <result column="low" property="low" jdbcType="DOUBLE" />
@@ -30,7 +30,7 @@
 	<result column="turnover_rate" property="turnoverRate" jdbcType="DOUBLE" />
   </resultMap>
   <sql id="Base_Column_List" >
-    code, name, exchange, is_st, is_trade, trade, last_trade, open, high, low, volume, amount, day, quancheng, turnover_rate, main_business,
+    code, name, exchange, is_st, is_trade, `close`, prev_close, open, high, low, volume, amount, day, quancheng, turnover_rate, main_business,
     industry, industry_csrc, org_profile, pe_ttm, pb, ps_ttm, dividend_yield, high_52w, low_52w, total_mv_yi
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" >
@@ -49,9 +49,9 @@
     delete from base where code = #{code}
   </delete>
   <insert id="insert" parameterType="com.yh.bigdata.tts.common.model.StockBase" >
-    insert into base(code, name, exchange, open, high, low, trade, last_trade, volume, amount, day, is_st, is_trade
+    insert into base(code, name, exchange, open, high, low, `close`, prev_close, volume, amount, day, is_st, is_trade
     , quancheng, main_business, create_time, update_time, turnover_rate)
-    values (#{code}, #{name}, #{exchange}, #{open}, #{high}, #{low},  #{trade}, #{lastTrade}, #{volume}, #{amount}, #{day}, #{isSt}, #{isTrade}
+    values (#{code}, #{name}, #{exchange}, #{open}, #{high}, #{low},  #{close}, #{prevClose}, #{volume}, #{amount}, #{day}, #{isSt}, #{isTrade}
     , #{quancheng}, #{mainBusiness}, now(), now(), #{turnoverRate})
   </insert>
   
@@ -69,11 +69,11 @@
     	<if test="isTrade != null">
         	, is_trade = #{isTrade}
         </if>
-    	<if test="trade != null">
-        	, trade = #{trade}
+    	<if test="close != null">
+        	, `close` = #{close}
         </if>
-    	<if test="lastTrade != null">
-        	, last_trade = #{lastTrade}
+    	<if test="prevClose != null">
+        	, prev_close = #{prevClose}
         </if>
     	<if test="open != null">
         	, open = #{open}
@@ -155,7 +155,7 @@
   </select>
 
   <select id="selectByPageQuery" resultMap="BaseResultMap" parameterType="com.yh.bigdata.tts.common.param.StockPageQuery">
-    select s.code, s.name, s.trade, s.open, s.high, s.low, s.is_st, s.day
+    select s.code, s.name, s.`close`, s.open, s.high, s.low, s.is_st, s.day
     	from base s
     	<where>
 	    	<if test="code != null">

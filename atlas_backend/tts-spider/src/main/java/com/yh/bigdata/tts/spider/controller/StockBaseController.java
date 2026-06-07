@@ -14,6 +14,7 @@ import com.yh.bigdata.tts.common.param.base.PageResult;
 import com.yh.bigdata.tts.common.param.base.Response;
 import com.yh.bigdata.tts.common.param.base.ResponseUtil;
 import com.yh.bigdata.tts.common.utils.MathUtil;
+import com.yh.bigdata.tts.common.utils.StockQuoteUtils;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.scheduler.StockTargetScheduler;
 import com.yh.bigdata.tts.spider.strategy.*;
@@ -181,7 +182,7 @@ public class StockBaseController {
 						, MathUtil.formatMoney(stockBase.getAmount())
 						, checkResult.getTrendMessage()
 						, checkResult.getSignalMessage()
-						, stockBase.getTrade()
+						, stockBase.getClose()
 						, new  BigDecimal(stockBase.getChangeRate()).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_UP)
 						);
 				
@@ -192,7 +193,7 @@ public class StockBaseController {
 						, MathUtil.formatMoney(stockBase.getAmount())
 						, checkResult.getTrendMessage()
 						, checkResult.getSignalMessage()
-						, stockBase.getTrade()
+						, stockBase.getClose()
 						, new  BigDecimal(stockBase.getChangeRate()).multiply(new BigDecimal(100)).setScale(2, BigDecimal.ROUND_UP)
 						);
 			}
@@ -248,7 +249,8 @@ public class StockBaseController {
             return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
         }
         if (pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.TREND_NEW
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.DEFAUL) {
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.DEFAUL
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.MULTI_STRENGTH) {
             log.warn("rescan unsupported strategy: {}", pageQuery.getStrategy());
             return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
         }
@@ -298,7 +300,15 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getREnableModeA()),
                 String.valueOf(pageQuery.getREnableModeB()),
                 String.valueOf(pageQuery.getREnableModeC()),
-                String.valueOf(pageQuery.getRTierMin()));
+                String.valueOf(pageQuery.getRTierMin()),
+                String.valueOf(pageQuery.getMMinResonancePeriods()),
+                String.valueOf(pageQuery.getMMinAmountWan()),
+                String.valueOf(pageQuery.getMEnableModeA()),
+                String.valueOf(pageQuery.getMEnableModeB()),
+                String.valueOf(pageQuery.getMEnableModeC()),
+                String.valueOf(pageQuery.getMEnableWeakContext()),
+                String.valueOf(pageQuery.getMEnableWeakSingle()),
+                String.valueOf(pageQuery.getMTierMin()));
     }
 
     public void clearRecommendCache() {
@@ -307,16 +317,17 @@ public class StockBaseController {
     }
 
     private StockTarget buildStockTarget(StockBase stockBase, StrategyTypeEnum strategyTypeEnum) {
+        StockQuoteUtils.overlayLatestDayQuote(stockBase);
         StockTarget stockTarget = new StockTarget();
         stockTarget.setCode(stockBase.getCode());
         stockTarget.setDay(stockBase.getDay());
         stockTarget.setName(stockBase.getName());
         stockTarget.setStrategy(strategyTypeEnum.getCode());
-        stockTarget.setClose(stockBase.getTrade());
+        stockTarget.setClose(stockBase.getClose() != null ? stockBase.getClose() : 0D);
         stockTarget.setNewFlag(true);
         stockTarget.setTrendMessage(stockBase.getTrendMessage());
         stockTarget.setSignalMessage(stockBase.getSignalMessage());
-        stockTarget.setChangeRate(stockBase.getChangeRate());
+        stockTarget.setChangeRate(stockBase.getChangeRate() != null ? stockBase.getChangeRate() : 0D);
         stockTarget.setMainBusiness(stockBase.getMainBusiness());
         return stockTarget;
     }
@@ -326,6 +337,7 @@ public class StockBaseController {
                 .lianBanDays(Objects.nonNull(stockPageQuery.getLianBanDays())? stockPageQuery.getLianBanDays(): NumberUtils.INTEGER_ONE)
                 .unilateral(stockPageQuery.toUnilateralParams())
                 .rebound(stockPageQuery.toReboundParams())
+                .multi(stockPageQuery.toMultiParams())
                 .build();
 
     }

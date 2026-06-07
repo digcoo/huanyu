@@ -8,6 +8,7 @@ import com.yh.bigdata.tts.common.model.StockAnnualReport;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.utils.StockCodeUtil;
+import com.yh.bigdata.tts.common.utils.StockQuoteUtils;
 import com.yh.bigdata.tts.common.dao.StockIndustryBenchmarkMapper;
 import com.yh.bigdata.tts.common.model.StockIndustryBenchmark;
 import com.yh.bigdata.tts.spider.service.AtlasAnnualReportService;
@@ -100,11 +101,12 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
         Map<String, Object> health = atlasDetailComputeService.computeHealth(stock, latest, benchmark);
         Map<String, Object> radar = atlasDetailComputeService.computeRadar(latest, benchmark);
 
+        StockQuoteUtils.overlayLatestDayQuote(stock);
         return AtlasStockDetailVo.builder()
                 .code(stock.getCode())
                 .name(stock.getName())
                 .market("cn")
-                .price(stock.getTrade())
+                .price(stock.getClose())
                 .changePct(roundPct(stock.getChangeRate()))
                 .industry(industry)
                 .mainBusiness(stock.getMainBusiness())
@@ -271,23 +273,24 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
     @Override
     public StockBase requireStock(String code) {
         String normalized = StockCodeUtil.normalizeCnCode(code);
-        StockBase cached = RealtimeStockCache.getStockBase(normalized);
-        if (cached != null) {
-            return cached;
+        StockBase stock = RealtimeStockCache.getStockBase(normalized);
+        if (stock == null) {
+            stock = stockService.findStockBase(normalized);
+            if (stock == null) {
+                throw new NoSuchElementException("stock not found: " + normalized);
+            }
         }
-        StockBase fromDb = stockService.findStockBase(normalized);
-        if (fromDb == null) {
-            throw new NoSuchElementException("stock not found: " + normalized);
-        }
-        return fromDb;
+        StockQuoteUtils.overlayLatestDayQuote(stock);
+        return stock;
     }
 
     private AtlasStockSummaryVo toSummary(StockBase stock) {
+        StockQuoteUtils.overlayLatestDayQuote(stock);
         return AtlasStockSummaryVo.builder()
                 .code(stock.getCode())
                 .name(stock.getName())
                 .market("cn")
-                .price(stock.getTrade())
+                .price(stock.getClose())
                 .changePct(roundPct(stock.getChangeRate()))
                 .mainBusiness(stock.getMainBusiness())
                 .summary(StringUtils.defaultIfBlank(stock.getMainBusiness(), stock.getName()))

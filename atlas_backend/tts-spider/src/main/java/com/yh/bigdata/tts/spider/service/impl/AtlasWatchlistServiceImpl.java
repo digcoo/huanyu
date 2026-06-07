@@ -6,10 +6,12 @@ import com.yh.bigdata.tts.common.dao.UserWatchlistMapper;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasHistorySummaryVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasWatchHistoryVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasWatchlistItemVo;
+import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.UserWatchHistory;
 import com.yh.bigdata.tts.common.model.UserWatchlist;
 import com.yh.bigdata.tts.common.utils.StockCodeUtil;
+import com.yh.bigdata.tts.common.utils.StockQuoteUtils;
 import com.yh.bigdata.tts.spider.service.AtlasWatchlistService;
 import com.yh.bigdata.tts.spider.service.StockService;
 import org.apache.commons.lang3.StringUtils;
@@ -172,25 +174,36 @@ public class AtlasWatchlistServiceImpl implements AtlasWatchlistService {
     }
 
     private double resolveExitPrice(String code, Double fallback) {
-        try {
-            StockBase stock = stockService.findStockBase(StockCodeUtil.normalizeCnCode(code));
-            if (stock != null && stock.getTrade() > 0) {
-                return stock.getTrade();
-            }
-        } catch (Exception ignored) {
+        StockBase stock = resolveLiveStock(code);
+        if (stock != null && stock.getClose() != null && stock.getClose() > 0) {
+            return stock.getClose();
         }
         return fallback != null ? fallback : 0;
     }
 
-    private AtlasWatchlistItemVo toWatchlistVo(UserWatchlist row) {
-        Double livePrice = resolveExitPrice(row.getCode(), row.getEntryPrice());
-        Double changePct = null;
-        try {
-            StockBase stock = stockService.findStockBase(row.getCode());
-            if (stock != null && stock.getLastTrade() != null && stock.getLastTrade() > 0) {
-                changePct = round2((stock.getTrade() - stock.getLastTrade()) / stock.getLastTrade() * 100);
+    private StockBase resolveLiveStock(String code) {
+        String normalized = StockCodeUtil.normalizeCnCode(code);
+        StockBase stock = RealtimeStockCache.getStockBase(normalized);
+        if (stock == null) {
+            try {
+                stock = stockService.findStockBase(normalized);
+            } catch (Exception ignored) {
             }
-        } catch (Exception ignored) {
+        }
+        if (stock != null) {
+            StockQuoteUtils.overlayLatestDayQuote(stock);
+        }
+        return stock;
+    }
+
+    private AtlasWatchlistItemVo toWatchlistVo(UserWatchlist row) {
+        StockBase stock = resolveLiveStock(row.getCode());
+        Double livePrice = stock != null && stock.getClose() != null && stock.getClose() > 0
+                ? stock.getClose()
+                : row.getEntryPrice();
+        Double changePct = null;
+        if (stock != null && stock.getChangeRate() != null) {
+            changePct = round2(stock.getChangeRate() * 100);
         }
         return AtlasWatchlistItemVo.builder()
                 .id(row.getStockId())

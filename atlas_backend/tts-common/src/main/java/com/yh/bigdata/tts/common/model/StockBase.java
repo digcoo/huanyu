@@ -51,7 +51,8 @@ public class StockBase {
 
     private Boolean isTrade;
 
-    private double trade;
+    /** 收盘价 */
+    private Double close;
 
     private Double ma5;
 
@@ -71,7 +72,8 @@ public class StockBase {
 
     protected double macd;
 	
-	protected Double lastTrade;
+	/** 昨收 */
+	protected Double prevClose;
 	
 	protected Double open;
 	
@@ -117,13 +119,33 @@ public class StockBase {
 		this.name = name;
 	}
 
-	public StockBase(String code, String exchange, String name, Boolean isSt, Double trade) {
+	public StockBase(String code, String exchange, String name, Boolean isSt, Double closePrice) {
 		super();
 		this.code = code;
 		this.exchange = exchange;
 		this.name = name;
 		this.isSt = isSt;
-		this.trade = trade;
+		this.close = closePrice;
+	}
+
+	@Deprecated
+	public Double getTrade() {
+		return close;
+	}
+
+	@Deprecated
+	public void setTrade(double trade) {
+		this.close = trade;
+	}
+
+	@Deprecated
+	public Double getLastTrade() {
+		return prevClose;
+	}
+
+	@Deprecated
+	public void setLastTrade(Double lastTrade) {
+		this.prevClose = lastTrade;
 	}
 
 	public String getDay() {
@@ -139,14 +161,14 @@ public class StockBase {
 
 	
 	public Boolean isTradeBetween(Double left, Double right) {
-		return this.trade <= MathUtil.max(left, right)
-				&& this.trade >= MathUtil.min(left, right);
+		return this.close <= MathUtil.max(left, right)
+				&& this.close >= MathUtil.min(left, right);
 	}
 
 	@JSONField(serialize = false)
 	@JsonIgnore
 	public Double getHighLastRate(){
-		return (high - lastTrade) / lastTrade;
+		return (high - prevClose) / prevClose;
 	}
 	
 	@JSONField(serialize = false)
@@ -158,7 +180,7 @@ public class StockBase {
 	@JSONField(serialize = false)
 	@JsonIgnore
 	public Double getShitiMax() {
-		return MathUtil.max(this.trade, this.open);
+		return MathUtil.max(this.close, this.open);
 	}
 
 	@JSONField(serialize = false)
@@ -190,7 +212,7 @@ public class StockBase {
 	@JSONField(serialize = false)
 	@JsonIgnore
 	public Double getShitiMin() {
-		return MathUtil.min(this.trade, this.open);
+		return MathUtil.min(this.close, this.open);
 	}
 	
 	@JSONField(serialize = false)
@@ -203,7 +225,7 @@ public class StockBase {
 	@JsonIgnore
 	public Boolean isOverAllMA() {
 		Double maxMA = getMaxMA();
-		return maxMA == null || this.trade > maxMA;
+		return maxMA == null || this.close > maxMA;
 	}
 	
 	@JSONField(serialize = false)
@@ -217,7 +239,7 @@ public class StockBase {
 	@JsonIgnore
 	public Boolean isDownAllMA() {
 		Double minMA = getMinMA();
-		return minMA == null || this.trade < minMA;
+		return minMA == null || this.close < minMA;
 	}
 	
 	@JSONField(serialize = false)
@@ -233,7 +255,7 @@ public class StockBase {
 		Double maxMA = getMaxMA();
 		Double minMA = getMinMA();
 		return maxMA == null || minMA == null 
-				|| (this.trade < maxMA && this.trade > minMA);
+				|| (this.close < maxMA && this.close > minMA);
 	}
 
 	@JSONField(serialize = false)
@@ -314,13 +336,13 @@ public class StockBase {
 		
 		return (this.low <= maPair.getLeft()
 					|| (preTrade!=null && preTrade.getLow() <= preTrade.getUpMA(topN).getLeft()))
-				&& this.trade > maPair.getRight()
+				&& this.close > maPair.getRight()
 				&& this.getShitiRate() > 0;
 	}
 	
 	//反包
 	public Boolean ifFanbao(boolean ifXiayi) {
-		return this.getTrade() > preTrade.getShitiMax()
+		return this.getClose() > preTrade.getShitiMax()
 				&& (!ifXiayi || preTrade.getShitiRate() < 0);
 	}
 	
@@ -332,7 +354,7 @@ public class StockBase {
 		
 		return (this.low <= maPair.getLeft()
 				|| (preTrade!=null && preTrade.getLow() <= preTrade.getDownMA(topN).getLeft()))
-				&& this.trade > maPair.getRight()
+				&& this.close > maPair.getRight()
 				&& this.getShitiRate() > 0;
 	}
 	
@@ -394,13 +416,13 @@ public class StockBase {
 	@JsonIgnore
 	@JSONField(serialize=false, deserialize = false)
 	public Double getChangeRate(){
-		return lastTrade == null? 0 : (trade - lastTrade) / lastTrade;
+		return prevClose == null? 0 : (close - prevClose) / prevClose;
 	}
 	
 	@JsonIgnore
 	@JSONField(serialize=false, deserialize = false)
 	public Double getBlockRate(){
-		return (trade - open) / open;
+		return (close - open) / open;
 	}
 	
 	@JsonIgnore
@@ -412,7 +434,7 @@ public class StockBase {
 	@JsonIgnore
 	@JSONField(serialize=false, deserialize = false)
 	public Double getHighChangeRate(){
-		return lastTrade == null? 0 : (high - lastTrade) / lastTrade;
+		return prevClose == null? 0 : (high - prevClose) / prevClose;
 	}
 
 
@@ -438,7 +460,7 @@ public class StockBase {
 	@JsonIgnore
 	@JSONField(serialize=false, deserialize = false)
 	public Double getLowSpaceRate(){
-		return (trade - low) / low;
+		return (close - low) / low;
 	}
 	
 	@JsonIgnore
@@ -457,7 +479,7 @@ public class StockBase {
 	@JSONField(serialize=false, deserialize = false)
 	@JsonIgnore
 	public Double getShitiRate() {
-		return (trade - open) / open;
+		return (close - open) / open;
 	}
 
     @JSONField(serialize=false, deserialize = false)
@@ -475,13 +497,13 @@ public class StockBase {
 	@JSONField(serialize=false, deserialize = false)
 	@JsonIgnore
 	public Double getHighRate() {
-		return (high - lastTrade) / lastTrade;
+		return (high - prevClose) / prevClose;
 	}
 	
 	@JSONField(serialize=false, deserialize = false)
 	@JsonIgnore
 	public Double getLowRate() {
-        return (trade - low) / low;
+        return (close - low) / low;
     }
 
     /**

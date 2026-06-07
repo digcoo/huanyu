@@ -69,7 +69,7 @@ public class XueQiuUtils {
         trade.setHigh(high);
         trade.setLow(low);
         trade.setClose(close);
-        trade.setLastTrade(close - change);
+        trade.setPrevClose(close - change);
         trade.setVolume(volume);
         trade.setAmount(amount);
         trade.setTurnoverRate(turnoverRate);

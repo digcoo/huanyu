@@ -47,7 +47,7 @@ public class  Ticker {
 	public static List<Ticker> from(List<Trade> trades) {
         return trades.stream().map(x -> {
         	Ticker ticker = new Ticker();
-        	ticker.setClose(x.getTrade());
+        	ticker.setClose(x.getClose());
         	ticker.setHigh(x.getHigh());
         	ticker.setLow(x.getLow());
         	ticker.setOpen(x.getOpen());

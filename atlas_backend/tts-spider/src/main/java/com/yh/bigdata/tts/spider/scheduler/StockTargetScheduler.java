@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockTarget;
+import com.yh.bigdata.tts.common.utils.StockQuoteUtils;
 import com.yh.bigdata.tts.spider.strategy.AbstractStrategy;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 
@@ -86,6 +87,9 @@ public class StockTargetScheduler {
             if (contextParam.getRebound() == null) {
                 contextParam.setRebound(ReboundStrategyParams.defaults());
             }
+            if (contextParam.getMulti() == null) {
+                contextParam.setMulti(com.yh.bigdata.tts.common.param.MultiStrategyParams.defaults());
+            }
             int saved = 0;
             String lastDay = stockTargetMapper.selectLatestDay();
             Set<String> oldStockTargetList = new HashSet<>();
@@ -133,14 +137,16 @@ public class StockTargetScheduler {
     }
 
     private StockTarget buildStockTarget(StockBase stockBase, CheckResult checkResult) {
+        StockQuoteUtils.overlayLatestDayQuote(stockBase);
         StockTarget strategyStock = new StockTarget();
         strategyStock.setCode(stockBase.getCode());
         strategyStock.setName(stockBase.getName());
         strategyStock.setDay(stockBase.getDay());
-        strategyStock.setClose(stockBase.getTrade());
+        strategyStock.setClose(stockBase.getClose() != null ? stockBase.getClose() : 0D);
         strategyStock.setTrendMessage(checkResult.getTrendMessage());
         strategyStock.setSignalMessage(checkResult.getSignalMessage());
-        strategyStock.setChangeRate(checkResult.getChangeRate());
+        Double changeRate = stockBase.getChangeRate();
+        strategyStock.setChangeRate(changeRate != null ? changeRate : checkResult.getChangeRate());
         return strategyStock;
     }
 

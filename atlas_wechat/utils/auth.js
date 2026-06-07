@@ -33,6 +33,15 @@ function clearSession() {
   wx.removeStorageSync(OPENID_KEY);
 }
 
+/** 清除 mock 或无效的旧 token，避免带过期凭证请求自选接口 */
+function sanitizeStoredSession() {
+  if (config.useMock) return;
+  var token = getToken();
+  if (token && token.indexOf('mock-') === 0) {
+    clearSession();
+  }
+}
+
 function login() {
   return new Promise(function (resolve, reject) {
     wx.login({
@@ -46,7 +55,7 @@ function login() {
           resolve(getToken());
           return;
         }
-        api.post('/auth/wx/login', { code: res.code }).then(function (result) {
+        api.post('/auth/wx/login', { code: res.code }, null, { skipAuthRetry: true }).then(function (result) {
           if (!result.ok || !result.data || !result.data.token) {
             reject(new Error(result.message || '登录失败'));
             return;
@@ -61,6 +70,7 @@ function login() {
 }
 
 function ensureLogin() {
+  sanitizeStoredSession();
   if (isLoggedIn()) return Promise.resolve(getToken());
   return login();
 }
@@ -88,6 +98,7 @@ module.exports = {
   getOpenid: getOpenid,
   getUser: getUser,
   isLoggedIn: isLoggedIn,
+  sanitizeStoredSession: sanitizeStoredSession,
   login: login,
   ensureLogin: ensureLogin,
   promptLogin: promptLogin,

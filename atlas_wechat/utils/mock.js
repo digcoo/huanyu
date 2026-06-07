@@ -119,6 +119,7 @@ const STRATEGIES = [
     id: 'trend',
     name: '单边趋势',
     icon: '📈',
+    iconImage: '/assets/strategy/trend-icon.png',
     badge: 'TREND',
     desc: '梯子试盘 · 均线多头 · 突破延续'
   },
@@ -126,7 +127,7 @@ const STRATEGIES = [
     id: 'rebound',
     name: '深坑反弹',
     icon: '🕳️',
-    iconImage: '/assets/strategy/rebound.png',
+    iconImage: '/assets/strategy/rebound-icon.png',
     badge: 'REBOUND',
     desc: '长期深跌 · 恐慌释放 · 反弹接入'
   },

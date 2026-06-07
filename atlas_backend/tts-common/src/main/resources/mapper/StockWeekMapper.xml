@@ -8,8 +8,8 @@
     <result column="open" property="open" jdbcType="DOUBLE" />
     <result column="high" property="high" jdbcType="DOUBLE" />
     <result column="low" property="low" jdbcType="DOUBLE" />
-    <result column="trade" property="trade" jdbcType="DOUBLE" />
-    <result column="last_trade" property="lastTrade" jdbcType="DOUBLE" />
+    <result column="close" property="close" jdbcType="DOUBLE" />
+    <result column="prev_close" property="prevClose" jdbcType="DOUBLE" />
     <result column="percent" property="percent" jdbcType="DOUBLE" />
     <result column="volume" property="volume" jdbcType="BIGINT" />
     <result column="amount" property="amount" jdbcType="DOUBLE" />
@@ -26,7 +26,7 @@
     <result column="source_type" property="sourceType" jdbcType="INTEGER" />
   </resultMap>
   <sql id="Base_Column_List" >
-    code, day, name, open, high, low, trade, last_trade, percent, volume, amount, ma5, ma10, ma20, ma30, ma60, ma120, dea, dif, macd, cross_params, source_type
+    code, day, name, open, high, low, `close`, prev_close, percent, volume, amount, ma5, ma10, ma20, ma30, ma60, ma120, dea, dif, macd, cross_params, source_type
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" >
     select * from weekk where code = #{code} and day = #{day}
@@ -35,8 +35,8 @@
     delete from weekk where code = #{code} and day = #{day}
   </delete>
   <insert id="insert" parameterType="com.yh.bigdata.tts.common.model.StockWeek" >
-    insert into weekk (code, day, name, open, high, low, trade, last_trade, percent, volume, amount, ma5, ma10, ma20, ma30, ma60, ma120, dea, dif, macd, cross_params, source_type, create_time, update_time)
-    values (#{code}, #{day}, #{name}, #{open}, #{high}, #{low}, #{trade}, #{lastTrade}, #{percent}, #{volume}, #{amount}, #{ma5}, #{ma10}, #{ma20}, #{ma30}, #{ma60}, #{ma120}, #{dea}, #{dif}, #{macd}, #{crossParams}, #{sourceType}, now(), now())
+    insert into weekk (code, day, name, open, high, low, `close`, prev_close, percent, volume, amount, ma5, ma10, ma20, ma30, ma60, ma120, dea, dif, macd, cross_params, source_type, create_time, update_time)
+    values (#{code}, #{day}, #{name}, #{open}, #{high}, #{low}, #{close}, #{prevClose}, #{percent}, #{volume}, #{amount}, #{ma5}, #{ma10}, #{ma20}, #{ma30}, #{ma60}, #{ma120}, #{dea}, #{dif}, #{macd}, #{crossParams}, #{sourceType}, now(), now())
   </insert>
   
   <update id="updateByPrimaryKey" parameterType="com.yh.bigdata.tts.common.model.StockWeek" >
@@ -53,11 +53,11 @@
         <if test="low != null">
            , low = #{low}
         </if>
-        <if test="trade != null">
-           , trade = #{trade}
+        <if test="close != null">
+           , `close` = #{close}
         </if>                    
-        <if test="lastTrade != null">
-           , last_trade = #{lastTrade}
+        <if test="prevClose != null">
+           , prev_close = #{prevClose}
         </if>                     
         <if test="percent != null">
            , percent = #{percent}
@@ -134,7 +134,7 @@
   
     
   <select id="selectLatestWeekList" resultMap="BaseResultMap" >
-   	select w.code, w.day, w.open, w.trade, w.last_trade, w.high, w.low, w.ma5, w.ma10, w.ma20, w.ma30, w.ma60, w.ma120, w.dea, w.dif, w.macd, w.source_type from weekk w
+   	select w.code, w.day, w.open, w.`close`, w.prev_close, w.high, w.low, w.ma5, w.ma10, w.ma20, w.ma30, w.ma60, w.ma120, w.dea, w.dif, w.macd, w.source_type from weekk w
 		<where>
 		    <if test="code != null and code != '' ">
 		  		and w.code = #{code}

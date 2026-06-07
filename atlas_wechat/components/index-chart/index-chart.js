@@ -1,5 +1,11 @@
 const { PERIOD_MAX_BARS } = require('../../utils/kline');
 
+const PERIOD_LABELS = { year: '年K', month: '月K', week: '周K', day: '日K' };
+
+function periodLabel(period) {
+  return PERIOD_LABELS[period] || '周K';
+}
+
 Component({
   properties: {
     indices: {
@@ -83,7 +89,7 @@ Component({
 
       this.setData({
         chartKlines: klines,
-        chartLabel: '',
+        chartLabel: periodLabel(period),
         maxBars: PERIOD_MAX_BARS[period] || 50
       });
     }

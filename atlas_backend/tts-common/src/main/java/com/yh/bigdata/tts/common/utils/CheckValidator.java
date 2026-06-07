@@ -337,10 +337,10 @@ public final class CheckValidator {
 				.subList(MATypes.size() - nk, MATypes.size());
 		Double MAMin0 = MathUtil.min(MAValues0);
 		Double MAMax0 = MathUtil.max(MAValues0);
-//		double low = MathUtil.min(trade0.getLastTrade(), trade0.getLow());		
+//		double low = MathUtil.min(trade0.getPrevClose(), trade0.getLow());		
 
 		boolean crossMA = false;
-		if ((trade0.getLastTrade() <= MAMin1 /* || trade0.getLow() <= MAMin0 */) && trade0.getClose() > MAMax0) {
+		if ((trade0.getPrevClose() <= MAMin1 /* || trade0.getLow() <= MAMin0 */) && trade0.getClose() > MAMax0) {
 			crossMA = true;
 		}
 		return crossMA && (trade0.getShitiRate() > crossRate || trade0.getChangeRate() > crossRate);
@@ -359,7 +359,7 @@ public final class CheckValidator {
 			int nk) {
 
 		Trade trade0 = trades.get(trades.size() - 1);
-		double low = MathUtil.min(trade0.getLastTrade(), trade0.getLow());
+		double low = MathUtil.min(trade0.getPrevClose(), trade0.getLow());
 		boolean crossMA = false;
 		List<Double> MAValues0 = MATypes.stream().map(x -> IndicatorCaculater.calMA(trades, x))
 				.sorted(Comparator.comparing(x -> x)).collect(Collectors.toList());
@@ -415,7 +415,7 @@ public final class CheckValidator {
 //		Double MAMin0 = MathUtil.min(MAValues0);
 
 		boolean crossMA = false;
-		if ((trade0.getLastTrade() <= MAMax1) && trade0.getClose() > MAMax0) {
+		if ((trade0.getPrevClose() <= MAMax1) && trade0.getClose() > MAMax0) {
 			crossMA = true;
 		}
 		return crossMA && (trade0.getShitiRate() > crossRate || trade0.getChangeRate() > crossRate);
@@ -591,7 +591,7 @@ public final class CheckValidator {
 
 		List<Trade> subTrades = trades.subList(trades.size() < nPeriods ? 0 : trades.size() - nPeriods, trades.size());
 
-		return subTrades.stream().allMatch(x -> x.getShitiRate() > 0 && x.getClose() > x.getLastTrade());
+		return subTrades.stream().allMatch(x -> x.getShitiRate() > 0 && x.getClose() > x.getPrevClose());
 
 	}
 
@@ -760,7 +760,7 @@ public final class CheckValidator {
 
 		boolean crossMA = false;
 		for (Map.Entry<Integer, Double> entry : MAValueMap0.entrySet()) {
-			if (trade0.getLastTrade() <= MAValueMap1.get(entry.getKey())
+			if (trade0.getPrevClose() <= MAValueMap1.get(entry.getKey())
 					&& trade0.getClose() >= MAValueMap0.get(entry.getKey())) {
 				crossMA = true;
 				break;

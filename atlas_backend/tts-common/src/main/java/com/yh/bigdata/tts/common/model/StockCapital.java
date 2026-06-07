@@ -14,7 +14,7 @@ public class StockCapital implements Comparable<StockCapital>{
 	
 	protected Double zhuli;
 	
-	protected Double trade;
+	protected Double close;
 	
 	protected Double changeRadio;
 
@@ -163,12 +163,22 @@ public class StockCapital implements Comparable<StockCapital>{
 		this.smallRatio = smallRatio;
 	}
 
-	public Double getTrade() {
-		return trade;
+	public Double getClose() {
+		return close;
 	}
 
+	public void setClose(Double close) {
+		this.close = close;
+	}
+
+	@Deprecated
+	public Double getTrade() {
+		return close;
+	}
+
+	@Deprecated
 	public void setTrade(Double trade) {
-		this.trade = trade;
+		this.close = trade;
 	}
 
 	public Double getChangeRadio() {

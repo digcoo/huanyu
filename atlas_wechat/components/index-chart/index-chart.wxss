@@ -61,3 +61,11 @@
   border-top: none;
   border-radius: 0;
 }
+
+.chart-empty {
+  padding: 24rpx 8rpx;
+  text-align: center;
+  font-size: 22rpx;
+  color: #848e9c;
+  background: #1e2026;
+}

@@ -93,7 +93,7 @@ public class AtlasAnnualReportServiceImpl implements AtlasAnnualReportService {
     @Override
     public List<Map<String, String>> buildKeyMetricsFromAnnual(StockBase stock, StockAnnualReport latest) {
         List<Map<String, String>> metrics = new ArrayList<>();
-        metrics.add(metric("最新价", formatPrice(stock.getTrade())));
+        metrics.add(metric("最新价", formatPrice(stock.getClose())));
         metrics.add(metric("涨跌幅", formatPct(stock.getChangeRate())));
         if (latest != null) {
             if (latest.getRoe() != null) {

@@ -147,7 +147,7 @@ public final class BandRevertIndicatorUtils {
         }
 
         public double getBandChangeRate() {
-            return (lastTrade.getClose() - firstTrade.getLastTrade() ) / firstTrade.getLastTrade();
+            return (lastTrade.getClose() - firstTrade.getPrevClose() ) / firstTrade.getPrevClose();
         }
 
         public double getBandShiTiRate() {

@@ -24,11 +24,15 @@ public class QueryContextParam extends PageQuery {
     /** 深坑反弹策略自定义参数 */
     private ReboundStrategyParams rebound;
 
+    /** 多周期强势策略自定义参数 */
+    private MultiStrategyParams multi;
+
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
                 .unilateral(UnilateralStrategyParams.defaults())
                 .rebound(ReboundStrategyParams.defaults())
+                .multi(MultiStrategyParams.defaults())
                 .build();
     }
 	

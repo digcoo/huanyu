@@ -100,8 +100,8 @@ public final class PriceUtil {
 				Trade next1Trade = i+1 > trades.size()-1 ? null : (Trade)(trades.get(i+1));
 				Trade next2Trade = i+2 > trades.size()-1 ? null : (Trade)(trades.get(i+2));
 				
-				if(trade.getTrade() < headTrade.getOpen()  //跌破区间底部，则区间结束
-						|| (next1Trade != null && (next1Trade.getTrade() < last1Trade.getTrade() || next1Trade.getTrade() < headTrade.getOpen() )  //下跌之后，后续2个周期价格还未拉回，则区间结束
+				if(trade.getClose() < headTrade.getOpen()  //跌破区间底部，则区间结束
+						|| (next1Trade != null && (next1Trade.getClose() < last1Trade.getClose() || next1Trade.getClose() < headTrade.getOpen() )  //下跌之后，后续2个周期价格还未拉回，则区间结束
 								)
 						) {
 					

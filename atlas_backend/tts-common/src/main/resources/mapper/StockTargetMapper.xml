@@ -12,11 +12,11 @@
     </resultMap>
 
     <sql id="Base_Column_List" >
-      day, code, name, close, strategy,new_flag, change_rate
+      day, code, name, `close`, strategy,new_flag, change_rate
     </sql>
 
     <insert id="insert" parameterType="com.yh.bigdata.tts.common.model.StockTarget" >
-        insert into stock_target (day, code, name, close, strategy, new_flag, change_rate, create_time, update_time)
+        insert into stock_target (day, code, name, `close`, strategy, new_flag, change_rate, create_time, update_time)
         values (#{day}, #{code}, #{name}, #{close}, #{strategy}, #{newFlag}, #{changeRate} , now(), now())
     </insert>
 
@@ -24,7 +24,7 @@
         update stock_target
         <set >
             name = #{name},
-            close = #{close},
+            `close` = #{close},
             new_flag = #{newFlag},
             change_rate = #{changeRate},
             update_time = now()

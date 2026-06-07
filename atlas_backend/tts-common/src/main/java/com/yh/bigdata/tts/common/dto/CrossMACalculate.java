@@ -90,8 +90,8 @@ public class CrossMACalculate {
 			}
 			Double corssPrice = baseCross.getCrossPrice();
 			
-			if (trade.getLastTrade() < corssPrice
-					&& trade.getTrade() > corssPrice
+			if (trade.getPrevClose() < corssPrice
+					&& trade.getClose() > corssPrice
 					) {
 				
 				System.out.format("crossMACross : code[%s], MACrossPeriod[%s:%s:%s:%s], crossDay[%s:%s]", 

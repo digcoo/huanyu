@@ -1,8 +1,7 @@
 <view class="mini-kline {{resonance}} size-{{size}} {{flipped ? 'is-flipped' : ''}}">
-  <view class="label-row" wx:if="{{label || markerLabel || maLegend}}">
-    <text class="label" wx:if="{{label}}">{{label}}</text>
-    <view class="label-right">
-      <text wx:if="{{markerLabel}}" class="marker-label">★ {{markerLabel}}</text>
+  <view class="label-row" wx:if="{{label || markerLabel || maLegend || updatedLabel}}">
+    <view class="label-left">
+      <text class="label" wx:if="{{label}}">{{label}}</text>
       <view class="ma-legend" wx:if="{{maLegend}}">
         <text
           wx:for="{{maLines}}"
@@ -12,38 +11,16 @@
         >{{item.label}}</text>
       </view>
     </view>
+    <view class="label-right">
+      <text wx:if="{{updatedLabel}}" class="updated-label">更新 · {{updatedLabel}}</text>
+      <text wx:if="{{markerLabel}}" class="marker-label">★ {{markerLabel}}</text>
+    </view>
   </view>
   <view class="chart-shell">
-    <text wx:if="{{updatedLabel}}" class="updated-badge">更新 · {{updatedLabel}}</text>
     <view class="chart-wrap">
       <view class="grid-lines">
         <view class="grid-line" wx:for="{{[0,1,2,3,4]}}" wx:key="*this"></view>
       </view>
-      <view
-        wx:if="{{markerLeft}}"
-        class="add-marker"
-        style="left: {{markerLeft}}%;"
-      >
-        <view class="add-marker-line"></view>
-        <view class="add-marker-dot"></view>
-      </view>
-      <svg
-        wx:if="{{maLines.length}}"
-        class="ma-svg"
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-      >
-        <polyline
-          wx:for="{{maLines}}"
-          wx:key="key"
-          points="{{item.points}}"
-          fill="none"
-          stroke="{{item.color}}"
-          stroke-width="0.45"
-          stroke-linejoin="round"
-          stroke-linecap="round"
-        />
-      </svg>
       <view class="css-chart" wx:if="{{bars.length}}">
         <view
           wx:for="{{bars}}"
@@ -66,6 +43,22 @@
             style="top: {{item.lowerWickTop}}%; height: {{item.lowerWickH}}%;"
           ></view>
         </view>
+      </view>
+      <view wx:if="{{maSegments.length}}" class="ma-layer">
+        <view
+          wx:for="{{maSegments}}"
+          wx:key="id"
+          class="ma-seg"
+          style="left: {{item.left}}px; top: {{item.top}}px; width: {{item.width}}px; transform: rotate({{item.angle}}deg); background-color: {{item.color}};"
+        ></view>
+      </view>
+      <view
+        wx:if="{{markerLeft}}"
+        class="add-marker"
+        style="left: {{markerLeft}}%;"
+      >
+        <view class="add-marker-line"></view>
+        <view class="add-marker-dot"></view>
       </view>
     </view>
   </view>

@@ -8,10 +8,12 @@
       bindtap="onTabTap"
     >
       <image
-        wx:if="{{item.iconImage}}"
+        wx:if="{{item.iconImage && !brokenIcons[item.id]}}"
         class="tab-icon-img"
         src="{{item.iconImage}}"
         mode="aspectFit"
+        data-id="{{item.id}}"
+        binderror="onIconError"
       />
       <text wx:else class="tab-icon">{{item.icon}}</text>
       <text class="tab-name">{{item.name}}</text>

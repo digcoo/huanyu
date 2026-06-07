@@ -193,7 +193,8 @@ public class AtlasDbSchemaInitializer implements ApplicationRunner {
             migrateBaseColumns(conn);
             dropBaseMaColumns(conn);
             migrateAnnualReportUnique(conn);
-            log.info("AtlasDbSchemaInitializer: schema ready (annual, target, relation, benchmark, base columns)");
+            migratePriceColumnNames(conn);
+            log.info("AtlasDbSchemaInitializer: schema ready (annual, target, relation, benchmark, base columns, price columns)");
         } catch (Exception e) {
             log.error("AtlasDbSchemaInitializer failed", e);
             throw e;
@@ -222,9 +223,6 @@ public class AtlasDbSchemaInitializer implements ApplicationRunner {
         }
     }
 
-    /**
-     * 年报表唯一性：先删 (code, report_year) 重复，再补 uk_code_year，使 upsert 生效
-     */
     private void migrateAnnualReportUnique(Connection conn) throws Exception {
         if (!tableExists(conn, "stock_annual_report")) {
             return;
@@ -245,6 +243,63 @@ public class AtlasDbSchemaInitializer implements ApplicationRunner {
                         + "ADD UNIQUE KEY `uk_code_year` (`code`, `report_year`)");
                 log.info("AtlasDbSchemaInitializer: added stock_annual_report.uk_code_year");
             }
+        }
+    }
+
+    /** trade → close，last_trade → prev_close（K 线/行情表） */
+    private void migratePriceColumnNames(Connection conn) throws Exception {
+        String[] withPrevClose = {
+                "base", "dayk", "weekk", "monthk", "quarterk", "yeark",
+                "min5k", "min15k", "min30k", "min60k", "fenshik"
+        };
+        for (String table : withPrevClose) {
+            if (!tableExists(conn, table)) {
+                continue;
+            }
+            renameColumnIfNeeded(conn, table, "trade", "close");
+            renameColumnIfNeeded(conn, table, "last_trade", "prev_close");
+        }
+        if (tableExists(conn, "strategy_stock")) {
+            renameColumnIfNeeded(conn, "strategy_stock", "trade", "close");
+        }
+    }
+
+    private void renameColumnIfNeeded(Connection conn, String table, String from, String to) throws Exception {
+        if (!columnExists(conn, table, from) || columnExists(conn, table, to)) {
+            return;
+        }
+        String columnType = getColumnType(conn, table, from);
+        if (columnType == null) {
+            return;
+        }
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("ALTER TABLE `" + table + "` CHANGE COLUMN `" + from + "` `" + to + "` " + columnType);
+            log.info("AtlasDbSchemaInitializer: renamed {}.{} -> {}", table, from, to);
+        }
+    }
+
+    private String getColumnType(Connection conn, String table, String column) throws Exception {
+        String sql = "SELECT COLUMN_TYPE, IS_NULLABLE, COLUMN_COMMENT, EXTRA "
+                + "FROM information_schema.COLUMNS "
+                + "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '" + table + "' AND COLUMN_NAME = '" + column + "'";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (!rs.next()) {
+                return null;
+            }
+            String type = rs.getString("COLUMN_TYPE");
+            String nullable = rs.getString("IS_NULLABLE");
+            String extra = rs.getString("EXTRA");
+            String comment = rs.getString("COLUMN_COMMENT");
+            StringBuilder def = new StringBuilder(type);
+            def.append("YES".equals(nullable) ? " DEFAULT NULL" : " NOT NULL");
+            if (comment != null && !comment.isEmpty()) {
+                def.append(" COMMENT '").append(comment.replace("'", "''")).append("'");
+            }
+            if (extra != null && !extra.isEmpty()) {
+                def.append(" ").append(extra);
+            }
+            return def.toString();
         }
     }
 

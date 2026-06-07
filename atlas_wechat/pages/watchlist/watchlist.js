@@ -115,8 +115,10 @@ Page({
     this.setData({ needLogin: false });
     const self = this;
     const app = getApp();
-    if (require('../../utils/watchlist-api').isRemoteEnabled() && auth.isLoggedIn()) {
-      app.syncFromServer().finally(function () {
+    if (require('../../utils/watchlist-api').isRemoteEnabled()) {
+      auth.ensureLogin().then(function () {
+        return app.syncFromServer();
+      }).finally(function () {
         self.refreshList();
       });
       return;
