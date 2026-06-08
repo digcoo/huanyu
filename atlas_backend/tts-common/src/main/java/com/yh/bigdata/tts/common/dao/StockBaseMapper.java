@@ -67,5 +67,8 @@ public interface StockBaseMapper {
   int countWithBusinessBrief();
 
   int countWithPeTtm();
-  
+
+  /** pe_ttm 为空或 <=0，用于年报兜底计算 */
+  List<StockBase> selectWithoutPositivePeTtm();
+
 }

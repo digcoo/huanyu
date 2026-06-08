@@ -16,7 +16,8 @@ import java.util.List;
 public final class EastMoneyF10Client {
 
     private static final String F10_BASE = "https://emweb.securities.eastmoney.com/PC_HSF10";
-    private static final String QUOTE_API = "https://push2.eastmoney.com/api/qt/stock/get";
+    private static final String QUOTE_API = "https://push2delay.eastmoney.com/api/qt/stock/get";
+    private static final String UT = "fa5fd1943c7eab3dcac0dd4784b235de";
 
     private EastMoneyF10Client() {
     }
@@ -119,7 +120,7 @@ public final class EastMoneyF10Client {
             return null;
         }
         String fields = "f57,f58,f43,f162,f167,f168,f116,f46,f45";
-        String url = QUOTE_API + "?secid=" + secId + "&fields=" + fields;
+        String url = QUOTE_API + "?secid=" + secId + "&fields=" + fields + "&ut=" + UT;
         String body = EastMoneyHttpClient.get(url);
         if (StringUtils.isBlank(body)) {
             return null;

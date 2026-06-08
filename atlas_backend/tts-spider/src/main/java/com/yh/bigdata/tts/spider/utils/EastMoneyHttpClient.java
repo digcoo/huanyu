@@ -25,8 +25,9 @@ public final class EastMoneyHttpClient {
             return Request.Get(url)
                     .connectTimeout(TIMEOUT_MS)
                     .socketTimeout(TIMEOUT_MS)
-                    .addHeader("User-Agent", "Mozilla/5.0 AtlasBot/1.0")
-                    .addHeader("Referer", "https://emweb.securities.eastmoney.com/")
+                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                    .addHeader("Referer", "https://quote.eastmoney.com/")
+                    .addHeader("Accept", "*/*")
                     .execute()
                     .returnContent()
                     .asString(StandardCharsets.UTF_8);

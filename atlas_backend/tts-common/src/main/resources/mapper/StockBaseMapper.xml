@@ -173,6 +173,12 @@
     SELECT COUNT(1) FROM base WHERE pe_ttm IS NOT NULL AND pe_ttm > 0
   </select>
 
+  <select id="selectWithoutPositivePeTtm" resultMap="BaseResultMap">
+    SELECT code, total_mv_yi
+    FROM base
+    WHERE pe_ttm IS NULL OR pe_ttm &lt;= 0
+  </select>
+
   <select id="searchByKeyword" resultMap="BaseResultMap">
     select
       <include refid="Base_Column_List" />
