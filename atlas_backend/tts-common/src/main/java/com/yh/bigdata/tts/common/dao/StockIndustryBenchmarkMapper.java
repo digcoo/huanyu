@@ -14,4 +14,6 @@ public interface StockIndustryBenchmarkMapper {
     StockIndustryBenchmark selectByIndustry(@Param("industry") String industry);
 
     List<StockIndustryBenchmark> selectAll();
+
+    int countAll();
 }

@@ -37,5 +37,14 @@ public class AtlasStockDetailVo {
     /** 竞品列表 */
     private List<Map<String, Object>> competitors;
 
+    /** 用户可读业务摘要（与 profile.businessOneLiner 一致） */
+    private String businessBrief;
+
+    /** 工商经营范围（可选展示） */
+    private String businessScope;
+
+    /** 产业链：upstream / downstream / segments */
+    private Map<String, Object> industryChain;
+
     private List<Map<String, Object>> portraitDimensions;
 }

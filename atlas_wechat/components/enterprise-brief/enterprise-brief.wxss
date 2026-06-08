@@ -29,6 +29,35 @@
   line-height: 1.65;
 }
 
+.brief-meta {
+  display: block;
+  font-size: 20rpx;
+  color: #5c6578;
+  margin-top: 8rpx;
+}
+
+.scope-block {
+  border-top: 1rpx solid rgba(255, 255, 255, 0.06);
+  padding-top: 14rpx;
+  margin-top: 4rpx;
+}
+
+.scope-text {
+  font-size: 22rpx;
+  color: #8b95a8;
+  line-height: 1.55;
+}
+
+.scope-toggle {
+  text-align: center;
+  padding: 8rpx 0 4rpx;
+}
+
+.scope-toggle text {
+  font-size: 20rpx;
+  color: #5c6578;
+}
+
 .dimension-section {
   margin-bottom: 16rpx;
   padding: 14rpx 0 4rpx;

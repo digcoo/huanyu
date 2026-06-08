@@ -57,5 +57,15 @@ public interface StockBaseMapper {
   List<StockBase> selectAll();
 
   List<StockBase> searchByKeyword(@Param("keyword") String keyword, @Param("limit") int limit);
+
+  int countAll();
+
+  int countWithIndustry();
+
+  int countWithMainBusiness();
+
+  int countWithBusinessBrief();
+
+  int countWithPeTtm();
   
 }

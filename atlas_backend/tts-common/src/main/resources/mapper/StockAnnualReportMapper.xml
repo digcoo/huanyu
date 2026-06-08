@@ -15,6 +15,11 @@
     <result column="net_margin" property="netMargin"/>
     <result column="roe" property="roe"/>
     <result column="operating_cash_flow" property="operatingCashFlow"/>
+    <result column="capex" property="capex"/>
+    <result column="staff_num" property="staffNum"/>
+    <result column="revenue_per_staff" property="revenuePerStaff"/>
+    <result column="prepaid_ratio" property="prepaidRatio"/>
+    <result column="interest_debt_ratio" property="interestDebtRatio"/>
     <result column="debt_ratio" property="debtRatio"/>
     <result column="current_ratio" property="currentRatio"/>
     <result column="inventory_days" property="inventoryDays"/>
@@ -31,12 +36,14 @@
       code, name, report_year, report_date,
       total_revenue, net_profit, parent_net_profit,
       gross_margin, net_margin, roe, operating_cash_flow,
+      capex, staff_num, revenue_per_staff, prepaid_ratio, interest_debt_ratio,
       debt_ratio, current_ratio, inventory_days, receivable_days,
       revenue_yoy, profit_yoy, source
     ) VALUES (
       #{code}, #{name}, #{reportYear}, #{reportDate},
       #{totalRevenue}, #{netProfit}, #{parentNetProfit},
       #{grossMargin}, #{netMargin}, #{roe}, #{operatingCashFlow},
+      #{capex}, #{staffNum}, #{revenuePerStaff}, #{prepaidRatio}, #{interestDebtRatio},
       #{debtRatio}, #{currentRatio}, #{inventoryDays}, #{receivableDays},
       #{revenueYoy}, #{profitYoy}, #{source}
     )
@@ -50,6 +57,11 @@
       net_margin = VALUES(net_margin),
       roe = VALUES(roe),
       operating_cash_flow = VALUES(operating_cash_flow),
+      capex = VALUES(capex),
+      staff_num = VALUES(staff_num),
+      revenue_per_staff = VALUES(revenue_per_staff),
+      prepaid_ratio = VALUES(prepaid_ratio),
+      interest_debt_ratio = VALUES(interest_debt_ratio),
       debt_ratio = VALUES(debt_ratio),
       current_ratio = VALUES(current_ratio),
       inventory_days = VALUES(inventory_days),
@@ -94,4 +106,44 @@
      AND t1.report_year = t2.report_year
      AND t1.id &lt; t2.id
   </delete>
+
+  <select id="countDistinctCodes" resultType="int">
+    SELECT COUNT(DISTINCT code) FROM stock_annual_report
+  </select>
+
+  <select id="countTotalRows" resultType="int">
+    SELECT COUNT(1) FROM stock_annual_report
+  </select>
+
+  <select id="countCodesWithMinYears" resultType="int">
+    SELECT COUNT(1) FROM (
+      SELECT code FROM stock_annual_report GROUP BY code HAVING COUNT(1) >= #{minYears}
+    ) t
+  </select>
+
+  <select id="selectIndustryYearlyMetrics" resultType="com.yh.bigdata.tts.common.model.IndustryYearlyMetrics">
+    SELECT r.report_year AS reportYear,
+           AVG(r.total_revenue) AS avgTotalRevenue,
+           AVG(r.net_profit) AS avgNetProfit,
+           AVG(r.operating_cash_flow) AS avgOperatingCashFlow,
+           AVG(r.capex) AS avgCapex,
+           AVG(r.staff_num) AS avgStaffNum,
+           AVG(r.revenue_per_staff) AS avgRevenuePerStaff,
+           AVG(r.prepaid_ratio) AS avgPrepaidRatio,
+           AVG(r.interest_debt_ratio) AS avgInterestDebtRatio,
+           AVG(r.gross_margin) AS avgGrossMargin,
+           AVG(r.net_margin) AS avgNetMargin,
+           AVG(r.debt_ratio) AS avgDebtRatio,
+           AVG(r.current_ratio) AS avgCurrentRatio,
+           AVG(r.inventory_days) AS avgInventoryDays,
+           AVG(r.receivable_days) AS avgReceivableDays,
+           AVG(r.revenue_yoy) AS avgRevenueYoy,
+           AVG(r.roe) AS avgRoe,
+           COUNT(DISTINCT r.code) AS sampleCount
+    FROM stock_annual_report r
+    INNER JOIN base b ON r.code = b.code
+    WHERE b.industry = #{industry}
+    GROUP BY r.report_year
+    ORDER BY r.report_year ASC
+  </select>
 </mapper>

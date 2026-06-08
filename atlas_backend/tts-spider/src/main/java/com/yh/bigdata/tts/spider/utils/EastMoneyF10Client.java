@@ -99,6 +99,19 @@ public final class EastMoneyF10Client {
         return list;
     }
 
+    /** 经营分析：主营构成 zygcfx、经营范围 zyfw */
+    public static JSONObject fetchBusinessAnalysis(String code) {
+        String f10 = toF10Code(code);
+        if (f10 == null) {
+            return null;
+        }
+        String body = EastMoneyHttpClient.get(F10_BASE + "/BusinessAnalysis/PageAjax?code=" + f10);
+        if (StringUtils.isBlank(body)) {
+            return null;
+        }
+        return JSON.parseObject(body);
+    }
+
     /** 行情估值：PE/PB/市值/52周高低 */
     public static JSONObject fetchQuote(String code) {
         String secId = toSecId(code);

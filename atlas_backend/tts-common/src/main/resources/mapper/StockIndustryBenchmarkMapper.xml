@@ -35,4 +35,8 @@
     from stock_industry_benchmark
   </select>
 
+  <select id="countAll" resultType="int">
+    SELECT COUNT(1) FROM stock_industry_benchmark
+  </select>
+
 </mapper>

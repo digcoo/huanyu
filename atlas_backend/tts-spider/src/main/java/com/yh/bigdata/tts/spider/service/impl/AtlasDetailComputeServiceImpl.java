@@ -1,11 +1,14 @@
 package com.yh.bigdata.tts.spider.service.impl;
 
+import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.dao.StockCompanyRelationMapper;
+import com.yh.bigdata.tts.common.dao.StockBaseMapper;
 import com.yh.bigdata.tts.common.model.StockAnnualReport;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockCompanyRelation;
 import com.yh.bigdata.tts.common.model.StockIndustryBenchmark;
 import com.yh.bigdata.tts.spider.service.AtlasDetailComputeService;
+import com.yh.bigdata.tts.common.utils.StockCodeUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,6 +40,9 @@ public class AtlasDetailComputeServiceImpl implements AtlasDetailComputeService 
 
     @Autowired
     private StockCompanyRelationMapper stockCompanyRelationMapper;
+
+    @Autowired
+    private StockBaseMapper stockBaseMapper;
 
     @Override
     public Map<String, Object> computeStage(StockAnnualReport latest) {
@@ -148,18 +154,43 @@ public class AtlasDetailComputeServiceImpl implements AtlasDetailComputeService 
 
     @Override
     public List<Map<String, Object>> buildCompetitorList(String code) {
-        List<StockCompanyRelation> rows = stockCompanyRelationMapper.selectByCode(code);
+        List<StockCompanyRelation> rows = stockCompanyRelationMapper.selectByCodeAndType(code, "competitor");
         List<Map<String, Object>> list = new ArrayList<>();
         for (StockCompanyRelation row : rows) {
-            if (!"competitor".equals(row.getRelationType())) {
+            if (row == null) {
                 continue;
             }
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("code", row.getRelatedCode());
             m.put("name", row.getRelatedName());
+            enrichCompetitorQuote(m, row.getRelatedCode());
             list.add(m);
         }
         return list;
+    }
+
+    private void enrichCompetitorQuote(Map<String, Object> target, String relatedCode) {
+        if (StringUtils.isBlank(relatedCode)) {
+            return;
+        }
+        String normalized = StockCodeUtil.normalizeCnCode(relatedCode);
+        StockBase cached = RealtimeStockCache.filterStockMap != null
+                ? RealtimeStockCache.filterStockMap.get(normalized) : null;
+        if (cached == null) {
+            cached = stockBaseMapper.selectByPrimaryKey(normalized);
+        }
+        if (cached == null) {
+            return;
+        }
+        if (cached.getClose() > 0) {
+            target.put("price", round2(cached.getClose()));
+        }
+        if (cached.getChangeRate() != null) {
+            target.put("changePct", round2(cached.getChangeRate() * 100));
+        }
+        if (cached.getPeTtm() != null && cached.getPeTtm() > 0) {
+            target.put("peTtm", round2(cached.getPeTtm()));
+        }
     }
 
     private String pickStageId(StockAnnualReport latest) {

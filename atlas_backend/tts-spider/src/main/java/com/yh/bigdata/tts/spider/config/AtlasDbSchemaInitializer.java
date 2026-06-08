@@ -156,6 +156,8 @@ public class AtlasDbSchemaInitializer implements ApplicationRunner {
             {"industry", "varchar(64) DEFAULT NULL COMMENT '申万行业末级'"},
             {"industry_csrc", "varchar(128) DEFAULT NULL COMMENT '证监会行业'"},
             {"org_profile", "text COMMENT '公司简介'"},
+            {"business_scope", "varchar(800) DEFAULT NULL COMMENT '工商经营范围'"},
+            {"business_brief", "varchar(200) DEFAULT NULL COMMENT '用户可读业务摘要'"},
             {"pe_ttm", "double DEFAULT NULL COMMENT 'PE TTM'"},
             {"pb", "double DEFAULT NULL COMMENT 'PB'"},
             {"ps_ttm", "double DEFAULT NULL COMMENT 'PS TTM'"},

@@ -9,7 +9,16 @@ function maxBars(period) {
   return MAX[period] || 50;
 }
 
+function displayCode(code) {
+  if (!code) return '';
+  var c = String(code).toLowerCase();
+  if (c.indexOf('sh') === 0) return c.slice(2);
+  if (c.indexOf('sz') === 0) return c.slice(2);
+  return c;
+}
+
 module.exports = {
   periodLabel: periodLabel,
-  maxBars: maxBars
+  maxBars: maxBars,
+  displayCode: displayCode
 };

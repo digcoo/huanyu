@@ -13,6 +13,7 @@ import com.yh.bigdata.tts.common.dao.StockIndustryBenchmarkMapper;
 import com.yh.bigdata.tts.common.model.StockIndustryBenchmark;
 import com.yh.bigdata.tts.spider.service.AtlasAnnualReportService;
 import com.yh.bigdata.tts.spider.service.AtlasDetailComputeService;
+import com.yh.bigdata.tts.spider.service.AtlasIndustryChainService;
 import com.yh.bigdata.tts.spider.service.AtlasStockApiService;
 import com.yh.bigdata.tts.spider.service.StockService;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient;
@@ -44,6 +45,9 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
 
     @Autowired
     private StockIndustryBenchmarkMapper stockIndustryBenchmarkMapper;
+
+    @Autowired
+    private AtlasIndustryChainService atlasIndustryChainService;
 
     @Override
     public boolean isCacheReady() {
@@ -89,6 +93,7 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
         atlasAnnualReportService.refreshIfMissingAsync(stock.getCode(), stock.getName());
 
         StockAnnualReport latest = atlasAnnualReportService.getLatest(stock.getCode());
+        atlasIndustryChainService.ensureSegments(stock.getCode());
         Map<String, Object> profile = atlasAnnualReportService.buildProfileFromAnnual(stock, latest);
         enrichProfile(stock, profile);
         List<Map<String, String>> keyMetrics = buildKeyMetrics(stock, latest);
@@ -109,7 +114,9 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
                 .price(stock.getClose())
                 .changePct(roundPct(stock.getChangeRate()))
                 .industry(industry)
-                .mainBusiness(stock.getMainBusiness())
+                .mainBusiness(displayBusiness(stock))
+                .businessBrief(displayBusiness(stock))
+                .businessScope(stock.getBusinessScope())
                 .profile(profile)
                 .keyMetrics(keyMetrics)
                 .stage(stageRaw)
@@ -119,12 +126,15 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
                 .healthBreakdown((Map<String, Integer>) health.get("healthBreakdown"))
                 .radar(radar)
                 .competitors(atlasDetailComputeService.buildCompetitorList(stock.getCode()))
+                .industryChain(atlasIndustryChainService.buildIndustryChain(stock.getCode()))
                 .portraitDimensions(buildPortraitDimensions(stageRaw, health, radar))
                 .build();
     }
 
     private void mergeDetailFields(StockBase target, StockBase db) {
         target.setMainBusiness(db.getMainBusiness());
+        target.setBusinessScope(db.getBusinessScope());
+        target.setBusinessBrief(db.getBusinessBrief());
         target.setIndustry(db.getIndustry());
         target.setIndustryCsrc(db.getIndustryCsrc());
         target.setOrgProfile(db.getOrgProfile());
@@ -139,13 +149,19 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
     }
 
     private void enrichProfile(StockBase stock, Map<String, Object> profile) {
-        if (StringUtils.isNotBlank(stock.getOrgProfile())) {
-            profile.put("businessOneLiner", StringUtils.defaultIfBlank(stock.getMainBusiness(),
-                    stock.getOrgProfile().length() > 120 ? stock.getOrgProfile().substring(0, 120) + "…" : stock.getOrgProfile()));
-        }
         if (StringUtils.isNotBlank(stock.getIndustry())) {
             profile.put("industryTag", stock.getIndustry());
         }
+    }
+
+    private String displayBusiness(StockBase stock) {
+        if (stock == null) {
+            return null;
+        }
+        if (StringUtils.isNotBlank(stock.getBusinessBrief())) {
+            return stock.getBusinessBrief();
+        }
+        return stock.getMainBusiness();
     }
 
     private List<Map<String, String>> buildKeyMetrics(StockBase stock, StockAnnualReport latest) {
@@ -207,9 +223,13 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
     @Override
     public Map<String, AtlasCompassModuleVo> getCompass(String code) {
         StockBase stock = requireStock(code);
+        StockBase dbStock = stockBaseMapper.selectByPrimaryKey(stock.getCode());
+        if (dbStock != null) {
+            mergeDetailFields(stock, dbStock);
+        }
         atlasAnnualReportService.refreshIfMissingAsync(stock.getCode(), stock.getName());
 
-        Map<String, AtlasCompassModuleVo> fromAnnual = atlasAnnualReportService.buildCompassFromAnnual(stock.getCode());
+        Map<String, AtlasCompassModuleVo> fromAnnual = atlasAnnualReportService.buildCompassFromAnnual(stock);
         if (fromAnnual != null && !fromAnnual.isEmpty()) {
             return fromAnnual;
         }
@@ -292,8 +312,8 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
                 .market("cn")
                 .price(stock.getClose())
                 .changePct(roundPct(stock.getChangeRate()))
-                .mainBusiness(stock.getMainBusiness())
-                .summary(StringUtils.defaultIfBlank(stock.getMainBusiness(), stock.getName()))
+                .mainBusiness(displayBusiness(stock))
+                .summary(StringUtils.defaultIfBlank(displayBusiness(stock), stock.getName()))
                 .trendMessage(stock.getTrendMessage())
                 .signalMessage(stock.getSignalMessage())
                 .build();

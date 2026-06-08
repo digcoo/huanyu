@@ -7,6 +7,7 @@ import com.yh.bigdata.tts.spider.crawler.StockFullCrawlOrchestrator;
 import com.yh.bigdata.tts.spider.crawler.detail.StockCompanyDetailCrawler;
 import com.yh.bigdata.tts.spider.crawler.report.StockAnnualReportCrawler;
 import com.yh.bigdata.tts.spider.scheduler.StockTargetScheduler;
+import com.yh.bigdata.tts.spider.service.AtlasDetailDataQualityService;
 import com.yh.bigdata.tts.spider.service.AtlasIndustryBenchmarkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -43,6 +45,9 @@ public class AtlasSpiderAdminController {
     private AtlasIndustryBenchmarkService atlasIndustryBenchmarkService;
 
     @Autowired
+    private AtlasDetailDataQualityService atlasDetailDataQualityService;
+
+    @Autowired
     private StockTargetScheduler stockTargetScheduler;
 
     @Autowired
@@ -56,7 +61,14 @@ public class AtlasSpiderAdminController {
 
     @GetMapping("/crawl-status")
     public Response<Map<String, Object>> crawlStatus() {
-        return ResponseUtil.success(stockFullCrawlOrchestrator.status());
+        Map<String, Object> data = new LinkedHashMap<>(stockFullCrawlOrchestrator.status());
+        data.put("dataQuality", atlasDetailDataQualityService.snapshot());
+        return ResponseUtil.success(data);
+    }
+
+    @GetMapping("/data-quality")
+    public Response<Map<String, Object>> dataQuality() {
+        return ResponseUtil.success(atlasDetailDataQualityService.snapshot());
     }
 
     /** 全量爬取：公司详情 → 年报 → 行业均值（异步）；可用 skipAnnual / skipDetail 跳过已跑步骤 */

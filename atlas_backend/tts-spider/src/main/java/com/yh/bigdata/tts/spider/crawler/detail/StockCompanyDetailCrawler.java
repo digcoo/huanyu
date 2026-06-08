@@ -6,6 +6,9 @@ import com.yh.bigdata.tts.common.dao.StockCompanyRelationMapper;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockCompanyRelation;
 import com.yh.bigdata.tts.common.utils.StockCodeUtil;
+import com.yh.bigdata.tts.spider.profile.AtlasIndustryProfileTemplates;
+import com.yh.bigdata.tts.spider.service.AtlasBusinessBriefService;
+import com.yh.bigdata.tts.spider.service.AtlasIndustryChainService;
 import com.yh.bigdata.tts.spider.utils.EastMoneyF10Client;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -33,6 +36,12 @@ public class StockCompanyDetailCrawler {
 
     @Autowired
     private StockCompanyRelationMapper stockCompanyRelationMapper;
+
+    @Autowired
+    private AtlasIndustryChainService atlasIndustryChainService;
+
+    @Autowired
+    private AtlasBusinessBriefService atlasBusinessBriefService;
 
     @Value("${atlas.spider.detail.interval-ms:250}")
     private long intervalMs;
@@ -92,17 +101,15 @@ public class StockCompanyDetailCrawler {
         StockBase patch = new StockBase();
         patch.setCode(normalized);
 
+        String businessScope = null;
+        String orgProfile = null;
         if (survey != null) {
             String industry = EastMoneyF10Client.parseIndustry(survey.getString("EM2016"));
             patch.setIndustry(industry);
             patch.setIndustryCsrc(EastMoneyF10Client.trimText(survey.getString("INDUSTRYCSRC1"), 128));
             patch.setQuancheng(StringUtils.defaultIfBlank(survey.getString("ORG_NAME"), name));
-            patch.setOrgProfile(EastMoneyF10Client.trimText(survey.getString("ORG_PROFILE"), 4000));
-            String business = EastMoneyF10Client.trimText(survey.getString("BUSINESS_SCOPE"), 800);
-            if (StringUtils.isBlank(business)) {
-                business = EastMoneyF10Client.trimText(survey.getString("ORG_PROFILE"), 300);
-            }
-            patch.setMainBusiness(business);
+            orgProfile = EastMoneyF10Client.trimText(survey.getString("ORG_PROFILE"), 4000);
+            businessScope = EastMoneyF10Client.trimText(survey.getString("BUSINESS_SCOPE"), 800);
         }
 
         if (quote != null) {
@@ -114,13 +121,20 @@ public class StockCompanyDetailCrawler {
             patch.setTotalMvYi(EastMoneyF10Client.toYi(quote.get("f116")));
         }
 
+        saveCompetitors(normalized, name, competitors);
+        atlasIndustryChainService.crawlAndSaveSegments(normalized);
+
+        String industry = StringUtils.defaultIfBlank(patch.getIndustry(), "综合");
+        String templateLine = (String) AtlasIndustryProfileTemplates.buildTemplateProfile(name, industry)
+                .get("businessOneLiner");
+        atlasBusinessBriefService.applyCrawlFields(patch, businessScope, orgProfile, normalized, templateLine);
+
         stockBaseMapper.updateByPrimaryKeySelective(patch);
-        saveCompetitors(normalized, competitors);
         return true;
     }
 
-    private void saveCompetitors(String code, List<JSONObject> competitors) {
-        stockCompanyRelationMapper.deleteByCode(code);
+    private void saveCompetitors(String code, String selfName, List<JSONObject> competitors) {
+        stockCompanyRelationMapper.deleteByCodeAndType(code, "competitor");
         if (competitors.isEmpty()) {
             return;
         }
@@ -130,15 +144,25 @@ public class StockCompanyDetailCrawler {
             if (row == null) {
                 continue;
             }
+            String relatedName = row.getString("CORRE_SECURITY_NAME");
+            if (StringUtils.isBlank(relatedName) || isBenchmarkRow(relatedName)) {
+                continue;
+            }
             String relatedNum = row.getString("CORRE_SECURITY_CODE");
             if (StringUtils.isBlank(relatedNum)) {
                 continue;
             }
             String relatedCode = relatedNum.startsWith("6") ? "sh" + relatedNum : "sz" + relatedNum;
+            if (relatedCode.equals(code)) {
+                continue;
+            }
+            if (StringUtils.isNotBlank(selfName) && selfName.equals(relatedName)) {
+                continue;
+            }
             StockCompanyRelation rel = new StockCompanyRelation();
             rel.setCode(code);
             rel.setRelatedCode(relatedCode);
-            rel.setRelatedName(row.getString("CORRE_SECURITY_NAME"));
+            rel.setRelatedName(relatedName);
             rel.setRelationType("competitor");
             rel.setSortOrder(order++);
             rel.setSource("eastmoney");
@@ -150,6 +174,10 @@ public class StockCompanyDetailCrawler {
         if (!rows.isEmpty()) {
             stockCompanyRelationMapper.insertBatch(rows);
         }
+    }
+
+    private boolean isBenchmarkRow(String name) {
+        return name.contains("行业中值") || name.contains("行业平均") || name.contains("行业均值");
     }
 
     private void sleepInterval() {

@@ -526,6 +526,115 @@
   font-family: 'SF Mono', 'Menlo', monospace;
 }
 
+/* 竞品与产业链 */
+.competitor-block,
+.segment-block,
+.chain-relation-block {
+  margin-bottom: 16rpx;
+}
+
+.chain-label {
+  display: block;
+  font-size: 22rpx;
+  color: #8b95a8;
+  margin-bottom: 10rpx;
+}
+
+.competitor-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.competitor-row {
+  display: inline-flex;
+  gap: 12rpx;
+  padding-bottom: 4rpx;
+}
+
+.competitor-card {
+  display: inline-flex;
+  flex-direction: column;
+  width: 220rpx;
+  background: #141b26;
+  border: 1rpx solid #2b2f36;
+  border-radius: 10rpx;
+  padding: 14rpx;
+  flex-shrink: 0;
+}
+
+.competitor-name {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #e8edf5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.competitor-code {
+  font-size: 20rpx;
+  color: #5c6578;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  margin-top: 4rpx;
+}
+
+.competitor-quote {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  margin-top: 10rpx;
+}
+
+.competitor-price {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #e8edf5;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.competitor-change {
+  font-size: 22rpx;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.competitor-change.up { color: #0ecb81; }
+.competitor-change.down { color: #f6465d; }
+.competitor-change.flat { color: #8b95a8; }
+
+.competitor-pe {
+  font-size: 20rpx;
+  color: #5c6578;
+  margin-top: 6rpx;
+}
+
+.segment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.segment-chip {
+  background: rgba(0, 212, 255, 0.08);
+  border: 1rpx solid rgba(0, 212, 255, 0.25);
+  border-radius: 8rpx;
+  padding: 8rpx 14rpx;
+}
+
+.segment-chip.muted {
+  background: #141b26;
+  border-color: #2b2f36;
+}
+
+.segment-name {
+  font-size: 22rpx;
+  color: #c8d0dc;
+  line-height: 1.4;
+}
+
+.chain-relation-row {
+  margin-bottom: 12rpx;
+}
+
 .page-footer {
   text-align: center;
   padding: 32rpx 0 16rpx;

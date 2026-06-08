@@ -604,7 +604,8 @@ function buildDetailFromStock(base, overrides) {
       compass.capital
     ],
     keyMetrics: overrides.keyMetrics || buildKeyMetrics(base, seed, radar),
-    competitors: overrides.competitors || []
+    competitors: overrides.competitors || [],
+    industryChain: overrides.industryChain || { upstream: [], downstream: [], segments: [] }
   });
 }
 

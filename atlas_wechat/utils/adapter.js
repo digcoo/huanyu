@@ -220,7 +220,9 @@ function normalizeProfile(profile) {
     industryPosition: profile.industryPosition || '',
     strengths: profile.strengths || [],
     risks: profile.risks || [],
-    dimensions: profile.dimensions || []
+    dimensions: profile.dimensions || [],
+    businessScope: profile.businessScope || '',
+    briefSource: profile.briefSource || ''
   };
 }
 

@@ -17,6 +17,8 @@
     <result column="day" property="day" jdbcType="DATE" />
     <result column="quancheng" property="quancheng" jdbcType="VARCHAR" />
 	<result column="main_business" property="mainBusiness" jdbcType="VARCHAR" />
+	<result column="business_scope" property="businessScope" jdbcType="VARCHAR" />
+	<result column="business_brief" property="businessBrief" jdbcType="VARCHAR" />
 	<result column="industry" property="industry" jdbcType="VARCHAR" />
 	<result column="industry_csrc" property="industryCsrc" jdbcType="VARCHAR" />
 	<result column="org_profile" property="orgProfile" jdbcType="VARCHAR" />
@@ -30,7 +32,7 @@
 	<result column="turnover_rate" property="turnoverRate" jdbcType="DOUBLE" />
   </resultMap>
   <sql id="Base_Column_List" >
-    code, name, exchange, is_st, is_trade, `close`, prev_close, open, high, low, volume, amount, day, quancheng, turnover_rate, main_business,
+    code, name, exchange, is_st, is_trade, `close`, prev_close, open, high, low, volume, amount, day, quancheng, turnover_rate, main_business, business_scope, business_brief,
     industry, industry_csrc, org_profile, pe_ttm, pb, ps_ttm, dividend_yield, high_52w, low_52w, total_mv_yi
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" >
@@ -99,6 +101,12 @@
     	<if test="mainBusiness != null">
         	, main_business = #{mainBusiness}
         </if>
+    	<if test="businessScope != null">
+        	, business_scope = #{businessScope}
+        </if>
+    	<if test="businessBrief != null">
+        	, business_brief = #{businessBrief}
+        </if>
     	<if test="industry != null">
         	, industry = #{industry}
         </if>
@@ -139,6 +147,30 @@
   	select
       <include refid="Base_Column_List" /> 
   	 from base s
+  </select>
+
+  <select id="countAll" resultType="int">
+    SELECT COUNT(1) FROM base
+  </select>
+
+  <select id="countWithIndustry" resultType="int">
+    SELECT COUNT(1) FROM base
+    WHERE industry IS NOT NULL AND TRIM(industry) != '' AND industry != '综合'
+  </select>
+
+  <select id="countWithMainBusiness" resultType="int">
+    SELECT COUNT(1) FROM base
+    WHERE main_business IS NOT NULL AND TRIM(main_business) != ''
+  </select>
+
+  <select id="countWithBusinessBrief" resultType="int">
+    SELECT COUNT(1) FROM base
+    WHERE business_brief IS NOT NULL AND TRIM(business_brief) != ''
+      AND CHAR_LENGTH(TRIM(business_brief)) >= 12
+  </select>
+
+  <select id="countWithPeTtm" resultType="int">
+    SELECT COUNT(1) FROM base WHERE pe_ttm IS NOT NULL AND pe_ttm > 0
   </select>
 
   <select id="searchByKeyword" resultMap="BaseResultMap">

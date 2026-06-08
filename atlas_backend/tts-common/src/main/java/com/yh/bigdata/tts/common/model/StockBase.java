@@ -27,6 +27,12 @@ public class StockBase {
 
     private String mainBusiness;
 
+    /** 工商经营范围（存档，默认不对用户展示） */
+    private String businessScope;
+
+    /** 用户可读业务摘要 */
+    private String businessBrief;
+
     private String industry;
 
     private String industryCsrc;

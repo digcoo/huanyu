@@ -16,4 +16,6 @@ public class AtlasChartVo {
     private String unit;
     private String color;
     private List<AtlasSeriesPointVo> data;
+    /** 行业均值对比线（与 data 同年份序列） */
+    private List<AtlasSeriesPointVo> industryData;
 }

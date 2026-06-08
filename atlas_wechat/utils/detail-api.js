@@ -29,6 +29,7 @@ function loadDetail(id, period) {
 
     var d = detailRes.data;
     var klines = adapter.barsToKlines(bars);
+    var profile = adapter.normalizeProfile(d.profile);
     var base = {
       id: id || adapter.makeStockId(strategy, 'cn', d.code),
       code: adapter.normalizeCode(d.code),
@@ -37,7 +38,7 @@ function loadDetail(id, period) {
       price: d.price,
       changePct: d.changePct,
       strategy: strategy,
-      summary: d.mainBusiness || '',
+      summary: (profile && profile.businessOneLiner) || d.businessBrief || d.mainBusiness || '',
       tags: [],
       showStrategy: false,
       resonance: null,
@@ -51,7 +52,7 @@ function loadDetail(id, period) {
 
     return detailMock.buildDetailFromStock(base, {
       industry: d.industry,
-      profile: adapter.normalizeProfile(d.profile),
+      profile: profile,
       compass: compass,
       keyMetrics: d.keyMetrics,
       stage: d.stage,
@@ -61,7 +62,8 @@ function loadDetail(id, period) {
       healthBreakdown: d.healthBreakdown,
       radar: adapter.normalizeRadar(d.radar),
       portraitDimensions: d.portraitDimensions,
-      competitors: d.competitors
+      competitors: d.competitors,
+      industryChain: d.industryChain || { upstream: [], downstream: [], segments: [] }
     });
   }).catch(function () {
     if (config.fallbackOnError) return detailMock.getDetailById(id);

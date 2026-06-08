@@ -1,6 +1,7 @@
 const detailApi = require('../../utils/detail-api');
 const config = require('../../utils/config');
 const auth = require('../../utils/auth');
+const adapter = require('../../utils/adapter');
 
 function mapChartKlines(detail, period) {
   if (!detail || !detail.klines) return [];
@@ -122,6 +123,15 @@ Page({
     var patch = {};
     patch['expandedModules.' + key] = !expanded;
     this.setData(patch);
+  },
+
+  onCompetitorTap(e) {
+    const code = e.currentTarget.dataset.code;
+    const detail = this.data.detail;
+    if (!code || !detail) return;
+    const strategy = adapter.extractStrategy(detail.id);
+    const id = adapter.makeStockId(strategy, 'cn', code);
+    wx.navigateTo({ url: '/pages/detail/detail?id=' + encodeURIComponent(id) });
   },
 
   onAddWatchlist() {

@@ -4,11 +4,16 @@ import com.yh.bigdata.tts.common.dao.StockAnnualReportMapper;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasChartVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasCompassModuleVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasSeriesPointVo;
+import com.yh.bigdata.tts.common.model.IndustryYearlyMetrics;
 import com.yh.bigdata.tts.common.model.StockAnnualReport;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.utils.StockCodeUtil;
 import com.yh.bigdata.tts.spider.crawler.report.StockAnnualReportCrawler;
+import com.yh.bigdata.tts.spider.profile.AtlasCompassInsightTemplates;
 import com.yh.bigdata.tts.spider.service.AtlasAnnualReportService;
+import com.yh.bigdata.tts.spider.service.AtlasCompassBenchmarkService;
+import com.yh.bigdata.tts.spider.service.AtlasDetailComputeService;
+import com.yh.bigdata.tts.spider.service.AtlasIndustryProfileService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 @Service
 public class AtlasAnnualReportServiceImpl implements AtlasAnnualReportService {
@@ -27,6 +33,15 @@ public class AtlasAnnualReportServiceImpl implements AtlasAnnualReportService {
 
     @Autowired
     private StockAnnualReportCrawler stockAnnualReportCrawler;
+
+    @Autowired
+    private AtlasIndustryProfileService atlasIndustryProfileService;
+
+    @Autowired
+    private AtlasCompassBenchmarkService atlasCompassBenchmarkService;
+
+    @Autowired
+    private AtlasDetailComputeService atlasDetailComputeService;
 
     @Value("${atlas.spider.report.years:15}")
     private int reportYears;
@@ -43,51 +58,95 @@ public class AtlasAnnualReportServiceImpl implements AtlasAnnualReportService {
     }
 
     @Override
-    public Map<String, AtlasCompassModuleVo> buildCompassFromAnnual(String code) {
-        List<StockAnnualReport> reports = getReports(code, reportYears);
+    public Map<String, AtlasCompassModuleVo> buildCompassFromAnnual(StockBase stock) {
+        if (stock == null || StringUtils.isBlank(stock.getCode())) {
+            return null;
+        }
+        List<StockAnnualReport> reports = getReports(stock.getCode(), reportYears);
         if (reports.isEmpty()) {
             return null;
         }
+
+        String industry = StringUtils.defaultIfBlank(stock.getIndustry(), "综合");
+        List<IndustryYearlyMetrics> industryRows = atlasCompassBenchmarkService.loadIndustryMetrics(industry);
+        StockAnnualReport latest = reports.get(reports.size() - 1);
+        String stageId = stageId(latest);
+
+        List<AtlasSeriesPointVo> revenue = series(reports, r -> yi(r.getTotalRevenue()));
+        List<AtlasSeriesPointVo> netProfit = series(reports, r -> yi(r.getNetProfit()));
+        List<AtlasSeriesPointVo> ocf = series(reports, r -> yi(r.getOperatingCashFlow()));
+        List<AtlasSeriesPointVo> capex = series(reports, r -> yi(r.getCapex()));
+        List<AtlasSeriesPointVo> revenueYoy = series(reports, StockAnnualReport::getRevenueYoy);
+        List<AtlasSeriesPointVo> staffNum = series(reports, r -> r.getStaffNum() == null ? null : r.getStaffNum().doubleValue());
+        List<AtlasSeriesPointVo> revenuePerStaff = series(reports, StockAnnualReport::getRevenuePerStaff);
+        List<AtlasSeriesPointVo> grossMargin = series(reports, StockAnnualReport::getGrossMargin);
+        List<AtlasSeriesPointVo> netMargin = series(reports, StockAnnualReport::getNetMargin);
+        List<AtlasSeriesPointVo> prepaidRatio = series(reports, StockAnnualReport::getPrepaidRatio);
+        List<AtlasSeriesPointVo> inventoryDays = series(reports, StockAnnualReport::getInventoryDays);
+        List<AtlasSeriesPointVo> receivableDays = series(reports, StockAnnualReport::getReceivableDays);
+        List<AtlasSeriesPointVo> debtRatio = series(reports, StockAnnualReport::getDebtRatio);
+        List<AtlasSeriesPointVo> interestDebtRatio = series(reports, StockAnnualReport::getInterestDebtRatio);
+        List<AtlasSeriesPointVo> currentRatio = series(reports, r -> r.getCurrentRatio());
+
         Map<String, AtlasCompassModuleVo> compass = new LinkedHashMap<>();
         compass.put("financial", module("财务动能", "#0ecb81",
-                "基于东方财富年报：营收、净利润、经营现金流（近" + reports.size() + "年）。",
+                AtlasCompassInsightTemplates.financial(stageId),
                 Arrays.asList(
-                        chart("营收", "亿", "#0ecb81", series(reports, r -> yi(r.getTotalRevenue()))),
-                        chart("净利润", "亿", "#f0b90b", series(reports, r -> yi(r.getNetProfit()))),
-                        chart("经营现金流", "亿", "#848e9c", series(reports, r -> yi(r.getOperatingCashFlow())))
+                        compareChart("营收", "亿", "#0ecb81", revenue, industryRows,
+                                IndustryYearlyMetrics::getAvgTotalRevenue, true, 0.82),
+                        compareChart("净利润", "亿", "#f0b90b", netProfit, industryRows,
+                                IndustryYearlyMetrics::getAvgNetProfit, true, 0.78),
+                        compareChart("经营现金流", "亿", "#848e9c", ocf, industryRows,
+                                IndustryYearlyMetrics::getAvgOperatingCashFlow, true, 0.85),
+                        compareChart("资本开支", "亿", "#f6465d", capex, industryRows,
+                                IndustryYearlyMetrics::getAvgCapex, true, 0.88),
+                        compareChart("营收同比", "%", "#a78bfa", revenueYoy, industryRows,
+                                IndustryYearlyMetrics::getAvgRevenueYoy, false, 0.90)
                 )));
         compass.put("operation", module("运营人效", "#f0b90b",
-                "基于年报周转天数指标。",
+                AtlasCompassInsightTemplates.operation(stageId),
                 Arrays.asList(
-                        chart("存货周转天数", "天", "#ff9500", series(reports, StockAnnualReport::getInventoryDays)),
-                        chart("应收周转天数", "天", "#a78bfa", series(reports, StockAnnualReport::getReceivableDays))
+                        compareChart("员工数", "人", "#848e9c", staffNum, industryRows,
+                                IndustryYearlyMetrics::getAvgStaffNum, false, 0.95),
+                        compareChart("人均创收", "万", "#0ecb81", revenuePerStaff, industryRows,
+                                IndustryYearlyMetrics::getAvgRevenuePerStaff, false, 0.72),
+                        compareChart("存货周转天数", "天", "#ff9500", inventoryDays, industryRows,
+                                IndustryYearlyMetrics::getAvgInventoryDays, false, 1.08),
+                        compareChart("应收周转天数", "天", "#a78bfa", receivableDays, industryRows,
+                                IndustryYearlyMetrics::getAvgReceivableDays, false, 1.05)
                 )));
         compass.put("chain", module("产业链地位", "#a78bfa",
-                "基于年报毛利率、净利率。",
+                AtlasCompassInsightTemplates.chain(stageId),
                 Arrays.asList(
-                        chart("毛利率", "%", "#0ecb81", series(reports, StockAnnualReport::getGrossMargin)),
-                        chart("净利率", "%", "#f0b90b", series(reports, StockAnnualReport::getNetMargin))
+                        compareChart("毛利率", "%", "#0ecb81", grossMargin, industryRows,
+                                IndustryYearlyMetrics::getAvgGrossMargin, false, 0.82),
+                        compareChart("净利率", "%", "#f0b90b", netMargin, industryRows,
+                                IndustryYearlyMetrics::getAvgNetMargin, false, 0.78),
+                        compareChart("预收占比", "%", "#848e9c", prepaidRatio, industryRows,
+                                IndustryYearlyMetrics::getAvgPrepaidRatio, false, 0.65)
                 )));
         compass.put("capital", module("资本结构", "#f6465d",
-                "基于年报资产负债率、流动比率。",
+                AtlasCompassInsightTemplates.capital(stageId),
                 Arrays.asList(
-                        chart("资产负债率", "%", "#f6465d", series(reports, StockAnnualReport::getDebtRatio)),
-                        chart("流动比率", "x", "#ff9500", series(reports, r -> r.getCurrentRatio()))
+                        compareChart("资产负债率", "%", "#f6465d", debtRatio, industryRows,
+                                IndustryYearlyMetrics::getAvgDebtRatio, false, 1.02),
+                        compareChart("有息负债率", "%", "#ff9500", interestDebtRatio, industryRows,
+                                IndustryYearlyMetrics::getAvgInterestDebtRatio, false, 0.92),
+                        compareChart("流动比率", "x", "#848e9c", currentRatio, industryRows,
+                                IndustryYearlyMetrics::getAvgCurrentRatio, false, 0.92)
                 )));
         return compass;
     }
 
+    private String stageId(StockAnnualReport latest) {
+        Map<String, Object> stage = atlasDetailComputeService.computeStage(latest);
+        Object id = stage.get("id");
+        return id != null ? String.valueOf(id) : "stable";
+    }
+
     @Override
     public Map<String, Object> buildProfileFromAnnual(StockBase stock, StockAnnualReport latest) {
-        Map<String, Object> profile = new LinkedHashMap<>();
-        profile.put("businessOneLiner", StringUtils.defaultIfBlank(stock.getMainBusiness(),
-                stock.getName() + " · A股上市公司"));
-        profile.put("industryPosition", buildIndustryPosition(latest));
-        profile.put("strengths", buildStrengths(latest));
-        profile.put("risks", buildRisks(latest));
-        profile.put("dimensions", Collections.emptyList());
-        profile.put("dataSource", latest != null ? "eastmoney_annual" : "market_only");
-        return profile;
+        return atlasIndustryProfileService.buildProfile(stock, latest);
     }
 
     @Override
@@ -126,62 +185,24 @@ public class AtlasAnnualReportServiceImpl implements AtlasAnnualReportService {
         CompletableFuture.runAsync(() -> stockAnnualReportCrawler.runOne(normalized, name));
     }
 
-    private String buildIndustryPosition(StockAnnualReport latest) {
-        if (latest == null) {
-            return "年报数据待爬取，当前展示主营业务与行情摘要。";
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append(latest.getReportYear()).append(" 年报：");
-        if (latest.getRevenueYoy() != null) {
-            sb.append("营收同比 ").append(round2(latest.getRevenueYoy())).append("%");
-        }
-        if (latest.getRoe() != null) {
-            sb.append("，ROE ").append(round2(latest.getRoe())).append("%");
-        }
-        sb.append("（数据来源：东方财富 F10）");
-        return sb.toString();
-    }
-
-    private List<String> buildStrengths(StockAnnualReport latest) {
-        if (latest == null) {
-            return Arrays.asList("纳入 Atlas 行情缓存", "支持多周期 K 线查询");
-        }
-        List<String> list = new ArrayList<>();
-        if (latest.getRoe() != null && latest.getRoe() >= 15) {
-            list.add("ROE " + round2(latest.getRoe()) + "%，盈利质量较好");
-        }
-        if (latest.getRevenueYoy() != null && latest.getRevenueYoy() >= 10) {
-            list.add("营收同比增长 " + round2(latest.getRevenueYoy()) + "%");
-        }
-        if (latest.getGrossMargin() != null && latest.getGrossMargin() >= 30) {
-            list.add("毛利率 " + round2(latest.getGrossMargin()) + "%，产品议价能力较强");
-        }
-        if (list.isEmpty()) {
-            list.add("已接入 " + latest.getReportYear() + " 年报数据");
-        }
-        return list;
-    }
-
-    private List<String> buildRisks(StockAnnualReport latest) {
-        if (latest == null) {
-            return Arrays.asList("财务深度数据待接入", "请以官方披露为准");
-        }
-        List<String> list = new ArrayList<>();
-        if (latest.getDebtRatio() != null && latest.getDebtRatio() >= 65) {
-            list.add("资产负债率 " + round2(latest.getDebtRatio()) + "%，杠杆偏高");
-        }
-        if (latest.getProfitYoy() != null && latest.getProfitYoy() < 0) {
-            list.add("净利润同比 " + round2(latest.getProfitYoy()) + "%");
-        }
-        if (latest.getReceivableDays() != null && latest.getReceivableDays() > 90) {
-            list.add("应收周转天数 " + round2(latest.getReceivableDays()) + " 天，回款压力需关注");
-        }
-        list.add("数据来源于公开财报，仅供参考");
-        return list;
+    private AtlasChartVo compareChart(String name, String unit, String color,
+                                      List<AtlasSeriesPointVo> data,
+                                      List<IndustryYearlyMetrics> industryRows,
+                                      Function<IndustryYearlyMetrics, Double> metricFn,
+                                      boolean scaleYi, double fallbackRatio) {
+        List<AtlasSeriesPointVo> industryData = atlasCompassBenchmarkService.alignIndustrySeries(
+                data, industryRows, metricFn, scaleYi, fallbackRatio);
+        return AtlasChartVo.builder()
+                .name(name)
+                .unit(unit)
+                .color(color)
+                .data(data)
+                .industryData(industryData.isEmpty() ? null : industryData)
+                .build();
     }
 
     private List<AtlasSeriesPointVo> series(List<StockAnnualReport> reports,
-                                            java.util.function.Function<StockAnnualReport, Double> fn) {
+                                            Function<StockAnnualReport, Double> fn) {
         List<AtlasSeriesPointVo> points = new ArrayList<>();
         for (StockAnnualReport r : reports) {
             Double val = fn.apply(r);
@@ -212,24 +233,11 @@ public class AtlasAnnualReportServiceImpl implements AtlasAnnualReportService {
                 .build();
     }
 
-    private AtlasChartVo chart(String name, String unit, String color, List<AtlasSeriesPointVo> data) {
-        return AtlasChartVo.builder()
-                .name(name)
-                .unit(unit)
-                .color(color)
-                .data(data)
-                .build();
-    }
-
     private Map<String, String> metric(String label, String value) {
         Map<String, String> item = new LinkedHashMap<>();
         item.put("label", label);
         item.put("value", value);
         return item;
-    }
-
-    private String formatPrice(double price) {
-        return BigDecimal.valueOf(price).setScale(2, RoundingMode.HALF_UP).toPlainString();
     }
 
     private String formatPct(Double rate) {

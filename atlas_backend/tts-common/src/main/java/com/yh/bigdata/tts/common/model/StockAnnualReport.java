@@ -19,6 +19,11 @@ public class StockAnnualReport {
     private Double netMargin;
     private Double roe;
     private Double operatingCashFlow;
+    private Double capex;
+    private Integer staffNum;
+    private Double revenuePerStaff;
+    private Double prepaidRatio;
+    private Double interestDebtRatio;
     private Double debtRatio;
     private Double currentRatio;
     private Double inventoryDays;

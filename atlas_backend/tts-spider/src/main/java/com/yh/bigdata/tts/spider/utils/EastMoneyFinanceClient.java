@@ -10,7 +10,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 东方财富 datacenter 年报接口（免费）
@@ -65,6 +67,79 @@ public final class EastMoneyFinanceClient {
         } catch (Exception e) {
             log.warn("eastmoney annual api io error, code={}", securityCode, e);
             return Collections.emptyList();
+        }
+    }
+
+    /** 现金流量表：资本开支 CONSTRUCT_LONG_ASSET（按报告期，DATE_TYPE_CODE=001 为年报） */
+    public static List<JSONObject> fetchCashflowReports(String securityCode, int pageSize) {
+        if (StringUtils.isBlank(securityCode)) {
+            return Collections.emptyList();
+        }
+        String filter = "(SECURITY_CODE=\"" + securityCode + "\")";
+        String url = API
+                + "?reportName=RPT_DMSK_FN_CASHFLOW"
+                + "&columns=ALL"
+                + "&pageNumber=1&pageSize=" + pageSize
+                + "&sortTypes=-1&sortColumns=REPORT_DATE"
+                + "&filter=" + java.net.URLEncoder.encode(filter, java.nio.charset.StandardCharsets.UTF_8);
+        try {
+            String body = EastMoneyHttpClient.get(url);
+            if (StringUtils.isBlank(body)) {
+                return Collections.emptyList();
+            }
+            JSONObject root = JSON.parseObject(body);
+            if (root == null || !root.getBooleanValue("success")) {
+                log.warn("eastmoney cashflow api failed, code={}, msg={}", securityCode,
+                        root != null ? root.getString("message") : "empty");
+                return Collections.emptyList();
+            }
+            JSONObject result = root.getJSONObject("result");
+            if (result == null) {
+                return Collections.emptyList();
+            }
+            JSONArray data = result.getJSONArray("data");
+            if (data == null || data.isEmpty()) {
+                return Collections.emptyList();
+            }
+            List<JSONObject> list = new ArrayList<>(data.size());
+            for (int i = 0; i < data.size(); i++) {
+                JSONObject row = data.getJSONObject(i);
+                if (row != null && "001".equals(row.getString("DATE_TYPE_CODE"))) {
+                    list.add(row);
+                }
+            }
+            return list;
+        } catch (Exception e) {
+            log.warn("eastmoney cashflow api io error, code={}", securityCode, e);
+            return Collections.emptyList();
+        }
+    }
+
+    /** reportYear -> 资本开支（元） */
+    public static Map<Integer, Double> mapAnnualCapex(List<JSONObject> cashflowRows) {
+        Map<Integer, Double> capexByYear = new HashMap<>();
+        if (cashflowRows == null) {
+            return capexByYear;
+        }
+        for (JSONObject row : cashflowRows) {
+            Integer year = resolveYearFromReportDate(row.getString("REPORT_DATE"));
+            Double capex = getDouble(row, "CONSTRUCT_LONG_ASSET");
+            if (year == null || capex == null || capex <= 0) {
+                continue;
+            }
+            capexByYear.put(year, capex);
+        }
+        return capexByYear;
+    }
+
+    private static Integer resolveYearFromReportDate(String reportDateStr) {
+        if (StringUtils.isBlank(reportDateStr) || reportDateStr.length() < 4) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(reportDateStr.substring(0, 4));
+        } catch (NumberFormatException ignored) {
+            return null;
         }
     }
 

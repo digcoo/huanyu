@@ -2,6 +2,7 @@
   <view class="brief-block">
     <text class="brief-label">业务</text>
     <text class="brief-text">{{profile.businessOneLiner}}</text>
+    <text wx:if="{{profile.briefSource === 'segment'}}" class="brief-meta">基于最新年报主营构成</text>
   </view>
   <view class="brief-block">
     <text class="brief-label">行业地位</text>
@@ -29,5 +30,12 @@
         <text class="bullet-text">{{item}}</text>
       </view>
     </view>
+  </view>
+  <view wx:if="{{profile.businessScope && showScope}}" class="brief-block scope-block">
+    <text class="brief-label">经营范围（工商登记）</text>
+    <text class="brief-text scope-text">{{profile.businessScope}}</text>
+  </view>
+  <view wx:if="{{profile.businessScope}}" class="scope-toggle" bindtap="onToggleScope">
+    <text>{{showScope ? '收起经营范围' : '查看经营范围（工商登记）'}}</text>
   </view>
 </view>

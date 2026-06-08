@@ -93,9 +93,11 @@ public class StockAnnualReportCrawler {
         if (rows.isEmpty()) {
             return 0;
         }
+        Map<Integer, Double> capexByYear = EastMoneyFinanceClient.mapAnnualCapex(
+                EastMoneyFinanceClient.fetchCashflowReports(securityCode, reportYears * 2));
         Map<Integer, StockAnnualReport> byYear = new LinkedHashMap<>();
         for (JSONObject row : rows) {
-            StockAnnualReport report = mapRow(normalized, name, row);
+            StockAnnualReport report = mapRow(normalized, name, row, capexByYear);
             if (report == null || report.getReportYear() == null) {
                 continue;
             }
@@ -119,7 +121,8 @@ public class StockAnnualReportCrawler {
         return incoming.getReportDate().after(existing.getReportDate()) ? incoming : existing;
     }
 
-    private StockAnnualReport mapRow(String code, String fallbackName, JSONObject row) {
+    private StockAnnualReport mapRow(String code, String fallbackName, JSONObject row,
+                                     Map<Integer, Double> capexByYear) {
         String reportDateStr = EastMoneyFinanceClient.getString(row, "REPORT_DATE");
         if (StringUtils.isBlank(reportDateStr)) {
             return null;
@@ -142,6 +145,14 @@ public class StockAnnualReportCrawler {
         r.setNetMargin(EastMoneyFinanceClient.getDouble(row, "XSJLL", "JLL"));
         r.setRoe(EastMoneyFinanceClient.getDouble(row, "ROEJQ", "ROE"));
         r.setOperatingCashFlow(EastMoneyFinanceClient.getDouble(row, "NETCASH_OPERATE_PK", "JYXJL"));
+        if (capexByYear != null && reportYear != null) {
+            r.setCapex(capexByYear.get(reportYear));
+        }
+        Integer staffNum = EastMoneyFinanceClient.getInteger(row, "STAFF_NUM");
+        r.setStaffNum(staffNum);
+        r.setPrepaidRatio(EastMoneyFinanceClient.getDouble(row, "PREPAID_ACCOUNTS_RATIO"));
+        r.setInterestDebtRatio(EastMoneyFinanceClient.getDouble(row, "INTEREST_DEBT_RATIO"));
+        r.setRevenuePerStaff(computeRevenuePerStaff(r.getTotalRevenue(), staffNum));
         r.setDebtRatio(EastMoneyFinanceClient.getDouble(row, "ZCFZL"));
         r.setCurrentRatio(EastMoneyFinanceClient.getDouble(row, "LD", "LDZCZZL"));
         r.setInventoryDays(EastMoneyFinanceClient.getDouble(row, "CHZZTS"));
@@ -150,6 +161,14 @@ public class StockAnnualReportCrawler {
         r.setProfitYoy(EastMoneyFinanceClient.getDouble(row, "PARENTNETPROFITTZ", "JLRTBZCL"));
         r.setSource("eastmoney");
         return r;
+    }
+
+    /** 人均创收：营收(元) / 员工数 → 万元 */
+    private Double computeRevenuePerStaff(Double totalRevenue, Integer staffNum) {
+        if (totalRevenue == null || staffNum == null || staffNum <= 0) {
+            return null;
+        }
+        return totalRevenue / staffNum / 10_000D;
     }
 
     /**

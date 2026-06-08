@@ -142,6 +142,65 @@
       </view>
     </view>
 
+    <!-- ④½ 竞品与产业链 -->
+    <view wx:if="{{detail.competitors.length || detail.industryChain.segments.length || detail.industryChain.upstream.length || detail.industryChain.downstream.length}}" class="section">
+      <view class="section-head">
+        <text class="section-title">竞品与产业链</text>
+        <text class="section-sub">同业对比 · 主营构成</text>
+      </view>
+
+      <view wx:if="{{detail.competitors.length}}" class="competitor-block">
+        <text class="chain-label">同业竞品</text>
+        <scroll-view scroll-x class="competitor-scroll" enhanced show-scrollbar="{{false}}">
+          <view class="competitor-row">
+            <view
+              wx:for="{{detail.competitors}}"
+              wx:key="code"
+              class="competitor-card"
+              data-code="{{item.code}}"
+              bindtap="onCompetitorTap"
+            >
+              <text class="competitor-name">{{item.name}}</text>
+              <text class="competitor-code">{{c.displayCode(item.code)}}</text>
+              <view class="competitor-quote">
+                <text wx:if="{{item.price}}" class="competitor-price">{{item.price}}</text>
+                <text wx:if="{{item.changePct != null}}" class="competitor-change {{item.changePct > 0 ? 'up' : item.changePct < 0 ? 'down' : 'flat'}}">{{item.changePct >= 0 ? '+' : ''}}{{item.changePct}}%</text>
+              </view>
+              <text wx:if="{{item.peTtm}}" class="competitor-pe">PE {{item.peTtm}}</text>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view wx:if="{{detail.industryChain.segments.length}}" class="segment-block">
+        <text class="chain-label">主营构成</text>
+        <view class="segment-list">
+          <view wx:for="{{detail.industryChain.segments}}" wx:key="code" class="segment-chip">
+            <text class="segment-name">{{item.name}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{detail.industryChain.upstream.length || detail.industryChain.downstream.length}}" class="chain-relation-block">
+        <view wx:if="{{detail.industryChain.upstream.length}}" class="chain-relation-row">
+          <text class="chain-label">上游</text>
+          <view class="segment-list">
+            <view wx:for="{{detail.industryChain.upstream}}" wx:key="code" class="segment-chip muted">
+              <text class="segment-name">{{item.name}}</text>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{detail.industryChain.downstream.length}}" class="chain-relation-row">
+          <text class="chain-label">下游</text>
+          <view class="segment-list">
+            <view wx:for="{{detail.industryChain.downstream}}" wx:key="code" class="segment-chip muted">
+              <text class="segment-name">{{item.name}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <!-- ⑤ 四维罗盘（默认折叠） -->
     <view class="section">
       <view class="section-head">
@@ -176,7 +235,7 @@
     </view>
 
     <!-- ⑥ 关键指标 -->
-    <view class="section">
+    <view class="section {{detail.showStrategy === false ? 'section-last' : ''}}">
       <view class="section-head">
         <text class="section-title">关键指标</text>
         <text class="section-sub">估值 · 盈利 · 安全</text>
@@ -189,8 +248,8 @@
       </view>
     </view>
 
-    <!-- ⑦ 策略逻辑 -->
-    <view class="section section-last">
+    <!-- ⑦ 策略逻辑（策略引擎迭代后再启用） -->
+    <view wx:if="{{detail.showStrategy !== false}}" class="section section-last">
       <view class="section-head">
         <text class="section-title">策略逻辑</text>
         <text class="section-sub">来自首页推荐引擎</text>
@@ -204,7 +263,7 @@
     </view>
 
     <view class="page-footer">
-      <text>— Atlas 深度解剖 · Demo 数据 —</text>
+      <text>— Atlas 深度解剖 · 财报与行情数据 —</text>
     </view>
   </block>
 </view>

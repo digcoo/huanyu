@@ -13,7 +13,7 @@ public interface AtlasAnnualReportService {
 
     StockAnnualReport getLatest(String code);
 
-    Map<String, AtlasCompassModuleVo> buildCompassFromAnnual(String code);
+    Map<String, AtlasCompassModuleVo> buildCompassFromAnnual(StockBase stock);
 
     Map<String, Object> buildProfileFromAnnual(StockBase stock, StockAnnualReport latest);
 
