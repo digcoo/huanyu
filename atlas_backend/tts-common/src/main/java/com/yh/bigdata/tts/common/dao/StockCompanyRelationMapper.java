@@ -17,4 +17,6 @@ public interface StockCompanyRelationMapper {
 
     List<StockCompanyRelation> selectByCodeAndType(@Param("code") String code,
                                                    @Param("relationType") String relationType);
+
+    int countDistinctCodesByType(@Param("relationType") String relationType);
 }

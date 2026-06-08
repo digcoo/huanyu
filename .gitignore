@@ -39,3 +39,6 @@ node_modules/
 *.local.properties
 application-local.properties
 application-dev.properties
+
+# CNINFO annual report PDF cache (local crawl temp storage)
+atlas_backend/data/cninfo-pdf/

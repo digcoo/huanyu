@@ -9,6 +9,7 @@ import com.yh.bigdata.tts.spider.crawler.report.StockAnnualReportCrawler;
 import com.yh.bigdata.tts.spider.scheduler.StockTargetScheduler;
 import com.yh.bigdata.tts.spider.service.AtlasDetailDataQualityService;
 import com.yh.bigdata.tts.spider.service.AtlasIndustryBenchmarkService;
+import com.yh.bigdata.tts.spider.service.AtlasSupplierCustomerService;
 import com.yh.bigdata.tts.spider.service.AtlasValuationRefreshService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,6 +56,9 @@ public class AtlasSpiderAdminController {
     private AtlasValuationRefreshService atlasValuationRefreshService;
 
     @Autowired
+    private AtlasSupplierCustomerService atlasSupplierCustomerService;
+
+    @Autowired
     private StockBaseController stockBaseController;
 
     @Value("${atlas.spider.report.manual-enabled:false}")
@@ -68,6 +72,8 @@ public class AtlasSpiderAdminController {
         Map<String, Object> data = new LinkedHashMap<>(stockFullCrawlOrchestrator.status());
         data.put("valuationRunning", atlasValuationRefreshService.isRunning());
         data.put("valuationLast", atlasValuationRefreshService.lastResult());
+        data.put("tradingPartiesRunning", atlasSupplierCustomerService.isRunning());
+        data.put("tradingPartiesLast", atlasSupplierCustomerService.lastResult());
         data.put("dataQuality", atlasDetailDataQualityService.snapshot());
         return ResponseUtil.success(data);
     }
@@ -160,6 +166,28 @@ public class AtlasSpiderAdminController {
     data.put("removed", removed);
     return ResponseUtil.success(data);
   }
+
+    /** 巨潮年报：解析前五客户/供应商；不传 code 则全量异步 */
+    @PostMapping("/crawl-trading-parties")
+    public Response<Map<String, Object>> crawlTradingParties(
+            @RequestParam(value = "code", required = false) String code) {
+        if (!manualEnabled) {
+            return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
+        }
+        Map<String, Object> data = new HashMap<>();
+        if (code != null && !code.trim().isEmpty()) {
+            data.put("mode", "single");
+            data.putAll(atlasSupplierCustomerService.crawlOne(code.trim()));
+        } else {
+            boolean started = atlasSupplierCustomerService.crawlAllAsync();
+            data.put("mode", "all_async");
+            data.put("started", started);
+            if (!started) {
+                data.put("message", "上下游爬取任务已在运行");
+            }
+        }
+        return ResponseUtil.success(data);
+    }
 
     /** 批量刷新估值：PE TTM / PB / 市值 / 52 周高低（东财 clist + 年报兜底） */
     @PostMapping("/refresh-valuation")

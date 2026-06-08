@@ -2,6 +2,7 @@ package com.yh.bigdata.tts.spider.service.impl;
 
 import com.yh.bigdata.tts.common.dao.StockAnnualReportMapper;
 import com.yh.bigdata.tts.common.dao.StockBaseMapper;
+import com.yh.bigdata.tts.common.dao.StockCompanyRelationMapper;
 import com.yh.bigdata.tts.common.dao.StockIndustryBenchmarkMapper;
 import com.yh.bigdata.tts.spider.service.AtlasDetailDataQualityService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class AtlasDetailDataQualityServiceImpl implements AtlasDetailDataQuality
     @Autowired
     private StockIndustryBenchmarkMapper stockIndustryBenchmarkMapper;
 
+    @Autowired
+    private StockCompanyRelationMapper stockCompanyRelationMapper;
+
     @Value("${atlas.spider.report.years:15}")
     private int reportYears;
 
@@ -40,6 +44,8 @@ public class AtlasDetailDataQualityServiceImpl implements AtlasDetailDataQuality
         int annualRich = safe(stockAnnualReportMapper.countCodesWithMinYears(Math.min(5, reportYears)));
         int annualFull = safe(stockAnnualReportMapper.countCodesWithMinYears(Math.min(10, reportYears)));
         int benchmarkIndustries = safe(stockIndustryBenchmarkMapper.countAll());
+        int withCustomer = safe(stockCompanyRelationMapper.countDistinctCodesByType("customer"));
+        int withSupplier = safe(stockCompanyRelationMapper.countDistinctCodesByType("supplier"));
 
         Map<String, Object> base = new LinkedHashMap<>();
         base.put("stockTotal", stockTotal);
@@ -51,6 +57,10 @@ public class AtlasDetailDataQualityServiceImpl implements AtlasDetailDataQuality
         base.put("mainBusinessRate", rate(withMainBusiness, stockTotal));
         base.put("businessBriefRate", rate(withBusinessBrief, stockTotal));
         base.put("peTtmRate", rate(withPe, stockTotal));
+        base.put("withCustomer", withCustomer);
+        base.put("withSupplier", withSupplier);
+        base.put("customerRate", rate(withCustomer, stockTotal));
+        base.put("supplierRate", rate(withSupplier, stockTotal));
 
         Map<String, Object> annual = new LinkedHashMap<>();
         annual.put("distinctCodes", annualCodes);

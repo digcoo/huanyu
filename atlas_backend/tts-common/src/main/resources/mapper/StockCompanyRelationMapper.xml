@@ -34,4 +34,10 @@
     order by sort_order asc, id asc
   </select>
 
+  <select id="countDistinctCodesByType" resultType="int">
+    select count(distinct code)
+    from stock_company_relation
+    where relation_type = #{relationType}
+  </select>
+
 </mapper>
