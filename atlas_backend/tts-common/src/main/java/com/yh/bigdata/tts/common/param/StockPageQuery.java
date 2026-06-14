@@ -76,17 +76,21 @@ public class StockPageQuery extends PageQuery {
     /** 深坑反弹 · 最低档位 ALL/S/A/B/C */
     private String rTierMin;
 
-    /** 多周期强势 · 最少共振周期数 1-3 */
-    private Integer mMinResonancePeriods;
-    /** 多周期强势 · 最低日均成交额（万） */
-    private Integer mMinAmountWan;
-    private Boolean mEnableModeA;
-    private Boolean mEnableModeB;
-    private Boolean mEnableModeC;
-    private Boolean mEnableWeakContext;
-    private Boolean mEnableWeakSingle;
-    /** 多周期强势 · 最低档位 ALL/S/A/B/C */
-    private String mTierMin;
+    /** 预判金叉 · 最低日均成交额（万） */
+    private Integer pMinAmountWan;
+    private Boolean pEnableShort;
+    private Boolean pEnableMedium;
+    private Boolean pEnableLong;
+    /** 预判金叉 · 最低档位 ALL/S/A/B */
+    private String pTierMin;
+
+    /** 周期共振 · 最低日均成交额（万） */
+    private Integer cMinAmountWan;
+    private Boolean cEnableShort;
+    private Boolean cEnableMedium;
+    private Boolean cEnableLong;
+    /** 周期共振 · 最低档位 ALL/S/A/B */
+    private String cTierMin;
 
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
@@ -112,6 +116,12 @@ public class StockPageQuery extends PageQuery {
     }
 
     public StrategyTypeEnum getStrategyTypeEnum() {
+        if (strategy == null || strategy.isEmpty()) {
+            return StrategyTypeEnum.DEFAUL;
+        }
+        if ("multi".equalsIgnoreCase(strategy)) {
+            return null;
+        }
         return StrategyTypeEnum.getByCode(this.strategy);
     }
 
@@ -174,33 +184,44 @@ public class StockPageQuery extends PageQuery {
         return ReboundStrategyParams.merge(incoming);
     }
 
-    public MultiStrategyParams toMultiParams() {
-        MultiStrategyParams.MultiStrategyParamsBuilder b = MultiStrategyParams.builder();
-        if (mMinResonancePeriods != null) {
-            b.minResonancePeriods(mMinResonancePeriods);
+    public PreGoldenStrategyParams toPreGoldenParams() {
+        PreGoldenStrategyParams.PreGoldenStrategyParamsBuilder b = PreGoldenStrategyParams.builder();
+        if (pMinAmountWan != null) {
+            b.minAvgAmount(pMinAmountWan * 10_000D);
         }
-        if (mMinAmountWan != null) {
-            b.minAvgAmount(mMinAmountWan * 10_000D);
+        if (pEnableShort != null) {
+            b.enableShort(pEnableShort);
         }
-        if (mEnableModeA != null) {
-            b.enableModeA(mEnableModeA);
+        if (pEnableMedium != null) {
+            b.enableMedium(pEnableMedium);
         }
-        if (mEnableModeB != null) {
-            b.enableModeB(mEnableModeB);
+        if (pEnableLong != null) {
+            b.enableLong(pEnableLong);
         }
-        if (mEnableModeC != null) {
-            b.enableModeC(mEnableModeC);
+        if (pTierMin != null && !pTierMin.isEmpty()) {
+            b.tierMin(pTierMin);
         }
-        if (mEnableWeakContext != null) {
-            b.enableWeakContext(mEnableWeakContext);
+        return PreGoldenStrategyParams.merge(b.build());
+    }
+
+    public ResonanceStrategyParams toResonanceParams() {
+        ResonanceStrategyParams.ResonanceStrategyParamsBuilder b = ResonanceStrategyParams.builder();
+        if (cMinAmountWan != null) {
+            b.minAvgAmount(cMinAmountWan * 10_000D);
         }
-        if (mEnableWeakSingle != null) {
-            b.enableWeakSinglePeriod(mEnableWeakSingle);
+        if (cEnableShort != null) {
+            b.enableShort(cEnableShort);
         }
-        if (mTierMin != null && !mTierMin.isEmpty()) {
-            b.tierMin(mTierMin);
+        if (cEnableMedium != null) {
+            b.enableMedium(cEnableMedium);
         }
-        return MultiStrategyParams.merge(b.build());
+        if (cEnableLong != null) {
+            b.enableLong(cEnableLong);
+        }
+        if (cTierMin != null && !cTierMin.isEmpty()) {
+            b.tierMin(cTierMin);
+        }
+        return ResonanceStrategyParams.merge(b.build());
     }
 	
 }

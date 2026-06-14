@@ -5,11 +5,13 @@ import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.constants.StrategyTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
-import com.yh.bigdata.tts.common.param.MultiStrategyParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
+import com.yh.bigdata.tts.common.param.ResonanceStrategyParams;
+import com.yh.bigdata.tts.common.param.UnilateralStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
-import com.yh.bigdata.tts.spider.strategy.tools.multi.MultiGateTools;
-import com.yh.bigdata.tts.spider.strategy.tools.multi.MultiStrengthEvaluator;
+import com.yh.bigdata.tts.spider.strategy.tools.resonance.ResonanceEvaluator;
+import com.yh.bigdata.tts.spider.strategy.tools.resonance.ResonanceScoreCalculator;
+import com.yh.bigdata.tts.spider.strategy.tools.unilateral.UnilateralGateTools;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -17,16 +19,16 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 多周期强势（multi）· v2.0：Gate + 周/月 MACD&gt;0 + 日 K 突破前一日
- * @see docs/strategies/多周期强势策略.md
+ * 周期共振（reson）· v1.0：Gate + 短/中/长 MACD 共振 + K 线突破
+ * @see docs/strategies/周期共振策略.md
  */
 @Slf4j
 @Component
-public class MultiStrengthStrategy extends AbstractStrategy {
+public class PeriodResonanceStrategy extends AbstractStrategy {
 
     @Override
     public StrategyTypeEnum getStrategy() {
-        return StrategyTypeEnum.MULTI_STRENGTH;
+        return StrategyTypeEnum.PERIOD_RESONANCE;
     }
 
     @Override
@@ -37,8 +39,9 @@ public class MultiStrengthStrategy extends AbstractStrategy {
     @Override
     public List<PeriodTypeEnum> getTrendPeriodTypes() {
         return Arrays.asList(
-                PeriodTypeEnum.WEEK,
+                PeriodTypeEnum.YEAR,
                 PeriodTypeEnum.MONTH,
+                PeriodTypeEnum.WEEK,
                 PeriodTypeEnum.DAY);
     }
 
@@ -47,13 +50,16 @@ public class MultiStrengthStrategy extends AbstractStrategy {
                              PeriodTypeEnum opPeriodType, QueryContextParam queryContextParam) {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
         try {
-            MultiStrategyParams params = resolveParams(queryContextParam);
-            if (!MultiGateTools.passGate(stockBase, checkResult, params)) {
+            ResonanceStrategyParams params = resolveParams(queryContextParam);
+            UnilateralStrategyParams gateParams = UnilateralStrategyParams.builder()
+                    .minAvgAmount(params.getMinAvgAmount())
+                    .build();
+            if (!UnilateralGateTools.passGate(stockBase, checkResult, gateParams)) {
                 return checkResult;
             }
 
-            MultiStrengthEvaluator.MultiEvaluation eval =
-                    MultiStrengthEvaluator.evaluate(stockBase, checkResult, params);
+            ResonanceEvaluator.ResonanceEvaluation eval =
+                    ResonanceEvaluator.evaluate(stockBase, checkResult, params);
             if (!eval.isHit()) {
                 return checkResult;
             }
@@ -61,8 +67,8 @@ public class MultiStrengthStrategy extends AbstractStrategy {
             checkResult.setHasTrend(true);
             checkResult.setHasSignal(true);
             checkResult.setSortValue(eval.getScore());
-            checkResult.setTrendPeriodType(PeriodTypeEnum.WEEK);
-            checkResult.setOpPeriodType(PeriodTypeEnum.DAY);
+            checkResult.setTrendPeriodType(ResonanceScoreCalculator.trendPeriodForTier(eval.getTier()));
+            checkResult.setOpPeriodType(ResonanceScoreCalculator.signalPeriodForTier(eval.getTier()));
 
         } catch (Exception ex) {
             log.error("{} - check exception : stock = {}", getClass().getName(), stockBase.getCode(), ex);
@@ -72,11 +78,11 @@ public class MultiStrengthStrategy extends AbstractStrategy {
         return checkResult;
     }
 
-    private MultiStrategyParams resolveParams(QueryContextParam queryContextParam) {
-        if (queryContextParam == null || queryContextParam.getMulti() == null) {
-            return MultiStrategyParams.defaults();
+    private ResonanceStrategyParams resolveParams(QueryContextParam queryContextParam) {
+        if (queryContextParam == null || queryContextParam.getResonance() == null) {
+            return ResonanceStrategyParams.defaults();
         }
-        return MultiStrategyParams.merge(queryContextParam.getMulti());
+        return ResonanceStrategyParams.merge(queryContextParam.getResonance());
     }
 
     private void applyFallbackSortValue(StockBase stockBase, CheckResult checkResult) {

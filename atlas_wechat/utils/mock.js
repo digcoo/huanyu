@@ -124,19 +124,26 @@ const STRATEGIES = [
     desc: '短线 · 中线 · 长线 MACD 金叉'
   },
   {
+    id: 'preGolden',
+    name: '预判金叉',
+    icon: '🔮',
+    badge: 'PRE',
+    desc: '大周期多头 · 小周期待金叉 · K线突破'
+  },
+  {
+    id: 'resonance',
+    name: '周期共振',
+    icon: '🔗',
+    badge: 'RESON',
+    desc: '双周期 MACD 多头 · 非金叉 · K线突破'
+  },
+  {
     id: 'rebound',
     name: '深坑反弹',
     icon: '🕳️',
     iconImage: '/assets/strategy/rebound-icon.png',
     badge: 'REBOUND',
     desc: '长期深跌 · 恐慌释放 · 反弹接入'
-  },
-  {
-    id: 'multi',
-    name: '多周期强势',
-    icon: '⚡',
-    badge: 'MULTI',
-    desc: '日周月共振 · 多周期对齐 · 强势延续'
   }
 ];
 
@@ -223,6 +230,44 @@ function buildStrategyRecommendations() {
           { yearBase: 1.02, monthBase: 1.01, weekBase: 1.005, dayBase: 1.002, year: 'up', month: 'up', week: 'up', day: 'up', vol: 0.006 })
       ]
     },
+    preGolden: {
+      cn: [
+        stock('preGolden', 'cn', '601899', '紫金矿业', 18.56, 2.18,
+          ['短线预判', '日K突破', '待金叉'], '周MACD多头，日MACD水下，日K突破前高待金叉', 'medium',
+          { year: 'up', month: 'up', week: 'up', day: 'breakout', vol: 0.022 }),
+        stock('preGolden', 'cn', '002475', '立讯精密', 38.92, 1.65,
+          ['中线预判', '周K突破'], '月MACD多头，周MACD修复中，周K突破前高', 'medium',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.028 }),
+        stock('preGolden', 'cn', '600036', '招商银行', 35.80, 0.92,
+          ['长线预判', '月K突破'], '年K MACD多头，月MACD水下，月K结构突破', 'medium',
+          { year: 'up', month: 'flat', week: 'up', day: 'up', vol: 0.015 })
+      ],
+      hk: [],
+      us: [],
+      crypto: [],
+      futures: [],
+      forex: [],
+      bond: []
+    },
+    resonance: {
+      cn: [
+        stock('resonance', 'cn', '600519', '贵州茅台', 1688, 2.35,
+          ['短线共振', '日K突破', 'MACD多头'], '周/日 MACD 均在零轴上，日K突破前高', 'strong',
+          { year: 'up', month: 'up', week: 'up', day: 'breakout', vol: 0.015 }),
+        stock('resonance', 'cn', '002594', '比亚迪', 268.5, 3.12,
+          ['中线共振', '周K突破'], '月/周 MACD 多头共振，周K突破前高', 'strong',
+          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.028 }),
+        stock('resonance', 'cn', '601318', '中国平安', 52.34, 1.85,
+          ['长线共振', '月K突破'], '年/月 MACD 多头，月K结构突破', 'medium',
+          { year: 'up', month: 'breakout', week: 'up', day: 'up', vol: 0.02 })
+      ],
+      hk: [],
+      us: [],
+      crypto: [],
+      futures: [],
+      forex: [],
+      bond: []
+    },
     rebound: {
       cn: [
         stock('rebound', 'cn', '601318', '中国平安', 52.34, 2.15,
@@ -267,68 +312,16 @@ function buildStrategyRecommendations() {
           ['收益率下行', '宽松预期', '深坑后反弹'], '降准预期下债券深坑反弹，收益率下行', 'medium',
           { year: 'down', month: 'down', week: 'down', day: 'flat', vol: 0.01 })
       ]
-    },
-    multi: {
-      cn: [
-        stock('multi', 'cn', '600519', '贵州茅台', 1688, 2.35,
-          ['多周期共振', '日周月对齐', '外资流入'], '日/周/月三周期同步走强，共振信号强', 'strong',
-          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.015 }),
-        stock('multi', 'cn', '688981', '中芯国际', 48.92, 3.45,
-          ['三周期共振', '国产替代', '半导体'], '芯片板块资金流入，多周期均线同步上穿', 'strong',
-          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.03 }),
-        stock('multi', 'cn', '300750', '宁德时代', 198.56, -1.23,
-          ['多周期强势', '产能扩张', '净利断层'], 'Q3 业绩超预期，多周期结构仍偏强', 'strong',
-          { year: 'up', month: 'flat', week: 'breakout', day: 'flat', vol: 0.025 })
-      ],
-      hk: [
-        stock('multi', 'hk', '00700', '腾讯控股', 378.4, 2.12,
-          ['多周期共振', '游戏复苏', '南向流入'], '日周共振突破，南向连续 5 日净流入', 'strong',
-          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.025 }),
-        stock('multi', 'hk', '01810', '小米集团', 18.92, 4.23,
-          ['四周期对齐', '汽车放量', '突破平台'], 'SU7 交付超预期，多周期强势共振', 'strong',
-          { year: 'up', month: 'breakout', week: 'up', day: 'up', vol: 0.03 })
-      ],
-      us: [
-        stock('multi', 'us', 'NVDA', '英伟达', 875.28, 2.89,
-          ['多周期强势', 'AI算力', '机构增持'], '数据中心营收 +154%，多周期均线多头排列', 'strong',
-          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.04 }),
-        stock('multi', 'us', 'MSFT', '微软', 425.6, 1.56,
-          ['云+AI共振', '多周期强势', '盈利稳定'], 'Azure 与 Copilot 双轮驱动，多周期结构健康', 'strong',
-          { year: 'up', month: 'up', week: 'up', day: 'up', vol: 0.018 })
-      ],
-      crypto: [
-        stock('multi', 'crypto', 'BTC', 'Bitcoin', 67845.23, 1.85,
-          ['多周期共振', 'ETF流入', '链上活跃'], 'ETF 连续净流入，链上地址数创新高', 'strong',
-          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.05 }),
-        stock('multi', 'crypto', 'SOL', 'Solana', 156.78, 5.67,
-          ['生态爆发', '多周期强势', '高TPS'], 'DEX 交易量超越以太坊，开发者活跃度第一', 'strong',
-          { year: 'up', month: 'up', week: 'breakout', day: 'up', vol: 0.06 })
-      ],
-      futures: [
-        stock('multi', 'futures', 'AU2506', '沪金主力', 568.45, 0.57,
-          ['多周期偏强', '避险需求', '央行购金'], '地缘风险升温，多周期黄金结构偏强', 'medium',
-          { year: 'up', month: 'up', week: 'up', day: 'flat', vol: 0.02 })
-      ],
-      forex: [
-        stock('multi', 'forex', 'USDCNY', '美元/人民币', 7.2345, 0.17,
-          ['多周期对齐', '利差驱动', '贸易顺差'], '中美利差收窄，人民币中间价强于预期', 'medium',
-          { year: 'up', month: 'flat', week: 'flat', day: 'up', vol: 0.005 })
-      ],
-      bond: [
-        stock('multi', 'bond', 'CN10Y', '10年期国债', 2.345, -0.51,
-          ['多周期下行', '宽松预期', '配置窗口'], '央行降准预期升温，长端利率多周期下行', 'medium',
-          { year: 'down', month: 'down', week: 'down', day: 'flat', vol: 0.01 })
-      ]
     }
   };
 
   return buildStrategyRecommendations._cache;
 }
 
-/** @deprecated 兼容旧调用，返回当前默认策略（多周期强势）数据 */
+/** @deprecated 兼容旧调用，返回金叉策略 mock 数据 */
 function buildRecommendations() {
   const all = buildStrategyRecommendations();
-  return all.multi;
+  return all.trend;
 }
 
 module.exports = {

@@ -132,7 +132,9 @@ public class StockBaseController {
 
 		Stopwatch stopwatch = Stopwatch.createStarted();
 
-        AbstractStrategy abstractStrategy = strategyMap.get(stockPageQuery.getStrategyTypeEnum());
+        AbstractStrategy abstractStrategy = stockPageQuery.getStrategyTypeEnum() == null
+                ? null
+                : strategyMap.get(stockPageQuery.getStrategyTypeEnum());
         if (abstractStrategy == null) {
             log.warn("strategy not registered: {}", stockPageQuery.getStrategy());
             return stockTargets;
@@ -249,8 +251,9 @@ public class StockBaseController {
             return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
         }
         if (pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.TREND_NEW
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.DEFAUL
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.MULTI_STRENGTH) {
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.PRE_GOLD_CROSS
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.PERIOD_RESONANCE
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.DEFAUL) {
             log.warn("rescan unsupported strategy: {}", pageQuery.getStrategy());
             return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
         }
@@ -287,9 +290,9 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getUStrongYangPct()),
                 String.valueOf(pageQuery.getUWeekContextMin()),
                 String.valueOf(pageQuery.getUMinAmountWan()),
-                String.valueOf(pageQuery.getUEnableModeB()),
-                String.valueOf(pageQuery.getUEnableModeA()),
-                String.valueOf(pageQuery.getUEnableModeBWeak()),
+                String.valueOf(pageQuery.getUEnableShort()),
+                String.valueOf(pageQuery.getUEnableMedium()),
+                String.valueOf(pageQuery.getUEnableLong()),
                 String.valueOf(pageQuery.getUTierMin()),
                 String.valueOf(pageQuery.getRMinAmountWan()),
                 String.valueOf(pageQuery.getRCapitulationDayPct()),
@@ -301,14 +304,16 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getREnableModeB()),
                 String.valueOf(pageQuery.getREnableModeC()),
                 String.valueOf(pageQuery.getRTierMin()),
-                String.valueOf(pageQuery.getMMinResonancePeriods()),
-                String.valueOf(pageQuery.getMMinAmountWan()),
-                String.valueOf(pageQuery.getMEnableModeA()),
-                String.valueOf(pageQuery.getMEnableModeB()),
-                String.valueOf(pageQuery.getMEnableModeC()),
-                String.valueOf(pageQuery.getMEnableWeakContext()),
-                String.valueOf(pageQuery.getMEnableWeakSingle()),
-                String.valueOf(pageQuery.getMTierMin()));
+                String.valueOf(pageQuery.getPMinAmountWan()),
+                String.valueOf(pageQuery.getPEnableShort()),
+                String.valueOf(pageQuery.getPEnableMedium()),
+                String.valueOf(pageQuery.getPEnableLong()),
+                String.valueOf(pageQuery.getPTierMin()),
+                String.valueOf(pageQuery.getCMinAmountWan()),
+                String.valueOf(pageQuery.getCEnableShort()),
+                String.valueOf(pageQuery.getCEnableMedium()),
+                String.valueOf(pageQuery.getCEnableLong()),
+                String.valueOf(pageQuery.getCTierMin()));
     }
 
     public void clearRecommendCache() {
@@ -336,8 +341,9 @@ public class StockBaseController {
         return QueryContextParam.builder()
                 .lianBanDays(Objects.nonNull(stockPageQuery.getLianBanDays())? stockPageQuery.getLianBanDays(): NumberUtils.INTEGER_ONE)
                 .unilateral(stockPageQuery.toUnilateralParams())
+                .preGolden(stockPageQuery.toPreGoldenParams())
+                .resonance(stockPageQuery.toResonanceParams())
                 .rebound(stockPageQuery.toReboundParams())
-                .multi(stockPageQuery.toMultiParams())
                 .build();
 
     }

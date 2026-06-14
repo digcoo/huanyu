@@ -25,15 +25,20 @@ var REBOUND_DEFAULTS = {
   rTierMin: 'ALL'
 };
 
-var MULTI_DEFAULTS = {
-  mMinResonancePeriods: 4,
-  mMinAmountWan: 5000,
-  mEnableModeA: true,
-  mEnableModeB: true,
-  mEnableModeC: true,
-  mEnableWeakContext: false,
-  mEnableWeakSingle: false,
-  mTierMin: 'A'
+var PRE_GOLDEN_DEFAULTS = {
+  pMinAmountWan: 5000,
+  pEnableShort: true,
+  pEnableMedium: true,
+  pEnableLong: true,
+  pTierMin: 'ALL'
+};
+
+var RESONANCE_DEFAULTS = {
+  cMinAmountWan: 5000,
+  cEnableShort: true,
+  cEnableMedium: true,
+  cEnableLong: true,
+  cTierMin: 'ALL'
 };
 
 var TREND_SCHEMA = [
@@ -165,18 +170,9 @@ var REBOUND_SCHEMA = [
   }
 ];
 
-var MULTI_SCHEMA = [
+var PRE_GOLDEN_SCHEMA = [
   {
-    key: 'mMinResonancePeriods',
-    label: '最少共振周期',
-    hint: '年/月/周/日四周期至少满足几项（默认4=全部）',
-    type: 'slider',
-    min: 1,
-    max: 4,
-    step: 1
-  },
-  {
-    key: 'mMinAmountWan',
+    key: 'pMinAmountWan',
     label: '最低成交额',
     hint: '近6日日均成交额（万）',
     type: 'slider',
@@ -186,58 +182,96 @@ var MULTI_SCHEMA = [
     unit: '万'
   },
   {
-    key: 'mEnableModeA',
-    label: '趋势波段突破（A）',
+    key: 'pEnableShort',
+    label: '短线预判',
+    hint: '周 MACD>0 + 日 MACD<0 + 日K突破',
     type: 'switch'
   },
   {
-    key: 'mEnableModeB',
-    label: '反转波段突破（B）',
+    key: 'pEnableMedium',
+    label: '中线预判',
+    hint: '月 MACD>0 + 周 MACD<0 + 周K突破',
     type: 'switch'
   },
   {
-    key: 'mEnableModeC',
-    label: '梯子High突破（C）',
+    key: 'pEnableLong',
+    label: '长线预判',
+    hint: '年 MACD>0 + 月 MACD<0 + 月K突破',
     type: 'switch'
   },
   {
-    key: 'mEnableWeakContext',
-    label: '含弱环境B档',
-    hint: '有共振但无突破信号',
-    type: 'switch'
-  },
-  {
-    key: 'mEnableWeakSingle',
-    label: '含单周期C档',
-    type: 'switch'
-  },
-  {
-    key: 'mTierMin',
+    key: 'pTierMin',
     label: '最低展示档位',
     type: 'picker',
     options: [
       { value: 'ALL', label: '全部档位' },
-      { value: 'A', label: 'A档及以上 (S+A)' },
-      { value: 'S', label: '仅 S 档' }
+      { value: 'B', label: 'B档及以上 (长线+)' },
+      { value: 'A', label: 'A档及以上 (中线+)' },
+      { value: 'S', label: '仅短线 (S)' }
+    ]
+  }
+];
+
+var RESONANCE_SCHEMA = [
+  {
+    key: 'cMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 1000,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'cEnableShort',
+    label: '短线共振',
+    hint: '周 MACD>0 + 日 MACD>0（非金叉）+ 日K突破',
+    type: 'switch'
+  },
+  {
+    key: 'cEnableMedium',
+    label: '中线共振',
+    hint: '月 MACD>0 + 周 MACD>0（非金叉）+ 周K突破',
+    type: 'switch'
+  },
+  {
+    key: 'cEnableLong',
+    label: '长线共振',
+    hint: '年 MACD>0 + 月 MACD>0（非金叉）+ 月K突破',
+    type: 'switch'
+  },
+  {
+    key: 'cTierMin',
+    label: '最低展示档位',
+    type: 'picker',
+    options: [
+      { value: 'ALL', label: '全部档位' },
+      { value: 'B', label: 'B档及以上 (长线+)' },
+      { value: 'A', label: 'A档及以上 (中线+)' },
+      { value: 'S', label: '仅短线 (S)' }
     ]
   }
 ];
 
 var SCHEMA_BY_STRATEGY = {
   trend: TREND_SCHEMA,
-  rebound: REBOUND_SCHEMA,
-  multi: MULTI_SCHEMA
+  preGolden: PRE_GOLDEN_SCHEMA,
+  resonance: RESONANCE_SCHEMA,
+  rebound: REBOUND_SCHEMA
 };
 
 var DEFAULTS_BY_STRATEGY = {
   trend: TREND_DEFAULTS,
-  rebound: REBOUND_DEFAULTS,
-  multi: MULTI_DEFAULTS
+  preGolden: PRE_GOLDEN_DEFAULTS,
+  resonance: RESONANCE_DEFAULTS,
+  rebound: REBOUND_DEFAULTS
 };
 
 var TIER_PICKER = TREND_SCHEMA.find(function (f) { return f.key === 'uTierMin'; });
+var PRE_GOLDEN_TIER_PICKER = PRE_GOLDEN_SCHEMA.find(function (f) { return f.key === 'pTierMin'; });
+var RESONANCE_TIER_PICKER = RESONANCE_SCHEMA.find(function (f) { return f.key === 'cTierMin'; });
 var REBOUND_TIER_PICKER = REBOUND_SCHEMA.find(function (f) { return f.key === 'rTierMin'; });
-var MULTI_TIER_PICKER = MULTI_SCHEMA.find(function (f) { return f.key === 'mTierMin'; });
 
 function storageKey(strategyId) {
   return STORAGE_PREFIX + (strategyId || 'trend');
@@ -262,7 +296,7 @@ function normalize(strategyId, raw) {
     if (raw[field.key] === undefined || raw[field.key] === null) return;
     if (field.type === 'switch') {
       out[field.key] = !!raw[field.key];
-    } else if (field.key === 'uTierMin' || field.key === 'rTierMin') {
+    } else if (field.key === 'uTierMin' || field.key === 'rTierMin' || field.key === 'pTierMin' || field.key === 'cTierMin') {
       out[field.key] = String(raw[field.key]).toUpperCase();
     } else {
       out[field.key] = raw[field.key];
@@ -270,6 +304,12 @@ function normalize(strategyId, raw) {
   });
   if (strategyId === 'trend' && !out.uEnableShort && !out.uEnableMedium && !out.uEnableLong) {
     out.uEnableShort = true;
+  }
+  if (strategyId === 'preGolden' && !out.pEnableShort && !out.pEnableMedium && !out.pEnableLong) {
+    out.pEnableShort = true;
+  }
+  if (strategyId === 'resonance' && !out.cEnableShort && !out.cEnableMedium && !out.cEnableLong) {
+    out.cEnableShort = true;
   }
   return out;
 }
@@ -350,9 +390,21 @@ function formatSummary(strategyId) {
     return (modes.length ? modes.join('+') : '未启用') + ' · '
       + tierLabelFrom(TIER_PICKER, p.uTierMin);
   }
-  if (strategyId === 'multi') {
-    return '共振' + p.mMinResonancePeriods + '/4 · '
-      + tierLabelFrom(MULTI_TIER_PICKER, p.mTierMin);
+  if (strategyId === 'preGolden') {
+    var preModes = [];
+    if (p.pEnableShort) preModes.push('短线');
+    if (p.pEnableMedium) preModes.push('中线');
+    if (p.pEnableLong) preModes.push('长线');
+    return (preModes.length ? preModes.join('+') : '未启用') + ' · '
+      + tierLabelFrom(PRE_GOLDEN_TIER_PICKER, p.pTierMin);
+  }
+  if (strategyId === 'resonance') {
+    var resModes = [];
+    if (p.cEnableShort) resModes.push('短线');
+    if (p.cEnableMedium) resModes.push('中线');
+    if (p.cEnableLong) resModes.push('长线');
+    return (resModes.length ? resModes.join('+') : '未启用') + ' · '
+      + tierLabelFrom(RESONANCE_TIER_PICKER, p.cTierMin);
   }
   return '';
 }

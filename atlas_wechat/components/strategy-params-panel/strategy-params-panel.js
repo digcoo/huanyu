@@ -43,7 +43,11 @@ Component({
       var strategyId = this.properties.strategyId || 'trend';
       var schema = strategyParams.getSchema(strategyId);
       var form = strategyParams.load(strategyId);
-      var tierField = schema.find(function (f) { return f.key === 'uTierMin' || f.key === 'rTierMin'; });
+      var tierField = schema.find(function (f) {
+        return f.type === 'picker' && (
+          f.key === 'uTierMin' || f.key === 'rTierMin' || f.key === 'pTierMin' || f.key === 'cTierMin'
+        );
+      });
       var tierIndex = 0;
       var tierLabels = [];
       var tierKey = tierField ? tierField.key : 'uTierMin';

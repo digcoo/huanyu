@@ -118,7 +118,8 @@ Page({
     showStrategyParams: false,
     paramsSummary: '',
     paramsCustomized: false,
-    rescanning: false
+    rescanning: false,
+    showBackTop: false
   },
 
   onLoad() {
@@ -128,7 +129,11 @@ Page({
     const navPaddingRight = sys.windowWidth - menu.left + 8;
 
     const savedPeriod = wx.getStorageSync('activePeriod') || 'week';
-    const savedStrategy = wx.getStorageSync('activeStrategy') || 'trend';
+    let savedStrategy = wx.getStorageSync('activeStrategy') || 'trend';
+    if (savedStrategy === 'multi') {
+      savedStrategy = 'trend';
+      wx.setStorageSync('activeStrategy', savedStrategy);
+    }
     const klineFlipped = !!wx.getStorageSync('klineFlipped');
 
     this.setData({
@@ -151,6 +156,18 @@ Page({
 
   onReady() {
     this.measureStickyTops();
+  },
+
+  onPageScroll(e) {
+    var show = (e.scrollTop || 0) > 480;
+    if (show !== this._showBackTop) {
+      this._showBackTop = show;
+      this.setData({ showBackTop: show });
+    }
+  },
+
+  onBackToTop() {
+    wx.pageScrollTo({ scrollTop: 0, duration: 280 });
   },
 
   measureStickyTops() {

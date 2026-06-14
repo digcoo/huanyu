@@ -9,8 +9,9 @@ import lombok.Getter;
 public enum StrategyTypeEnum {
 
     TREND_NEW("qsn", "金叉策略", 1),
-    DEFAUL("default", "深坑反弹", 2),
-    MULTI_STRENGTH("multi", "多周期强势", 3),
+    PRE_GOLD_CROSS("preqsn", "预判金叉", 2),
+    PERIOD_RESONANCE("reson", "周期共振", 3),
+    DEFAUL("default", "深坑反弹", 4),
     CROSS_BAND_PRESSURE("cross_band_pressure", "突破波段: 关键阻力位", 9);
 
 	private final String code;

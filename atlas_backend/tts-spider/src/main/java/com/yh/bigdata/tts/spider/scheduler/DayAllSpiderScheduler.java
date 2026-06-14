@@ -54,7 +54,7 @@ public class DayAllSpiderScheduler {
 //			}
 			stockBaseCrawler.run();
 			stockDayCrawler.run(null, 40);
-			stockWeekCrawler.run(null, 8);
+			stockWeekCrawler.run(null, 2);
 			stockMonthCrawler.run(null, 2);
 			stockQuarterCrawler.run(null, 2);
 			stockYearCrawler.run(null, 2);

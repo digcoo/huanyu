@@ -87,8 +87,11 @@ public class StockTargetScheduler {
             if (contextParam.getRebound() == null) {
                 contextParam.setRebound(ReboundStrategyParams.defaults());
             }
-            if (contextParam.getMulti() == null) {
-                contextParam.setMulti(com.yh.bigdata.tts.common.param.MultiStrategyParams.defaults());
+            if (contextParam.getPreGolden() == null) {
+                contextParam.setPreGolden(com.yh.bigdata.tts.common.param.PreGoldenStrategyParams.defaults());
+            }
+            if (contextParam.getResonance() == null) {
+                contextParam.setResonance(com.yh.bigdata.tts.common.param.ResonanceStrategyParams.defaults());
             }
             int saved = 0;
             String lastDay = stockTargetMapper.selectLatestDay();

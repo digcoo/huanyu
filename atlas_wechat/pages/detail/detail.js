@@ -82,6 +82,19 @@ Page({
     wx.navigateBack();
   },
 
+  onCopyCode() {
+    const detail = this.data.detail;
+    if (!detail || !detail.code) return;
+    const code = adapter.displayCode(detail.code);
+    if (!code) return;
+    wx.setClipboardData({
+      data: code,
+      success: function () {
+        wx.showToast({ title: '代码已复制', icon: 'success', duration: 1200 });
+      }
+    });
+  },
+
   onPeriodChange(e) {
     const period = e.detail.period;
     wx.setStorageSync('activePeriod', period);

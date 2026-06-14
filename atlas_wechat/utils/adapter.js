@@ -6,8 +6,9 @@ const { formatDataUpdatedLabel } = require('./time');
 
 const STRATEGY_API = {
   trend: { strategy: 'qsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
-  rebound: { strategy: 'default', trendPeriodTypes: 'week,month', opPeriodType: 'day' },
-  multi: { strategy: 'multi', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' }
+  preGolden: { strategy: 'preqsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
+  resonance: { strategy: 'reson', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
+  rebound: { strategy: 'default', trendPeriodTypes: 'week,month', opPeriodType: 'day' }
 };
 
 function normalizeCode(code) {
@@ -118,22 +119,49 @@ function buildUnilateralTags(item) {
   return tags;
 }
 
-function buildMultiTags(item) {
+function buildPreGoldenTags(item) {
   var tags = [];
   var tier = parseUnilateralTier(item.trendMessage);
   var label = parseUnilateralTrendLabel(item.trendMessage);
-  if (tier === 'S') tags.push('多周期共振');
-  else if (tier === 'A') tags.push('波段突破');
-  else if (tier === 'B') tags.push('待突破');
-  else if (tier === 'C') tags.push('单周期');
-  if (item.signalMessage && item.signalMessage.indexOf('梯子突破') >= 0) {
-    tags.push('梯子突破');
+  if (tier === 'S') tags.push('短线预判');
+  else if (tier === 'A') tags.push('中线预判');
+  else if (tier === 'B') tags.push('长线预判');
+  if (item.trendMessage && item.trendMessage.indexOf('MACD<0') >= 0) {
+    tags.push('待金叉');
   }
-  if (item.signalMessage && item.signalMessage.indexOf('趋势波段') >= 0) {
-    tags.push('趋势波段');
+  if (item.signalMessage && item.signalMessage.indexOf('日K突破') >= 0) {
+    tags.push('日K突破');
   }
-  if (item.signalMessage && item.signalMessage.indexOf('反转波段') >= 0) {
-    tags.push('反转波段');
+  if (item.signalMessage && item.signalMessage.indexOf('周K突破') >= 0) {
+    tags.push('周K突破');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('月K突破') >= 0) {
+    tags.push('月K突破');
+  }
+  if (label && tags.indexOf(label) < 0 && label.length <= 12) {
+    tags.push(label);
+  }
+  return tags;
+}
+
+function buildResonanceTags(item) {
+  var tags = [];
+  var tier = parseUnilateralTier(item.trendMessage);
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (tier === 'S') tags.push('短线共振');
+  else if (tier === 'A') tags.push('中线共振');
+  else if (tier === 'B') tags.push('长线共振');
+  if (item.trendMessage && item.trendMessage.indexOf('非金叉') >= 0) {
+    tags.push('MACD多头');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('日K突破') >= 0) {
+    tags.push('日K突破');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('周K突破') >= 0) {
+    tags.push('周K突破');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('月K突破') >= 0) {
+    tags.push('月K突破');
   }
   if (label && tags.indexOf(label) < 0 && label.length <= 12) {
     tags.push(label);
@@ -178,10 +206,12 @@ function mapRecommendation(item, strategyId) {
   if (item.newFlag) tags.push('今日新推');
   if (strategyId === 'trend') {
     tags = tags.concat(buildUnilateralTags(item));
+  } else if (strategyId === 'preGolden') {
+    tags = tags.concat(buildPreGoldenTags(item));
+  } else if (strategyId === 'resonance') {
+    tags = tags.concat(buildResonanceTags(item));
   } else if (strategyId === 'rebound') {
     tags = tags.concat(buildReboundTags(item));
-  } else if (strategyId === 'multi') {
-    tags = tags.concat(buildMultiTags(item));
   } else {
     if (item.signalMessage) tags.push('信号');
     else if (item.trendMessage) tags.push('趋势');
@@ -200,10 +230,7 @@ function mapRecommendation(item, strategyId) {
     changePct: changePct,
     tags: tags,
     summary: summaryParts.length ? summaryParts[0] : '',
-    resonance: strategyId === 'multi'
-      ? (parseUnilateralTier(item.trendMessage) === 'S' ? 'strong'
-        : parseUnilateralTier(item.trendMessage) === 'A' ? 'medium' : 'weak')
-      : (changePct > 2 ? 'strong' : changePct > 0 ? 'medium' : 'weak'),
+    resonance: changePct > 2 ? 'strong' : changePct > 0 ? 'medium' : 'weak',
     mainBusiness: item.mainBusiness,
     dataDay: item.day || '',
     dataUpdatedLabel: formatDataUpdatedLabel(item.day)

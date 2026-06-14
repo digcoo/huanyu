@@ -283,3 +283,31 @@
   font-size: 20rpx;
   color: #3d4556;
 }
+
+.back-top-btn {
+  position: fixed;
+  right: 28rpx;
+  bottom: calc(120rpx + env(safe-area-inset-bottom));
+  z-index: 99;
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(30, 32, 38, 0.92);
+  border: 1rpx solid #2b2f36;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.35);
+}
+
+.back-top-btn-hover {
+  background: rgba(0, 212, 255, 0.12);
+  border-color: rgba(0, 212, 255, 0.45);
+}
+
+.back-top-icon {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #00d4ff;
+  line-height: 1;
+}

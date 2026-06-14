@@ -177,6 +177,16 @@
 
   <bottom-nav active="index" watchlistCount="{{watchlistCount}}" />
 
+  <view
+    wx:if="{{showBackTop && !searchVisible && !paramsVisible}}"
+    class="back-top-btn"
+    bindtap="onBackToTop"
+    hover-class="back-top-btn-hover"
+    hover-stay-time="80"
+  >
+    <text class="back-top-icon">↑</text>
+  </view>
+
   <search-panel
     visible="{{searchVisible}}"
     watchlistIds="{{watchlistIds}}"

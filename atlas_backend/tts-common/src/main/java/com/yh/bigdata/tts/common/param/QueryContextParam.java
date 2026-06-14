@@ -24,15 +24,19 @@ public class QueryContextParam extends PageQuery {
     /** 深坑反弹策略自定义参数 */
     private ReboundStrategyParams rebound;
 
-    /** 多周期强势策略自定义参数 */
-    private MultiStrategyParams multi;
+    /** 预判金叉策略自定义参数 */
+    private PreGoldenStrategyParams preGolden;
+
+    /** 周期共振策略自定义参数 */
+    private ResonanceStrategyParams resonance;
 
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
                 .unilateral(UnilateralStrategyParams.defaults())
+                .preGolden(PreGoldenStrategyParams.defaults())
+                .resonance(ResonanceStrategyParams.defaults())
                 .rebound(ReboundStrategyParams.defaults())
-                .multi(MultiStrategyParams.defaults())
                 .build();
     }
 	
