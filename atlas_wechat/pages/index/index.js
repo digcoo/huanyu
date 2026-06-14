@@ -17,9 +17,74 @@ const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
 
 function mapChartKlines(list, period) {
   return list.map(function (item) {
-    var klines = item.klines && item.klines[period] ? item.klines[period].slice() : [];
+    var fromStore = item.klines && item.klines[period] ? item.klines[period].slice() : null;
+    var klines = fromStore || (item.chartKlines ? item.chartKlines.slice() : []);
     return Object.assign({}, item, { chartKlines: klines });
   });
+}
+
+function filterIgnored(items, ignored) {
+  return (items || []).filter(function (item) {
+    return item && item.id && ignored.indexOf(item.id) < 0;
+  });
+}
+
+/**
+ * 拉取推荐列表，跳过已忽略项；单页全部被忽略时自动继续下一页
+ */
+function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage) {
+  targetCount = targetCount || RECOMMEND_PAGE_SIZE;
+  startPage = startPage || 1;
+  var accumulated = [];
+  var totalNum = 0;
+  var lastPage = startPage;
+  var hasMore = false;
+
+  function fetchPage(page) {
+    return stockApi.fetchRecommendations(strategyId, page, RECOMMEND_PAGE_SIZE).then(function (result) {
+      totalNum = result.totalNum != null ? result.totalNum : 0;
+      hasMore = !!result.hasMore;
+      lastPage = result.page || page;
+      accumulated = accumulated.concat(filterIgnored(result.items, ignored));
+      if (accumulated.length >= targetCount || !hasMore) {
+        return {
+          items: accumulated,
+          page: lastPage,
+          totalNum: totalNum,
+          hasMore: hasMore
+        };
+      }
+      return fetchPage(page + 1);
+    });
+  }
+
+  return fetchPage(startPage);
+}
+
+function attachKlinesInBackground(self, items, period) {
+  if (!items || !items.length) return Promise.resolve([]);
+  return stockApi.attachKlinesToItems(items, period).then(function (withKlines) {
+    var klineById = {};
+    withKlines.forEach(function (item) {
+      klineById[item.id] = item;
+    });
+    if (self._baseList && self._baseList.length) {
+      self._baseList = self._baseList.map(function (item) {
+        return klineById[item.id] ? Object.assign({}, item, klineById[item.id]) : item;
+      });
+      self.setData({
+        recommendations: mapChartKlines(self._baseList, period || self.data.activePeriod)
+      });
+    }
+    return withKlines;
+  }).catch(function () {
+    return items;
+  });
+}
+
+function applyKlinesForItems(self, items, period) {
+  if (!items || !items.length) return Promise.resolve([]);
+  return attachKlinesInBackground(self, items, period);
 }
 
 function findStrategyMeta(strategyId) {
@@ -196,19 +261,7 @@ Page({
   },
 
   _fetchRecommendPage(strategyId, period, page, ignored) {
-    return stockApi.fetchRecommendations(strategyId, page, RECOMMEND_PAGE_SIZE).then(function (result) {
-      var items = (result.items || []).filter(function (item) {
-        return !ignored.includes(item.id);
-      });
-      return stockApi.attachKlinesToItems(items, period).then(function (withKlines) {
-        return {
-          items: withKlines,
-          page: result.page,
-          totalNum: result.totalNum,
-          hasMore: result.hasMore
-        };
-      });
-    });
+    return fetchVisibleRecommendations(strategyId, ignored, RECOMMEND_PAGE_SIZE, page);
   },
 
   onReachBottom() {
@@ -236,6 +289,7 @@ Page({
         hasMore: result.hasMore,
         loadingMore: false
       });
+      applyKlinesForItems(self, result.items, period);
     }).catch(function () {
       self.setData({ loadingMore: false });
       wx.showToast({ title: '加载更多失败', icon: 'none' });
@@ -280,7 +334,7 @@ Page({
     const period = this.data.activePeriod;
     const ignored = app.globalData.ignoredIds;
 
-    this.setData({ loading: true, hasMore: false, loadingMore: false });
+    this.setData({ loading: true, hasMore: false, loadingMore: false, totalCount: 0 });
     this._loadPage = 1;
 
     return this._fetchRecommendPage(strategyId, period, 1, ignored).then(function (result) {
@@ -305,6 +359,7 @@ Page({
         hasMore: pageResult.hasMore,
         loading: false
       });
+      applyKlinesForItems(self, pageResult.items, period);
     }).catch(function () {
       if (config.fallbackOnError) {
         self._allRecommendations = buildStrategyRecommendations();
@@ -360,28 +415,18 @@ Page({
       return;
     }
     const self = this;
-    this.setData({ loading: true });
-    stockApi.attachKlinesToItems(this._baseList || [], period).then(function (list) {
-      return Promise.all([
-        Promise.resolve(list),
-        stockApi.fetchMarketIndices('cn', period).then(function (raw) {
-          return adapter.mapMarketIndices(raw, period);
-        }).catch(function () {
-          return self.data.indices.length ? self.data.indices : (MARKET_INDICES.cn || []);
-        })
-      ]);
-    }).then(function (results) {
-      var list = results[0];
-      var indices = results[1];
-      self._baseList = list;
-      self.setData({
-        activePeriod: period,
-        indices: indices,
-        recommendations: mapChartKlines(list, period),
-        loading: false
-      });
+    const baseList = this._baseList || [];
+    this.setData({
+      activePeriod: period,
+      recommendations: mapChartKlines(baseList, period)
+    });
+    applyKlinesForItems(this, baseList, period);
+    stockApi.fetchMarketIndices('cn', period).then(function (raw) {
+      return adapter.mapMarketIndices(raw, period);
     }).catch(function () {
-      self.setData({ loading: false });
+      return self.data.indices.length ? self.data.indices : (MARKET_INDICES.cn || []);
+    }).then(function (indices) {
+      self.setData({ indices: indices });
     });
   },
 

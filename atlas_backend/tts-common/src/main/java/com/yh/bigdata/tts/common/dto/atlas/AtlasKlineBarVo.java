@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AtlasKlineBarVo {
+    private String day;
     private double open;
     private double high;
     private double low;

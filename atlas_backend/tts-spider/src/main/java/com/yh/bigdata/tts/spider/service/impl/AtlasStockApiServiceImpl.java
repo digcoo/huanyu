@@ -19,7 +19,10 @@ import com.yh.bigdata.tts.spider.service.StockService;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient.IndexDef;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient.Quote;
+import com.yh.bigdata.tts.spider.utils.XueQiuHttpUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +33,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class AtlasStockApiServiceImpl implements AtlasStockApiService {
+
+    private static final Logger log = LoggerFactory.getLogger(AtlasStockApiServiceImpl.class);
 
     @Autowired
     private StockBaseMapper stockBaseMapper;
@@ -81,6 +86,39 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
         int safeLimit = Math.min(Math.max(limit, 1), 200);
         List<Trade> trades = RealtimeStockCache.getLastTrades(stock, periodType, safeLimit);
         return trades.stream().map(this::toKlineBar).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<AtlasKlineBarVo> refreshKlines(String code, String period, int limit) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.WEEK;
+        }
+        int safeLimit = Math.min(Math.max(limit, 1), 200);
+        String url = String.format(
+                XueQiuHttpUtils.base_url,
+                stock.getCode().toUpperCase(),
+                System.currentTimeMillis(),
+                periodType.getCode(),
+                -safeLimit);
+        try {
+            String json = XueQiuHttpUtils.getData(url);
+            if (StringUtils.isBlank(json) || "null".equals(json.trim())) {
+                return Collections.emptyList();
+            }
+            List<Trade> trades = XueQiuHttpUtils.parseStockTrades(json, stock, Trade.class);
+            if (trades == null || trades.isEmpty()) {
+                return Collections.emptyList();
+            }
+            if (trades.size() > safeLimit) {
+                trades = new ArrayList<>(trades.subList(trades.size() - safeLimit, trades.size()));
+            }
+            return trades.stream().map(this::toKlineBar).collect(Collectors.toList());
+        } catch (Exception e) {
+            log.warn("refreshKlines failed, code={}, period={}", stock.getCode(), periodType.getCode(), e);
+            return Collections.emptyList();
+        }
     }
 
     @Override
@@ -321,6 +359,7 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
 
     private AtlasKlineBarVo toKlineBar(Trade trade) {
         return AtlasKlineBarVo.builder()
+                .day(trade.getDay())
                 .open(nullSafe(trade.getOpen()))
                 .high(nullSafe(trade.getHigh()))
                 .low(nullSafe(trade.getLow()))

@@ -81,7 +81,17 @@ function loadKlinesForPeriod(id, period) {
   return stockApi.fetchKlines(code, period, 50).then(adapter.barsToKlines);
 }
 
+function refreshKlinesForPeriod(id, period) {
+  period = period || 'week';
+  if (config.useMock) {
+    return loadKlinesForPeriod(id, period);
+  }
+  var code = adapter.extractCode(id);
+  return stockApi.fetchKlinesRefresh(code, period, 50).then(adapter.barsToKlines);
+}
+
 module.exports = {
   loadDetail: loadDetail,
-  loadKlinesForPeriod: loadKlinesForPeriod
+  loadKlinesForPeriod: loadKlinesForPeriod,
+  refreshKlinesForPeriod: refreshKlinesForPeriod
 };

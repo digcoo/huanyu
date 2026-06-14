@@ -5,13 +5,10 @@
 var STORAGE_PREFIX = 'strategyParams_';
 
 var TREND_DEFAULTS = {
-  uDayLookback: 8,
-  uStrongYangPct: 3,
-  uWeekContextMin: 2,
   uMinAmountWan: 5000,
-  uEnableModeB: true,
-  uEnableModeA: true,
-  uEnableModeBWeak: true,
+  uEnableShort: true,
+  uEnableMedium: true,
+  uEnableLong: true,
   uTierMin: 'ALL'
 };
 
@@ -41,34 +38,6 @@ var MULTI_DEFAULTS = {
 
 var TREND_SCHEMA = [
   {
-    key: 'uDayLookback',
-    label: '日K平台回溯',
-    hint: '突破近 N 根日K平台',
-    type: 'slider',
-    min: 5,
-    max: 20,
-    step: 1
-  },
-  {
-    key: 'uStrongYangPct',
-    label: '强阳阈值',
-    hint: '前一日实体涨幅上限（%）',
-    type: 'slider',
-    min: 1,
-    max: 8,
-    step: 1,
-    unit: '%'
-  },
-  {
-    key: 'uWeekContextMin',
-    label: '周K环境项数',
-    hint: 'MA/低抬高等至少满足几项',
-    type: 'slider',
-    min: 1,
-    max: 3,
-    step: 1
-  },
-  {
     key: 'uMinAmountWan',
     label: '最低成交额',
     hint: '近6日日均成交额（万）',
@@ -79,20 +48,21 @@ var TREND_SCHEMA = [
     unit: '万'
   },
   {
-    key: 'uEnableModeB',
-    label: '趋势延续（模式B）',
+    key: 'uEnableShort',
+    label: '短线金叉',
+    hint: '周 MACD>0 + 日 MACD 金叉',
     type: 'switch'
   },
   {
-    key: 'uEnableModeBWeak',
-    label: '含弱环境B档',
-    hint: 'Context够但日K未确认',
-    type: 'switch',
-    dependsOn: 'uEnableModeB'
+    key: 'uEnableMedium',
+    label: '中线金叉',
+    hint: '月 MACD>0 + 周 MACD 金叉',
+    type: 'switch'
   },
   {
-    key: 'uEnableModeA',
-    label: '月K拐点（模式A）',
+    key: 'uEnableLong',
+    label: '长线金叉',
+    hint: '年 MACD>0 + 月 MACD 金叉',
     type: 'switch'
   },
   {
@@ -101,8 +71,9 @@ var TREND_SCHEMA = [
     type: 'picker',
     options: [
       { value: 'ALL', label: '全部档位' },
-      { value: 'A', label: 'A档及以上 (S+A)' },
-      { value: 'S', label: '仅 S 档' }
+      { value: 'B', label: 'B档及以上 (长线+)' },
+      { value: 'A', label: 'A档及以上 (中线+)' },
+      { value: 'S', label: '仅短线 (S)' }
     ]
   }
 ];
@@ -297,8 +268,8 @@ function normalize(strategyId, raw) {
       out[field.key] = raw[field.key];
     }
   });
-  if (strategyId === 'trend' && !out.uEnableModeB) {
-    out.uEnableModeBWeak = false;
+  if (strategyId === 'trend' && !out.uEnableShort && !out.uEnableMedium && !out.uEnableLong) {
+    out.uEnableShort = true;
   }
   return out;
 }
@@ -372,7 +343,11 @@ function formatSummary(strategyId) {
       + tierLabelFrom(REBOUND_TIER_PICKER, p.rTierMin);
   }
   if (strategyId === 'trend') {
-    return '回溯' + p.uDayLookback + ' · 周' + p.uWeekContextMin + '/3 · '
+    var modes = [];
+    if (p.uEnableShort) modes.push('短线');
+    if (p.uEnableMedium) modes.push('中线');
+    if (p.uEnableLong) modes.push('长线');
+    return (modes.length ? modes.join('+') : '未启用') + ' · '
       + tierLabelFrom(TIER_PICKER, p.uTierMin);
   }
   if (strategyId === 'multi') {

@@ -9,6 +9,7 @@ import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.common.param.UnilateralStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.unilateral.UnilateralGateTools;
+import com.yh.bigdata.tts.spider.strategy.tools.unilateral.UnilateralScoreCalculator;
 import com.yh.bigdata.tts.spider.strategy.tools.unilateral.UnilateralTrendEvaluator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 单边趋势（qsn）· v1.0 偏延续：Gate + 模式B（主）+ 模式A（补充）+ Score 排序
+ * 金叉策略（qsn）· v3.0：Gate + 短/中/长 MACD 金叉
  * @see docs/strategies/单边趋势策略.md
  */
 @Slf4j
@@ -36,7 +37,11 @@ public class DefaultTrendStrategy extends AbstractStrategy {
 
     @Override
     public List<PeriodTypeEnum> getTrendPeriodTypes() {
-        return Arrays.asList(PeriodTypeEnum.WEEK, PeriodTypeEnum.MONTH);
+        return Arrays.asList(
+                PeriodTypeEnum.YEAR,
+                PeriodTypeEnum.MONTH,
+                PeriodTypeEnum.WEEK,
+                PeriodTypeEnum.DAY);
     }
 
     @Override
@@ -58,8 +63,8 @@ public class DefaultTrendStrategy extends AbstractStrategy {
             checkResult.setHasTrend(true);
             checkResult.setHasSignal(true);
             checkResult.setSortValue(eval.getScore());
-            checkResult.setTrendPeriodType(PeriodTypeEnum.WEEK);
-            checkResult.setOpPeriodType(PeriodTypeEnum.DAY);
+            checkResult.setTrendPeriodType(UnilateralScoreCalculator.trendPeriodForTier(eval.getTier()));
+            checkResult.setOpPeriodType(UnilateralScoreCalculator.signalPeriodForTier(eval.getTier()));
 
         } catch (Exception ex) {
             log.error("{} - check exception : stock = {}", getClass().getName(), stockBase.getCode(), ex);

@@ -163,6 +163,26 @@
   min-width: 0;
 }
 
+.list-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.list-total {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  font-weight: 600;
+  color: #00d4ff;
+  font-variant-numeric: tabular-nums;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  background: rgba(0, 212, 255, 0.08);
+  border: 1rpx solid rgba(0, 212, 255, 0.15);
+  line-height: 1.3;
+}
+
 .list-params {
   display: block;
   margin-top: 6rpx;
@@ -214,7 +234,8 @@
 }
 
 .list-subtitle {
-  display: block;
+  flex: 1;
+  min-width: 0;
   font-size: 22rpx;
   color: #5c6578;
   line-height: 1.5;

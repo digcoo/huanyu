@@ -2,6 +2,31 @@ function pad(n) {
   return n < 10 ? '0' + n : '' + n;
 }
 
+/** 统一毫秒时间戳（兼容秒级） */
+function normalizeTimestamp(ts) {
+  if (ts == null || ts === '') return null;
+  var n = Number(ts);
+  if (!n || isNaN(n)) return null;
+  if (n < 1e12) n *= 1000;
+  return n;
+}
+
+function startOfDay(d) {
+  var copy = new Date(d.getTime());
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+function addDays(d, n) {
+  var copy = new Date(d.getTime());
+  copy.setDate(copy.getDate() + n);
+  return startOfDay(copy);
+}
+
+function dayKey(d) {
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+}
+
 function parseDay(raw) {
   if (!raw) return null;
   var s = String(raw).trim();
@@ -46,6 +71,11 @@ function todayDayStr() {
 }
 
 module.exports = {
+  normalizeTimestamp: normalizeTimestamp,
   formatDataUpdatedLabel: formatDataUpdatedLabel,
-  todayDayStr: todayDayStr
+  todayDayStr: todayDayStr,
+  parseDay: parseDay,
+  startOfDay: startOfDay,
+  addDays: addDays,
+  dayKey: dayKey
 };

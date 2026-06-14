@@ -23,7 +23,9 @@ Page({
     },
     loading: true,
     notFound: false,
-    inWatchlist: false
+    inWatchlist: false,
+    klineRefreshing: false,
+    klineLive: false
   },
 
   onLoad(options) {
@@ -89,7 +91,8 @@ Page({
     if (config.useMock || (detail.klines && detail.klines[period])) {
       this.setData({
         activePeriod: period,
-        chartKlines: mapChartKlines(detail, period)
+        chartKlines: mapChartKlines(detail, period),
+        klineLive: false
       });
       return;
     }
@@ -100,7 +103,8 @@ Page({
       self.setData({
         activePeriod: period,
         detail: detail,
-        chartKlines: klines.slice()
+        chartKlines: klines.slice(),
+        klineLive: false
       });
     });
   },
@@ -113,6 +117,42 @@ Page({
       title: klineFlipped ? '坐标已翻转（低价在上）' : '坐标已还原',
       icon: 'none',
       duration: 800
+    });
+  },
+
+  onRefreshKlines() {
+    const detail = this.data.detail;
+    const period = this.data.activePeriod;
+    if (!detail || !detail.id || this.data.klineRefreshing) return;
+
+    const self = this;
+    this.setData({ klineRefreshing: true });
+
+    detailApi.refreshKlinesForPeriod(detail.id, period).then(function (klines) {
+      if (!klines || !klines.length) {
+        self.setData({ klineRefreshing: false });
+        wx.showToast({ title: '拉取失败，库内数据未更新时可重试', icon: 'none' });
+        return;
+      }
+
+      detail.klines = detail.klines || {};
+      detail.klines[period] = klines;
+
+      const last = klines[klines.length - 1];
+      if (last && last.close != null && period === 'day') {
+        detail.price = last.close;
+      }
+
+      self.setData({
+        detail: detail,
+        chartKlines: klines.slice(),
+        klineRefreshing: false,
+        klineLive: !config.useMock
+      });
+      wx.showToast({ title: '已拉取最新 K 线', icon: 'success', duration: 1200 });
+    }).catch(function () {
+      self.setData({ klineRefreshing: false });
+      wx.showToast({ title: '拉取失败', icon: 'none' });
     });
   },
 

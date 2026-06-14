@@ -20,7 +20,15 @@
   >
     <view class="card-header">
       <view class="stock-info">
-        <text class="stock-name">{{item.name}}</text>
+        <view class="stock-name-row">
+          <text class="stock-name">{{item.name}}</text>
+          <view class="copy-btn" catchtap="onCopyCode" hover-class="copy-btn-hover" hover-stay-time="80">
+            <view class="copy-icon">
+              <view class="copy-icon-back"></view>
+              <view class="copy-icon-front"></view>
+            </view>
+          </view>
+        </view>
         <text class="stock-code">{{item.code}}</text>
       </view>
       <view class="price-info">
@@ -36,7 +44,7 @@
     </view>
 
     <mini-kline
-      wx:if="{{item.chartKlines.length}}"
+      wx:if="{{item.chartKlines && item.chartKlines.length > 0}}"
       klines="{{item.chartKlines}}"
       label="{{c.periodLabel(activePeriod)}}"
       size="card"

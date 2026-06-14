@@ -69,6 +69,22 @@ public class AtlasStockController {
         }
     }
 
+    @PostMapping("/{code}/klines/refresh")
+    public Response<List<AtlasKlineBarVo>> refreshKlines(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "week") String period,
+            @RequestParam(value = "limit", defaultValue = "50") int limit) {
+        try {
+            List<AtlasKlineBarVo> bars = atlasStockApiService.refreshKlines(code, period, limit);
+            if (bars.isEmpty()) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(bars);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
     @GetMapping("/{code}/detail")
     public Response<AtlasStockDetailVo> getDetail(@PathVariable("code") String code) {
         try {

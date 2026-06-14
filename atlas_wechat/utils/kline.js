@@ -3,6 +3,8 @@
  * A 股深色主题：实心蜡烛、红涨绿跌、水平细网格、价格区留白
  */
 
+const { parseDay, normalizeTimestamp, startOfDay, dayKey } = require('./time');
+
 const BINANCE = {
   bg: '#1e2026',
   bgDeep: '#161a1e',
@@ -259,6 +261,132 @@ function drawBinanceMultiLine(ctx, series, width, height, colors) {
   });
 }
 
+/** 各周期 K 线大致间隔（毫秒），无 day 字段时用于估算 */
+const PERIOD_MS = {
+  day: 86400000,
+  week: 604800000,
+  month: 2592000000,
+  year: 31536000000
+};
+
+function collectBarDates(klines) {
+  var bars = [];
+  for (var i = 0; i < klines.length; i++) {
+    var parsed = parseDay(klines[i].day);
+    if (!parsed) continue;
+    var date = startOfDay(parsed.date);
+    bars.push({ index: i, date: date, time: date.getTime(), key: dayKey(date) });
+  }
+  return bars;
+}
+
+function isWeekend(d) {
+  var dow = d.getDay();
+  return dow === 0 || dow === 6;
+}
+
+/** 严格早于 target 的最近一根 K 线交易日 */
+function findPreviousTradingDay(bars, targetDate) {
+  var targetTime = startOfDay(targetDate).getTime();
+  var prev = null;
+  for (var i = 0; i < bars.length; i++) {
+    if (bars[i].time < targetTime) {
+      if (!prev || bars[i].time > prev.time) {
+        prev = bars[i];
+      }
+    }
+  }
+  return prev ? prev.date : bars[0].date;
+}
+
+/**
+ * 将加入日期解析为应对齐的锚点日历日
+ * - 加入日 = 某根 K 线的 day → 直接用该日
+ * - 当天不交易（周末 / 日 K 下节假日等）→ 前一个交易日
+ * - 周/月/年 + weekday → 视为交易日，保留加入日
+ */
+function resolveAnchorTradingDay(targetDate, bars, period) {
+  var target = startOfDay(targetDate);
+  var targetKey = dayKey(target);
+
+  for (var i = 0; i < bars.length; i++) {
+    if (bars[i].key === targetKey) {
+      return bars[i].date;
+    }
+  }
+
+  if (isWeekend(target) || period === 'day') {
+    return findPreviousTradingDay(bars, target);
+  }
+
+  return target;
+}
+
+/** 按周期在 bar 序列中定位 anchor 对应柱 */
+function findBarIndexForAnchor(bars, anchorDate, period) {
+  var anchorTime = startOfDay(anchorDate).getTime();
+  var anchorKey = dayKey(anchorDate);
+
+  for (var i = 0; i < bars.length; i++) {
+    if (bars[i].key === anchorKey) {
+      return bars[i].index;
+    }
+  }
+
+  if (period === 'day') {
+    var prevKey = dayKey(findPreviousTradingDay(bars, anchorDate));
+    for (var k = 0; k < bars.length; k++) {
+      if (bars[k].key === prevKey) {
+        return bars[k].index;
+      }
+    }
+    return bars[0].index;
+  }
+
+  if (bars[0].time > anchorTime) {
+    return bars[0].index;
+  }
+
+  for (var j = 0; j < bars.length; j++) {
+    if (bars[j].time >= anchorTime) {
+      return bars[j].index;
+    }
+  }
+  return bars[bars.length - 1].index;
+}
+
+/**
+ * 在 K 线序列中定位时间戳对应的柱索引（加入自选等场景）
+ * @returns {number|null} 索引；若 ts 早于可见窗口返回 null
+ */
+function findBarIndexByTimestamp(klines, ts, period, sliceOffset) {
+  sliceOffset = sliceOffset || 0;
+  if (!klines || !klines.length) return null;
+  var ms = normalizeTimestamp(ts);
+  if (!ms) return null;
+
+  var targetDate = startOfDay(new Date(ms));
+  var bars = collectBarDates(klines);
+  if (!bars.length) {
+    return fallbackBarIndexByPeriod(klines, targetDate, period, sliceOffset);
+  }
+
+  var anchorDate = resolveAnchorTradingDay(targetDate, bars, period || 'week');
+  var barIndex = findBarIndexForAnchor(bars, anchorDate, period || 'week');
+
+  if (barIndex < sliceOffset) return null;
+  return barIndex - sliceOffset;
+}
+
+function fallbackBarIndexByPeriod(klines, targetDate, period, sliceOffset) {
+  var step = PERIOD_MS[period] || PERIOD_MS.week;
+  var now = startOfDay(new Date());
+  var barsBack = Math.round((now.getTime() - targetDate.getTime()) / step);
+  var idx = klines.length - 1 - barsBack;
+  idx = Math.max(0, Math.min(klines.length - 1, idx));
+  return idx >= sliceOffset ? idx - sliceOffset : null;
+}
+
 /** 兼容旧接口 */
 function drawKlines(ctx, klines, width, height, options) {
   drawBinanceKlines(ctx, klines, width, height, options);
@@ -283,6 +411,7 @@ module.exports = {
   calcMA,
   MA_LINE_CONFIGS,
   buildCloseMaSegments,
+  findBarIndexByTimestamp,
   drawCloseMaLines,
   drawBinanceKlines,
   drawKlines,

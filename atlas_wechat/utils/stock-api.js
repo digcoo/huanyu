@@ -78,6 +78,21 @@ function fetchKlines(code, period, limit) {
   });
 }
 
+/** 雪球实时拉取 K 线（不写库） */
+function fetchKlinesRefresh(code, period, limit) {
+  period = period || 'week';
+  limit = limit || 50;
+  var qs = 'period=' + encodeURIComponent(period) + '&limit=' + encodeURIComponent(String(limit));
+  return api.request({
+    path: '/stock/' + encodePath(code) + '/klines/refresh?' + qs,
+    method: 'POST',
+    data: {}
+  }).then(function (res) {
+    if (!res.ok || !res.data) return [];
+    return res.data;
+  });
+}
+
 function fetchSummary(code) {
   return api.get('/stock/' + encodePath(code)).then(function (res) {
     if (!res.ok || !res.data) return null;
@@ -142,6 +157,7 @@ module.exports = {
   fetchRecommendations: fetchRecommendations,
   triggerStrategyRescan: triggerStrategyRescan,
   fetchKlines: fetchKlines,
+  fetchKlinesRefresh: fetchKlinesRefresh,
   fetchSummary: fetchSummary,
   search: search,
   fetchDetail: fetchDetail,

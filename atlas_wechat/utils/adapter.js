@@ -5,7 +5,7 @@ const { MARKETS } = require('./mock');
 const { formatDataUpdatedLabel } = require('./time');
 
 const STRATEGY_API = {
-  trend: { strategy: 'qsn', trendPeriodTypes: 'week,month', opPeriodType: 'day' },
+  trend: { strategy: 'qsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
   rebound: { strategy: 'default', trendPeriodTypes: 'week,month', opPeriodType: 'day' },
   multi: { strategy: 'multi', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' }
 };
@@ -55,6 +55,7 @@ function barsToKlines(bars) {
   if (!bars || !bars.length) return [];
   return bars.map(function (b) {
     return {
+      day: b.day || '',
       open: b.open,
       high: b.high,
       low: b.low,
@@ -96,18 +97,20 @@ function buildUnilateralTags(item) {
   var tags = [];
   var tier = parseUnilateralTier(item.trendMessage);
   var label = parseUnilateralTrendLabel(item.trendMessage);
-  if (tier === 'S') tags.push('共振');
-  else if (tier === 'A') tags.push('均线多头');
-  else if (tier === 'B') tags.push('待确认');
-  else if (tier === 'C') tags.push('月K拐点');
-  if (item.signalMessage && item.signalMessage.indexOf('月K阳反阴') >= 0) {
-    tags.push('月K信号');
+  if (tier === 'S') tags.push('短线金叉');
+  else if (tier === 'A') tags.push('中线金叉');
+  else if (tier === 'B') tags.push('长线金叉');
+  if (item.signalMessage && item.signalMessage.indexOf('日K MACD金叉') >= 0) {
+    tags.push('日K金叉');
   }
-  if (item.signalMessage && (item.signalMessage.indexOf('梯子试盘') >= 0 || item.signalMessage.indexOf('均线再起') >= 0)) {
-    tags.push('梯子试盘');
+  if (item.signalMessage && item.signalMessage.indexOf('周K MACD金叉') >= 0) {
+    tags.push('周K金叉');
   }
-  if (item.signalMessage && item.signalMessage.indexOf('平台突破') >= 0) {
-    tags.push('突破延续');
+  if (item.signalMessage && item.signalMessage.indexOf('月K MACD金叉') >= 0) {
+    tags.push('月K金叉');
+  }
+  if (item.trendMessage && item.trendMessage.indexOf('年MACD>0') >= 0) {
+    tags.push('年K多头');
   }
   if (label && tags.indexOf(label) < 0 && label.length <= 12) {
     tags.push(label);

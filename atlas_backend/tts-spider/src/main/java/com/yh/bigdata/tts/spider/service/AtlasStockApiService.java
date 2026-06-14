@@ -14,6 +14,9 @@ public interface AtlasStockApiService {
 
     List<AtlasKlineBarVo> getKlines(String code, String period, int limit);
 
+    /** 雪球实时拉取 K 线，仅返回不落库 */
+    List<AtlasKlineBarVo> refreshKlines(String code, String period, int limit);
+
     AtlasStockDetailVo getDetail(String code);
 
     Map<String, AtlasCompassModuleVo> getCompass(String code);

@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 多周期强势（multi）· v1.0：Gate + 日/周/月共振 + 波段/梯子突破
+ * 多周期强势（multi）· v2.0：Gate + 周/月 MACD&gt;0 + 日 K 突破前一日
  * @see docs/strategies/多周期强势策略.md
  */
 @Slf4j
@@ -37,9 +37,8 @@ public class MultiStrengthStrategy extends AbstractStrategy {
     @Override
     public List<PeriodTypeEnum> getTrendPeriodTypes() {
         return Arrays.asList(
-                PeriodTypeEnum.YEAR,
-                PeriodTypeEnum.MONTH,
                 PeriodTypeEnum.WEEK,
+                PeriodTypeEnum.MONTH,
                 PeriodTypeEnum.DAY);
     }
 

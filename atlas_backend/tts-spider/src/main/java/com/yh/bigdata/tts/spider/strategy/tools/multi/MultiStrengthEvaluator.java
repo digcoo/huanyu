@@ -7,8 +7,7 @@ import com.yh.bigdata.tts.spider.response.CheckResult;
 import lombok.Getter;
 
 /**
- * 多周期强势 v1.0 · 评估编排
- * @see docs/strategies/多周期强势策略.md
+ * 多周期强势 v2.0 · Gate 之后：周+月 MACD&gt;0 + 日 K 突破前一日
  */
 public final class MultiStrengthEvaluator {
 
@@ -18,17 +17,14 @@ public final class MultiStrengthEvaluator {
     public static MultiEvaluation evaluate(StockBase stock, CheckResult checkResult,
                                            MultiStrategyParams params) {
         MultiStrategyParams p = params != null ? params : MultiStrategyParams.defaults();
+        MultiMacdBreakoutTools.MacdBreakoutSnapshot snap = MultiMacdBreakoutTools.evaluate(stock);
 
-        MultiResonanceTools.ResonanceSnapshot resonance = MultiResonanceTools.evaluate(stock);
-        MultiBreakoutTools.BreakoutSnapshot breakout = MultiBreakoutTools.evaluate(stock, p);
-
-        if (resonance.coreCount() < p.getMinResonancePeriods()) {
-            return new MultiEvaluation(resonance, breakout, false);
+        MultiEvaluation eval = new MultiEvaluation(snap, false);
+        if (!snap.hit) {
+            return eval;
         }
 
-        MultiEvaluation eval = new MultiEvaluation(resonance, breakout, false);
-
-        char tier = MultiScoreCalculator.computeTier(eval, p);
+        char tier = MultiScoreCalculator.computeTier(eval);
         eval.setTier(tier);
         if (tier == 'N' || !p.passTierFilter(tier)) {
             return eval;
@@ -45,29 +41,21 @@ public final class MultiStrengthEvaluator {
     private static void fillMessages(CheckResult checkResult, MultiEvaluation eval) {
         char tier = eval.getTier();
         String trendLabel = MultiScoreCalculator.buildTrendLabel(tier);
-        String trendDetail = MultiScoreCalculator.buildTrendDetail(eval.getResonance());
+        String trendDetail = MultiScoreCalculator.buildTrendDetail(eval.getSnapshot());
         checkResult.addTrendPeriod(PeriodTypeEnum.WEEK,
                 "[" + tier + "]" + trendLabel + "|" + trendDetail);
-
-        String signalDetail = eval.getBreakout().buildSignalMessage();
-        if (signalDetail != null && !signalDetail.isEmpty()) {
-            checkResult.addSignal(PeriodTypeEnum.DAY, signalDetail);
-        }
+        checkResult.addSignal(PeriodTypeEnum.DAY, MultiScoreCalculator.buildSignalDetail(eval.getSnapshot()));
     }
 
     @Getter
     public static final class MultiEvaluation {
-        private final MultiResonanceTools.ResonanceSnapshot resonance;
-        private final MultiBreakoutTools.BreakoutSnapshot breakout;
+        private final MultiMacdBreakoutTools.MacdBreakoutSnapshot snapshot;
         private boolean hit;
         private int score;
-        private char tier = 'C';
+        private char tier = 'N';
 
-        public MultiEvaluation(MultiResonanceTools.ResonanceSnapshot resonance,
-                               MultiBreakoutTools.BreakoutSnapshot breakout,
-                               boolean hit) {
-            this.resonance = resonance;
-            this.breakout = breakout;
+        public MultiEvaluation(MultiMacdBreakoutTools.MacdBreakoutSnapshot snapshot, boolean hit) {
+            this.snapshot = snapshot;
             this.hit = hit;
         }
 

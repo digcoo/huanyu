@@ -117,11 +117,11 @@ const MARKET_SENTIMENT = {
 const STRATEGIES = [
   {
     id: 'trend',
-    name: '单边趋势',
+    name: '金叉策略',
     icon: '📈',
     iconImage: '/assets/strategy/trend-icon.png',
-    badge: 'TREND',
-    desc: '梯子试盘 · 均线多头 · 突破延续'
+    badge: 'MACD',
+    desc: '短线 · 中线 · 长线 MACD 金叉'
   },
   {
     id: 'rebound',

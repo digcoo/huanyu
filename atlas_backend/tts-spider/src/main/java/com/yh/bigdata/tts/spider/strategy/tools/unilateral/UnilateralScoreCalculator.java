@@ -1,88 +1,129 @@
-package com.yh.bigdata.tts.spider.strategy.tools.unilateral;
-
-/**
- * 单边趋势 v1.0 · 评分与展示档位
- */
-public final class UnilateralScoreCalculator {
-
-    private UnilateralScoreCalculator() {
-    }
-
-    public static int computeScore(UnilateralTrendEvaluator.UnilateralEvaluation eval) {
-        int score = 0;
-        UnilateralContinuationTools.ContinuationContext ctx = eval.getContext();
-        UnilateralContinuationTools.ContinuationTrigger trigger = eval.getTrigger();
-
-        if (ctx.weekOverMa20) score += 10;
-        if (ctx.weekMa5OverMa20) score += 10;
-        if (ctx.weekOverLastLow) score += 10;
-        if (ctx.monthOverMa20) score += 8;
-        if (ctx.monthDirectionOk) score += 5;
-
-        if (trigger.platformBreakout) score += 15;
-        if (trigger.ma5Reclaim) score += 12;
-        if (trigger.macdOk) score += 10;
-
-        if (eval.isModeBFull()) score += 20;
-        if (eval.isModeA()) score += 15;
-        if (eval.isModeBFull() && eval.isModeA()) score += 25;
-
-        return score;
-    }
-
-    /**
-     * S=共振延续 A=完整延续 B=环境待确认 C=仅拐点
-     */
-    public static char computeTier(UnilateralTrendEvaluator.UnilateralEvaluation eval) {
-        if (eval.isModeBFull()) {
-            if (eval.isModeA() || eval.getContext().monthBonusCount() >= 2) {
-                return 'S';
-            }
-            return 'A';
-        }
-        if (eval.isModeBWeak()) {
-            return 'B';
-        }
-        if (eval.isModeA()) {
-            return 'C';
-        }
-        return 'C';
-    }
-
-    public static String buildTrendLabel(char tier, UnilateralTrendEvaluator.UnilateralEvaluation eval) {
-        switch (tier) {
-            case 'S':
-                return "趋势延续·共振";
-            case 'A':
-                return "梯子试盘·均线多头";
-            case 'B':
-                return "趋势环境·待确认";
-            default:
-                return "月K拐点·观察";
-        }
-    }
-
-    public static String buildTrendDetail(UnilateralContinuationTools.ContinuationContext ctx) {
-        StringBuilder sb = new StringBuilder();
-        if (ctx.weekMa5OverMa20) sb.append("周MA5>MA20,");
-        else if (ctx.weekOverMa20) sb.append("周MA20上,");
-        if (ctx.weekOverLastLow) sb.append("周Low抬高,");
-        if (ctx.monthOverMa20) sb.append("月MA20上,");
-        if (ctx.monthDirectionOk) sb.append("月方向OK,");
-        if (sb.length() == 0) {
-            return "单边趋势";
-        }
-        return sb.substring(0, sb.length() - 1);
-    }
-
-    public static String buildSignalDetail(UnilateralContinuationTools.ContinuationTrigger trigger) {
-        StringBuilder sb = new StringBuilder();
-        if (trigger.platformBreakout) sb.append("日K平台突破,");
-        if (trigger.ma5Reclaim) sb.append("日K梯子试盘,");
-        if (trigger.macdOk) sb.append("日K MACD确认,");
-        if (sb.length() == 0) {
-            return "";
-        }
-        return sb.substring(0, sb.length() - 1);
-    }
-}
+package com.yh.bigdata.tts.spider.strategy.tools.unilateral;
+
+import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
+
+/**
+ * 金叉策略 v3.0 · 评分与展示档位（S=短线 A=中线 B=长线）
+ */
+public final class UnilateralScoreCalculator {
+
+    private UnilateralScoreCalculator() {
+    }
+
+    public static int computeScore(UnilateralTrendEvaluator.UnilateralEvaluation eval) {
+        int score = 0;
+        if (eval.isShortHit()) {
+            score += 40;
+            if (eval.isWeekMacdPositive()) {
+                score += 10;
+            }
+        }
+        if (eval.isMediumHit()) {
+            score += 35;
+            if (eval.isMonthMacdPositive()) {
+                score += 10;
+            }
+        }
+        if (eval.isLongHit()) {
+            score += 30;
+            if (eval.isYearMacdPositive()) {
+                score += 10;
+            }
+        }
+        int modeCount = (eval.isShortHit() ? 1 : 0) + (eval.isMediumHit() ? 1 : 0) + (eval.isLongHit() ? 1 : 0);
+        if (modeCount >= 2) {
+            score += 15;
+        }
+        if (modeCount >= 3) {
+            score += 10;
+        }
+        return score;
+    }
+
+    /** S=短线 A=中线 B=长线；多档同时命中时优先展示更短周期 */
+    public static char computeTier(UnilateralTrendEvaluator.UnilateralEvaluation eval) {
+        if (eval.isShortHit()) {
+            return 'S';
+        }
+        if (eval.isMediumHit()) {
+            return 'A';
+        }
+        if (eval.isLongHit()) {
+            return 'B';
+        }
+        return 'N';
+    }
+
+    public static PeriodTypeEnum trendPeriodForTier(char tier) {
+        switch (tier) {
+            case 'S':
+                return PeriodTypeEnum.WEEK;
+            case 'A':
+                return PeriodTypeEnum.MONTH;
+            case 'B':
+                return PeriodTypeEnum.YEAR;
+            default:
+                return PeriodTypeEnum.WEEK;
+        }
+    }
+
+    public static PeriodTypeEnum signalPeriodForTier(char tier) {
+        switch (tier) {
+            case 'S':
+                return PeriodTypeEnum.DAY;
+            case 'A':
+                return PeriodTypeEnum.WEEK;
+            case 'B':
+                return PeriodTypeEnum.MONTH;
+            default:
+                return PeriodTypeEnum.DAY;
+        }
+    }
+
+    public static String buildTrendLabel(char tier) {
+        switch (tier) {
+            case 'S':
+                return "短线金叉";
+            case 'A':
+                return "中线金叉";
+            case 'B':
+                return "长线金叉";
+            default:
+                return "MACD金叉";
+        }
+    }
+
+    public static String buildTrendDetail(UnilateralTrendEvaluator.UnilateralEvaluation eval) {
+        StringBuilder sb = new StringBuilder();
+        if (eval.isShortHit()) {
+            sb.append("周MACD>0,");
+        }
+        if (eval.isMediumHit()) {
+            sb.append("月MACD>0,");
+        }
+        if (eval.isLongHit()) {
+            sb.append("年MACD>0,");
+        }
+        if (sb.length() == 0) {
+            return "MACD";
+        }
+        return sb.substring(0, sb.length() - 1);
+    }
+
+    public static String buildSignalDetail(UnilateralTrendEvaluator.UnilateralEvaluation eval) {
+        StringBuilder sb = new StringBuilder();
+        if (eval.isShortHit()) {
+            sb.append("日K MACD金叉,");
+        }
+        if (eval.isMediumHit()) {
+            sb.append("周K MACD金叉,");
+        }
+        if (eval.isLongHit()) {
+            sb.append("月K MACD金叉,");
+        }
+        if (sb.length() == 0) {
+            return "";
+        }
+        return sb.substring(0, sb.length() - 1);
+    }
+}

@@ -34,19 +34,29 @@ public class StockPageQuery extends PageQuery {
     private Integer lianBanDays;
     private String trendPeriodTypes;
 
-    /** 单边趋势 · 日 K 平台回溯根数 */
-    private Integer uDayLookback;
-    /** 单边趋势 · 强阳阈值（%，如 3 表示 3%） */
-    private Double uStrongYangPct;
-    /** 单边趋势 · 周 K 环境最少满足项数 1-3 */
-    private Integer uWeekContextMin;
-    /** 单边趋势 · 最低日均成交额（万） */
+    /** 金叉策略 · 最低日均成交额（万） */
     private Integer uMinAmountWan;
-    private Boolean uEnableModeB;
-    private Boolean uEnableModeA;
-    private Boolean uEnableModeBWeak;
-    /** 单边趋势 · 最低档位 ALL/S/A/B/C */
+    /** 金叉策略 · 启用短线（周 MACD&gt;0 + 日金叉） */
+    private Boolean uEnableShort;
+    /** 金叉策略 · 启用中线（月 MACD&gt;0 + 周金叉） */
+    private Boolean uEnableMedium;
+    /** 金叉策略 · 启用长线（年 MACD&gt;0 + 月金叉） */
+    private Boolean uEnableLong;
+    /** 金叉策略 · 最低档位 ALL/S/A/B（S=短线 A=中线 B=长线） */
     private String uTierMin;
+
+    /** @deprecated v3.0 忽略 */
+    private Integer uDayLookback;
+    /** @deprecated v3.0 忽略 */
+    private Double uStrongYangPct;
+    /** @deprecated v3.0 忽略 */
+    private Integer uWeekContextMin;
+    /** @deprecated v3.0 忽略 */
+    private Boolean uEnableModeB;
+    /** @deprecated v3.0 忽略 */
+    private Boolean uEnableModeA;
+    /** @deprecated v3.0 忽略 */
+    private Boolean uEnableModeBWeak;
 
     /** 深坑反弹 · 最低日均成交额（万） */
     private Integer rMinAmountWan;
@@ -107,26 +117,21 @@ public class StockPageQuery extends PageQuery {
 
     public UnilateralStrategyParams toUnilateralParams() {
         UnilateralStrategyParams.UnilateralStrategyParamsBuilder b = UnilateralStrategyParams.builder();
-        if (uDayLookback != null) {
-            b.dayPlatformLookback(uDayLookback);
-        }
-        if (uStrongYangPct != null) {
-            b.strongYangRate(uStrongYangPct / 100.0);
-        }
-        if (uWeekContextMin != null) {
-            b.weekContextMin(uWeekContextMin);
-        }
         if (uMinAmountWan != null) {
             b.minAvgAmount(uMinAmountWan * 10_000D);
         }
-        if (uEnableModeB != null) {
-            b.enableModeB(uEnableModeB);
+        if (uEnableShort != null) {
+            b.enableShort(uEnableShort);
+        } else if (uEnableModeB != null) {
+            b.enableShort(uEnableModeB);
         }
-        if (uEnableModeA != null) {
-            b.enableModeA(uEnableModeA);
+        if (uEnableMedium != null) {
+            b.enableMedium(uEnableMedium);
+        } else if (uEnableModeA != null) {
+            b.enableMedium(uEnableModeA);
         }
-        if (uEnableModeBWeak != null) {
-            b.enableModeBWeak(uEnableModeBWeak);
+        if (uEnableLong != null) {
+            b.enableLong(uEnableLong);
         }
         if (uTierMin != null && !uTierMin.isEmpty()) {
             b.tierMin(uTierMin);

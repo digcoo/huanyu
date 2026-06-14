@@ -1,4 +1,4 @@
-const { calcPriceRange, buildCloseMaSegments, MA_LINE_CONFIGS } = require('../../utils/kline');
+const { calcPriceRange, buildCloseMaSegments, MA_LINE_CONFIGS, findBarIndexByTimestamp } = require('../../utils/kline');
 
 const MA_LEGEND = MA_LINE_CONFIGS.map(function (cfg) {
   return {
@@ -45,6 +45,14 @@ Component({
       type: String,
       value: ''
     },
+    markerAt: {
+      type: Number,
+      value: 0
+    },
+    activePeriod: {
+      type: String,
+      value: 'week'
+    },
     updatedLabel: {
       type: String,
       value: ''
@@ -70,6 +78,12 @@ Component({
       this.render(this.properties.klines);
     },
     markerLabel() {
+      this.render(this.properties.klines);
+    },
+    markerAt() {
+      this.render(this.properties.klines);
+    },
+    activePeriod() {
       this.render(this.properties.klines);
     }
   },
@@ -101,9 +115,13 @@ Component({
       }
 
       const markerLabel = this.properties.markerLabel;
+      const markerAt = this.properties.markerAt;
+      const activePeriod = this.properties.activePeriod || 'week';
       const isCard = size === 'card' || size === 'wide';
       const limit = maxBars > 0 ? maxBars : 50;
-      const sliced = klines.length > limit ? klines.slice(-limit) : klines.slice();
+      const full = klines.slice();
+      const sliceOffset = klines.length > limit ? klines.length - limit : 0;
+      const sliced = sliceOffset > 0 ? klines.slice(-limit) : full.slice();
 
       const marginRatio = isCard ? 0.04 : 0.05;
       const range = calcPriceRange(sliced, marginRatio);
@@ -113,6 +131,16 @@ Component({
       const bodyRatio = isCard ? 0.94 : 0.88;
       const gapRatio = (1 - bodyRatio) / 2;
       const minBodyPct = isCard ? 2.8 : 1.5;
+
+      var markerIndex = null;
+      if (markerLabel) {
+        if (markerAt != null && markerAt !== '' && markerAt !== 0) {
+          markerIndex = findBarIndexByTimestamp(full, markerAt, activePeriod, sliceOffset);
+        }
+        if (markerIndex == null) {
+          markerIndex = count - 1;
+        }
+      }
 
       const bars = sliced.map((k, i) => {
         const isBull = k.close >= k.open;
@@ -145,12 +173,12 @@ Component({
           showUpperWick: upperWickH > 0.2,
           showLowerWick: lowerWickH > 0.2,
           dirClass: isBull ? 'bull' : 'bear',
-          isMarker: !!markerLabel && i === count - 1
+          isMarker: markerIndex != null && i === markerIndex
         };
       });
 
-      const markerLeft = markerLabel && count > 0
-        ? ((count - 1) * slotW + slotW / 2).toFixed(2)
+      const markerLeft = markerIndex != null && count > 0
+        ? ((markerIndex) * slotW + slotW / 2).toFixed(2)
         : null;
 
       const showMA = isCard && count >= 5;

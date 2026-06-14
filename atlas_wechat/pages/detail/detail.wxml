@@ -42,18 +42,29 @@
     <!-- ① K 线 -->
     <view class="kline-section kline-section-top">
       <view class="period-sticky" style="top: {{statusBarHeight + 44}}px">
-        <period-switcher
-          activePeriod="{{activePeriod}}"
-          flipped="{{klineFlipped}}"
-          bind:change="onPeriodChange"
-          bind:flip="onFlipKline"
-        />
+        <view class="kline-toolbar">
+          <view class="kline-toolbar-main">
+            <period-switcher
+              activePeriod="{{activePeriod}}"
+              flipped="{{klineFlipped}}"
+              bind:change="onPeriodChange"
+              bind:flip="onFlipKline"
+            />
+          </view>
+          <view
+            class="kline-refresh-btn {{klineRefreshing ? 'loading' : ''}}"
+            bindtap="onRefreshKlines"
+          >
+            <text class="kline-refresh-icon">↻</text>
+          </view>
+        </view>
+        <text class="kline-refresh-hint">库内 K 线可能滞后，点 ↻ 从行情源拉最新（不入库）</text>
       </view>
       <view class="kline-panel">
         <mini-kline
           wx:if="{{chartKlines.length}}"
           klines="{{chartKlines}}"
-          label="{{c.periodLabel(activePeriod)}} · 50根"
+          label="{{c.periodLabel(activePeriod)}} · 50根{{klineLive ? ' · 实时' : ''}}"
           size="card"
           maxBars="{{c.maxBars(activePeriod)}}"
           flipped="{{klineFlipped}}"

@@ -11,9 +11,13 @@ function mapChartKlines(list, period) {
   });
 }
 
+const { normalizeTimestamp } = require('../../utils/time');
+
 function formatAddedAt(ts) {
   if (!ts) return '';
-  const d = new Date(ts);
+  const ms = normalizeTimestamp(ts);
+  if (!ms) return '';
+  const d = new Date(ms);
   const now = new Date();
   const pad = function (n) { return n < 10 ? '0' + n : '' + n; };
   const time = pad(d.getHours()) + ':' + pad(d.getMinutes());

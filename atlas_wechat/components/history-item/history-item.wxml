@@ -28,6 +28,8 @@
     klines="{{item.chartKlines}}"
     label="{{c.periodLabel(activePeriod)}}"
     markerLabel="{{item.markerLabel}}"
+    markerAt="{{item.addedAt}}"
+    activePeriod="{{activePeriod}}"
     size="card"
     maxBars="{{c.maxBars(activePeriod)}}"
     flipped="{{flipped}}"

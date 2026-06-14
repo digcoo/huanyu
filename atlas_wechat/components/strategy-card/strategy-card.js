@@ -1,3 +1,5 @@
+const adapter = require('../../utils/adapter');
+
 Component({
   properties: {
     item: {
@@ -78,6 +80,18 @@ Component({
       const item = this._getItem();
       if (!item.id) return;
       this.triggerEvent('cardtap', { item });
+    },
+
+    onCopyCode() {
+      const item = this._getItem();
+      const code = adapter.displayCode(item.code);
+      if (!code) return;
+      wx.setClipboardData({
+        data: code,
+        success: function () {
+          wx.showToast({ title: '代码已复制', icon: 'success', duration: 1200 });
+        }
+      });
     }
   }
 });

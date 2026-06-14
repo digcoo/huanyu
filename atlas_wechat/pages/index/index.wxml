@@ -97,7 +97,10 @@
     <view class="list-header">
 
       <view class="list-header-main">
-        <text class="list-subtitle">{{activeStrategyMeta.desc}}</text>
+        <view class="list-title-row">
+          <text class="list-subtitle">{{activeStrategyMeta.desc}}</text>
+          <text wx:if="{{!loading}}" class="list-total">共 {{totalCount}} 条{{recommendations.length > 0 && recommendations.length < totalCount ? ' · 已显示 ' + recommendations.length : ''}}</text>
+        </view>
         <text wx:if="{{paramsSummary}}" class="list-params">{{paramsSummary}}</text>
       </view>
 
@@ -120,13 +123,18 @@
 
 
 
-    <view wx:if="{{recommendations.length === 0}}" class="empty-state">
+    <view wx:if="{{loading && recommendations.length === 0}}" class="empty-state">
+      <text class="empty-icon">⏳</text>
+      <text class="empty-text">加载推荐中…</text>
+    </view>
+
+    <view wx:elif="{{recommendations.length === 0}}" class="empty-state">
 
       <text class="empty-icon">📭</text>
 
-      <text class="empty-text">该策略暂无推荐</text>
+      <text class="empty-text">{{totalCount > 0 ? '当前可见列表为空' : '该策略暂无推荐'}}</text>
 
-      <text class="empty-hint">切换市场或其他策略查看更多标的</text>
+      <text class="empty-hint">{{totalCount > 0 ? '可能已全部忽略，可切换策略或清除忽略记录' : '切换市场或其他策略查看更多标的'}}</text>
 
     </view>
 
