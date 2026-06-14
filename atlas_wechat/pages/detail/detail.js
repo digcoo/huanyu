@@ -2,10 +2,56 @@ const detailApi = require('../../utils/detail-api');
 const config = require('../../utils/config');
 const auth = require('../../utils/auth');
 const adapter = require('../../utils/adapter');
+const stockApi = require('../../utils/stock-api');
+const ladderMarkers = require('../../utils/ladder-markers');
+const strategyParams = require('../../utils/strategy-params');
 
 function mapChartKlines(detail, period) {
   if (!detail || !detail.klines) return [];
   return detail.klines[period] ? detail.klines[period].slice() : [];
+}
+
+function syncLadderMarkers(page, detail, period, klines) {
+  if (!detail || !ladderMarkers.isLadderStrategy(adapter.extractStrategy(detail.id)) || period !== 'min30') {
+    page.setData({ ladderBarMarkers: [], ladderMarkerEpoch: 0 });
+    return Promise.resolve([]);
+  }
+  if (config.useMock) {
+    var mockMarkers = ladderMarkers.buildMockLadderMarkers(klines || page.data.chartKlines);
+    page.setData({ ladderBarMarkers: mockMarkers, ladderMarkerEpoch: Date.now() });
+    return Promise.resolve(mockMarkers);
+  }
+
+  function applyMarkerVo(m) {
+    var markers = ladderMarkers.markersVoToBarMarkers(m);
+    page.setData({ ladderBarMarkers: markers, ladderMarkerEpoch: Date.now() });
+    return markers;
+  }
+
+  var cached = ladderMarkers.parseMarkersFromSignal(detail);
+  if (cached && (cached.referenceDay || cached.signalDay)) {
+    return Promise.resolve(applyMarkerVo(cached));
+  }
+
+  return stockApi.fetchLadderMarkers(detail.code).then(function (m) {
+    if (m && (m.referenceDay || m.signalDay)) {
+      return applyMarkerVo(m);
+    }
+    return stockApi.fetchSummary(detail.code).then(function (item) {
+      if (item && item.signalMessage) {
+        detail.signalMessage = item.signalMessage;
+      }
+      var parsed = ladderMarkers.parseMarkersFromSignal(detail);
+      if (parsed && (parsed.referenceDay || parsed.signalDay)) {
+        return applyMarkerVo(parsed);
+      }
+      page.setData({ ladderBarMarkers: [], ladderMarkerEpoch: Date.now() });
+      return [];
+    });
+  }).catch(function () {
+    page.setData({ ladderBarMarkers: [], ladderMarkerEpoch: Date.now() });
+    return [];
+  });
 }
 
 Page({
@@ -25,36 +71,49 @@ Page({
     notFound: false,
     inWatchlist: false,
     klineRefreshing: false,
-    klineLive: false
+    klineLive: false,
+    ladderBarMarkers: [],
+    ladderMarkerEpoch: 0
   },
 
   onLoad(options) {
     const sys = wx.getSystemInfoSync();
-    const savedPeriod = wx.getStorageSync('activePeriod') || 'week';
-    const klineFlipped = !!wx.getStorageSync('klineFlipped');
     const id = options.id || '';
+    const strategy = adapter.extractStrategy(id);
+    const savedPeriod = wx.getStorageSync('activePeriod') || 'week';
+    const initialPeriod = strategy === 'ladder'
+      ? strategyParams.ladderPrimaryPeriod(strategyParams.load('ladder'))
+      : savedPeriod;
+    const klineFlipped = !!wx.getStorageSync('klineFlipped');
     const self = this;
 
     this.setData({
       statusBarHeight: sys.statusBarHeight || 20,
-      activePeriod: savedPeriod,
+      activePeriod: initialPeriod,
       klineFlipped,
       loading: true,
       notFound: false
     });
 
-    detailApi.loadDetail(id, savedPeriod).then(function (detail) {
+    detailApi.loadDetail(id, initialPeriod).then(function (detail) {
       if (!detail) {
         self.setData({ loading: false, notFound: true });
         return;
       }
+      var app = getApp();
+      var hint = app.globalData.detailSignalHint;
+      if (hint && hint.id === id && hint.signalMessage) {
+        detail.signalMessage = hint.signalMessage;
+        app.globalData.detailSignalHint = null;
+      }
       self.setData({
         detail: detail,
-        chartKlines: mapChartKlines(detail, savedPeriod),
+        chartKlines: mapChartKlines(detail, initialPeriod),
         loading: false,
         notFound: false
       }, function () {
         self.updateWatchState();
+        syncLadderMarkers(self, detail, initialPeriod, mapChartKlines(detail, initialPeriod));
       });
     }).catch(function () {
       self.setData({ loading: false, notFound: true });
@@ -62,10 +121,14 @@ Page({
   },
 
   onShow() {
+    const detail = this.data.detail;
+    const period = this.data.activePeriod;
     this.setData({
-      klineFlipped: !!wx.getStorageSync('klineFlipped'),
-      activePeriod: wx.getStorageSync('activePeriod') || this.data.activePeriod
+      klineFlipped: !!wx.getStorageSync('klineFlipped')
     });
+    if (detail && ladderMarkers.isLadderStrategy(adapter.extractStrategy(detail.id)) && period === 'min30') {
+      syncLadderMarkers(this, detail, period, this.data.chartKlines);
+    }
     this.updateWatchState();
   },
 
@@ -102,11 +165,13 @@ Page({
     if (!detail) return;
 
     if (config.useMock || (detail.klines && detail.klines[period])) {
+      var klines = mapChartKlines(detail, period);
       this.setData({
         activePeriod: period,
-        chartKlines: mapChartKlines(detail, period),
+        chartKlines: klines,
         klineLive: false
       });
+      syncLadderMarkers(this, detail, period, klines);
       return;
     }
 
@@ -119,6 +184,7 @@ Page({
         chartKlines: klines.slice(),
         klineLive: false
       });
+      syncLadderMarkers(self, detail, period, klines);
     });
   },
 
@@ -162,6 +228,7 @@ Page({
         klineRefreshing: false,
         klineLive: !config.useMock
       });
+      syncLadderMarkers(self, detail, period, klines);
       wx.showToast({ title: '已拉取最新 K 线', icon: 'success', duration: 1200 });
     }).catch(function () {
       self.setData({ klineRefreshing: false });

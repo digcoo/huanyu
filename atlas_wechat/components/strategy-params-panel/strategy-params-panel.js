@@ -45,7 +45,8 @@ Component({
       var form = strategyParams.load(strategyId);
       var tierField = schema.find(function (f) {
         return f.type === 'picker' && (
-          f.key === 'uTierMin' || f.key === 'rTierMin' || f.key === 'pTierMin' || f.key === 'cTierMin'
+          f.key === 'uTierMin' || f.key === 'rTierMin' || f.key === 'pTierMin'
+            || f.key === 'cTierMin' || f.key === 'lTierMin'
         );
       });
       var tierIndex = 0;

@@ -51,6 +51,8 @@
       maxBars="{{c.maxBars(activePeriod)}}"
       flipped="{{flipped}}"
       resonance="{{item.resonance}}"
+      activePeriod="{{activePeriod}}"
+      barMarkers="{{item.barMarkers}}"
       updatedLabel="{{item.dataUpdatedLabel}}"
     />
     <view wx:else class="chart-empty">

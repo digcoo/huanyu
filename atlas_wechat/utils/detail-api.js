@@ -16,11 +16,13 @@ function loadDetail(id, period) {
   return Promise.all([
     stockApi.fetchDetail(code),
     stockApi.fetchKlines(code, period, 50),
-    stockApi.fetchCompass(code)
+    stockApi.fetchCompass(code),
+    strategy === 'ladder' ? stockApi.fetchSummary(code) : Promise.resolve(null)
   ]).then(function (results) {
     var detailRes = results[0];
     var bars = results[1];
     var compassRes = results[2];
+    var summaryItem = results[3];
 
     if (!detailRes.ok || !detailRes.data) {
       if (config.fallbackOnError) return detailMock.getDetailById(id);
@@ -39,6 +41,8 @@ function loadDetail(id, period) {
       changePct: d.changePct,
       strategy: strategy,
       summary: (profile && profile.businessOneLiner) || d.businessBrief || d.mainBusiness || '',
+      signalMessage: (summaryItem && summaryItem.signalMessage) || '',
+      trendMessage: (summaryItem && summaryItem.trendMessage) || '',
       tags: [],
       showStrategy: false,
       resonance: null,

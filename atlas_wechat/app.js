@@ -7,7 +7,8 @@ App({
     watchlist: [],
     history: [],
     ignoredIds: [],
-    loggedIn: false
+    loggedIn: false,
+    detailSignalHint: null
   },
 
   onLaunch() {

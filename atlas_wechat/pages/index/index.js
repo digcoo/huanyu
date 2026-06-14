@@ -10,17 +10,28 @@ const auth = require('../../utils/auth');
 const stockApi = require('../../utils/stock-api');
 const adapter = require('../../utils/adapter');
 const strategyParams = require('../../utils/strategy-params');
+const ladderMarkers = require('../../utils/ladder-markers');
 
 const app = getApp();
 
 const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
 
-function mapChartKlines(list, period) {
+function mapChartKlines(list, period, strategyId) {
   return list.map(function (item) {
     var fromStore = item.klines && item.klines[period] ? item.klines[period].slice() : null;
     var klines = fromStore || (item.chartKlines ? item.chartKlines.slice() : []);
-    return Object.assign({}, item, { chartKlines: klines });
+    var barMarkers = ladderMarkers.shouldShowLadderMarkers(strategyId, period)
+      ? (item.barMarkers && item.barMarkers.length
+        ? item.barMarkers.slice()
+        : ladderMarkers.resolveBarMarkersForItem(item, strategyId, period, klines))
+      : [];
+    return Object.assign({}, item, { chartKlines: klines, barMarkers: barMarkers });
   });
+}
+
+function normalizeSavedStrategy(strategyId) {
+  if (strategyId === 'ultraLow') return 'ladder';
+  return strategyId;
 }
 
 function filterIgnored(items, ignored) {
@@ -111,11 +122,17 @@ function attachKlinesInBackground(self, items, period) {
       klineById[item.id] = item;
     });
     if (self._baseList && self._baseList.length) {
+      var strategyId = self.data.activeStrategy;
+      var activePeriod = period || self.data.activePeriod;
       self._baseList = self._baseList.map(function (item) {
         return klineById[item.id] ? Object.assign({}, item, klineById[item.id]) : item;
       });
-      self.setData({
-        recommendations: mapChartKlines(self._baseList, period || self.data.activePeriod)
+      return ladderMarkers.enrichItemsWithLadderMarkers(self._baseList, strategyId, activePeriod).then(function (enriched) {
+        self._baseList = enriched;
+        self.setData({
+          recommendations: mapChartKlines(enriched, activePeriod, strategyId)
+        });
+        return enriched;
       });
     }
     return withKlines;
@@ -171,17 +188,22 @@ Page({
     const navPaddingRight = sys.windowWidth - menu.left + 8;
 
     const savedPeriod = wx.getStorageSync('activePeriod') || 'week';
-    let savedStrategy = wx.getStorageSync('activeStrategy') || 'trend';
+    let savedStrategy = normalizeSavedStrategy(wx.getStorageSync('activeStrategy') || 'trend');
     if (savedStrategy === 'multi') {
       savedStrategy = 'trend';
+    }
+    if (savedStrategy !== wx.getStorageSync('activeStrategy')) {
       wx.setStorageSync('activeStrategy', savedStrategy);
     }
+    const initialPeriod = savedStrategy === 'ladder'
+      ? strategyParams.ladderPrimaryPeriod(strategyParams.load('ladder'))
+      : savedPeriod;
     const klineFlipped = !!wx.getStorageSync('klineFlipped');
 
     this.setData({
       statusBarHeight,
       navPaddingRight,
-      activePeriod: savedPeriod,
+      activePeriod: initialPeriod,
       activeStrategy: savedStrategy,
       activeStrategyMeta: findStrategyMeta(savedStrategy),
       klineFlipped
@@ -252,6 +274,16 @@ Page({
     var strategyId = detail.strategyId || this.data.activeStrategy;
     var shouldRescan = detail.rescan !== false;
     this.refreshParamsBadge(strategyId);
+
+    if (strategyId === 'ladder') {
+      var ladderPeriod = strategyParams.ladderPrimaryPeriod(
+        detail.params || strategyParams.load('ladder')
+      );
+      if (ladderPeriod !== this.data.activePeriod) {
+        wx.setStorageSync('activePeriod', ladderPeriod);
+        this.setData({ activePeriod: ladderPeriod });
+      }
+    }
 
     if (config.useMock) {
       wx.showToast({ title: 'Mock 模式参数不生效', icon: 'none' });
@@ -355,7 +387,7 @@ Page({
       self._loadPage = result.page;
       self._baseList = merged.list;
       self.setData({
-        recommendations: mapChartKlines(merged.list, period),
+        recommendations: mapChartKlines(merged.list, period, strategyId),
         totalCount: result.totalNum,
         hasMore: result.hasMore,
         loadingMore: false
@@ -384,7 +416,7 @@ Page({
     this.setData({
       activeMarket: marketId,
       indices,
-      recommendations: mapChartKlines(this._baseList, period),
+      recommendations: mapChartKlines(this._baseList, period, strategyId),
       totalCount: all.length,
       loading: false
     });
@@ -426,15 +458,18 @@ Page({
       self._loadPage = pageResult.page;
       self._backendPage = pageResult.page;
       self._baseList = pageResult.items;
-      self.setData({
-        activeMarket: marketId,
-        indices: indices,
-        recommendations: mapChartKlines(pageResult.items, period),
-        totalCount: pageResult.totalNum,
-        hasMore: pageResult.hasMore,
-        loading: false
+      return ladderMarkers.enrichItemsWithLadderMarkers(pageResult.items, strategyId, period).then(function (enriched) {
+        self._baseList = enriched;
+        self.setData({
+          activeMarket: marketId,
+          indices: indices,
+          recommendations: mapChartKlines(enriched, period, strategyId),
+          totalCount: pageResult.totalNum,
+          hasMore: pageResult.hasMore,
+          loading: false
+        });
+        applyKlinesForItems(self, enriched, period);
       });
-      applyKlinesForItems(self, pageResult.items, period);
     }).catch(function () {
       if (config.fallbackOnError) {
         self._allRecommendations = buildStrategyRecommendations();
@@ -467,9 +502,15 @@ Page({
   onStrategyChange(e) {
     const strategyId = e.detail.strategyId;
     wx.setStorageSync('activeStrategy', strategyId);
+    var period = this.data.activePeriod;
+    if (strategyId === 'ladder') {
+      period = strategyParams.ladderPrimaryPeriod(strategyParams.load('ladder'));
+      wx.setStorageSync('activePeriod', period);
+    }
     this.setData({
       activeStrategy: strategyId,
-      activeStrategyMeta: findStrategyMeta(strategyId)
+      activeStrategyMeta: findStrategyMeta(strategyId),
+      activePeriod: period
     });
     this.refreshParamsBadge(strategyId);
     if (config.useMock) {
@@ -481,11 +522,12 @@ Page({
 
   onPeriodChange(e) {
     const period = e.detail.period;
+    const strategyId = this.data.activeStrategy;
     wx.setStorageSync('activePeriod', period);
     if (config.useMock) {
       this.setData({
         activePeriod: period,
-        recommendations: mapChartKlines(this._baseList || [], period)
+        recommendations: mapChartKlines(this._baseList || [], period, strategyId)
       });
       return;
     }
@@ -493,7 +535,7 @@ Page({
     const baseList = this._baseList || [];
     this.setData({
       activePeriod: period,
-      recommendations: mapChartKlines(baseList, period)
+      recommendations: mapChartKlines(baseList, period, strategyId)
     });
     applyKlinesForItems(this, baseList, period);
     stockApi.fetchMarketIndices('cn', period).then(function (raw) {
@@ -534,9 +576,11 @@ Page({
   },
 
   _afterWatchlistAdd(item) {
+    const strategyId = this.data.activeStrategy;
+    const period = this.data.activePeriod;
     this._baseList = (this._baseList || []).filter(function (r) { return r.id !== item.id; });
     this.setData({
-      recommendations: mapChartKlines(this._baseList, this.data.activePeriod),
+      recommendations: mapChartKlines(this._baseList, period, strategyId),
       watchlistCount: app.globalData.watchlist.length
     });
   },
@@ -546,13 +590,20 @@ Page({
     app.ignoreItem(item.id);
     this._baseList = (this._baseList || []).filter(function (r) { return r.id !== item.id; });
     this.setData({
-      recommendations: mapChartKlines(this._baseList, this.data.activePeriod)
+      recommendations: mapChartKlines(this._baseList, this.data.activePeriod, this.data.activeStrategy)
     });
   },
 
   onCardTap(e) {
     const item = e.detail && e.detail.item;
     if (!item || !item.id) return;
+    const app = getApp();
+    if (item.signalMessage) {
+      app.globalData.detailSignalHint = {
+        id: item.id,
+        signalMessage: item.signalMessage
+      };
+    }
     wx.navigateTo({
       url: '/pages/detail/detail?id=' + item.id + '&name=' + encodeURIComponent(item.name)
     });
@@ -572,6 +623,13 @@ Page({
   onSearchSelect(e) {
     const item = e.detail && e.detail.item;
     if (!item || !item.id) return;
+    const app = getApp();
+    if (item.signalMessage) {
+      app.globalData.detailSignalHint = {
+        id: item.id,
+        signalMessage: item.signalMessage
+      };
+    }
     this.setData({ searchVisible: false });
     wx.navigateTo({
       url: '/pages/detail/detail?id=' + item.id + '&name=' + encodeURIComponent(item.name)

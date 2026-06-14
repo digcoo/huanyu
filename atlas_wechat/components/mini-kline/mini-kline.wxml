@@ -1,5 +1,5 @@
 <view class="mini-kline {{resonance}} size-{{size}} {{flipped ? 'is-flipped' : ''}}">
-  <view class="label-row" wx:if="{{label || markerLabel || maLegend || updatedLabel}}">
+  <view class="label-row" wx:if="{{label || markerLabel || hasMarkerLegend || maLegend || updatedLabel}}">
     <view class="label-left">
       <text class="label" wx:if="{{label}}">{{label}}</text>
       <view class="ma-legend" wx:if="{{maLegend}}">
@@ -14,6 +14,11 @@
     <view class="label-right">
       <text wx:if="{{updatedLabel}}" class="updated-label">更新 · {{updatedLabel}}</text>
       <text wx:if="{{markerLabel}}" class="marker-label">★ {{markerLabel}}</text>
+      <text
+        wx:for="{{markerLegend}}"
+        wx:key="type"
+        class="marker-label marker-{{item.type}}"
+      >★ {{item.label}}</text>
     </view>
   </view>
   <view class="chart-shell">
@@ -25,7 +30,7 @@
         <view
           wx:for="{{bars}}"
           wx:key="index"
-          class="candle-slot {{item.isMarker ? 'is-marker' : ''}}"
+          class="candle-slot {{item.slotClass}}"
           style="left: {{item.left}}%; width: {{item.width}}%;"
         >
           <view
@@ -54,8 +59,17 @@
       </view>
       <view
         wx:if="{{markerLeft}}"
-        class="add-marker"
+        class="add-marker marker-signal"
         style="left: {{markerLeft}}%;"
+      >
+        <view class="add-marker-line"></view>
+        <view class="add-marker-dot"></view>
+      </view>
+      <view
+        wx:for="{{markerPositions}}"
+        wx:key="key"
+        class="add-marker marker-{{item.type}}"
+        style="left: {{item.left}}%;"
       >
         <view class="add-marker-line"></view>
         <view class="add-marker-dot"></view>

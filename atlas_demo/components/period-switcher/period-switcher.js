@@ -2,7 +2,8 @@ const PERIODS = [
   { id: 'year', label: '年K' },
   { id: 'month', label: '月K' },
   { id: 'week', label: '周K' },
-  { id: 'day', label: '日K' }
+  { id: 'day', label: '日K' },
+  { id: 'min30', label: '30分' }
 ];
 
 Component({

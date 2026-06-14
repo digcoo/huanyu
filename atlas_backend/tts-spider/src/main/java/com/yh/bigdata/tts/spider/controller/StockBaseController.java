@@ -254,7 +254,7 @@ public class StockBaseController {
                 && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.PRE_GOLD_CROSS
                 && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.PERIOD_RESONANCE
                 && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.DEFAUL
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.ULTRA_LOW_REBOUND) {
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.LADDER_BREAKOUT) {
             log.warn("rescan unsupported strategy: {}", pageQuery.getStrategy());
             return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
         }

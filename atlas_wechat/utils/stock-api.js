@@ -107,6 +107,14 @@ function fetchKlinesRefresh(code, period, limit) {
   });
 }
 
+/** 梯子突破 · 30m 基准 K / 突破 K 标记 */
+function fetchLadderMarkers(code) {
+  return api.get('/stock/' + encodePath(code) + '/ladder/markers').then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
 function fetchSummary(code) {
   return api.get('/stock/' + encodePath(code)).then(function (res) {
     if (!res.ok || !res.data) return null;
@@ -172,6 +180,8 @@ module.exports = {
   triggerStrategyRescan: triggerStrategyRescan,
   fetchKlines: fetchKlines,
   fetchKlinesRefresh: fetchKlinesRefresh,
+  fetchLadderMarkers: fetchLadderMarkers,
+  fetchUlowMarkers: fetchLadderMarkers,
   fetchSummary: fetchSummary,
   search: search,
   fetchDetail: fetchDetail,

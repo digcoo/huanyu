@@ -82,15 +82,30 @@ public class StockPageQuery extends PageQuery {
     /** 周期共振 · 最低档位 ALL/S/A/B */
     private String cTierMin;
 
-    /** 超短线 · 最低日均成交额（万） */
+    /** 梯子突破 · 最低日均成交额（万） */
     private Integer lMinAmountWan;
     private String lTierMin;
+    private Boolean lEnableUltra;
+    private Boolean lEnableShort;
+    private Boolean lEnableMedium;
+    private Boolean lEnableLong;
     /** 30m 大阳线/大涨幅下限（0~1） */
     private Double lMin30BodyPct;
     /** 向前几个交易日（不含当日，1~2） */
     private Integer lMin30PrevDays;
     /** 每交易日最多几根 30m */
     private Integer lMin30BarsPerDay;
+    private Double lDayBodyPct;
+    private Integer lDayPrevWeeks;
+    private Integer lDayBarsPerWeek;
+    private Double lWeekBodyPct;
+    private Integer lWeekPrevMonths;
+    private Integer lWeekBarsPerMonth;
+    private Double lMonthBodyPct;
+    private Integer lMonthPrevYears;
+    private Integer lMonthBarsPerYear;
+    /** 长线现价过滤 1=启用 0=关闭 */
+    private Integer lLongPriceFilter;
 
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
@@ -218,6 +233,18 @@ public class StockPageQuery extends PageQuery {
         if (lTierMin != null && !lTierMin.isEmpty()) {
             b.tierMin(lTierMin);
         }
+        if (lEnableUltra != null) {
+            b.enableUltra(lEnableUltra);
+        }
+        if (lEnableShort != null) {
+            b.enableShort(lEnableShort);
+        }
+        if (lEnableMedium != null) {
+            b.enableMedium(lEnableMedium);
+        }
+        if (lEnableLong != null) {
+            b.enableLong(lEnableLong);
+        }
         if (lMin30BodyPct != null && lMin30BodyPct > 0) {
             b.min30BodyGainPct(lMin30BodyPct);
         }
@@ -226,6 +253,36 @@ public class StockPageQuery extends PageQuery {
         }
         if (lMin30BarsPerDay != null && lMin30BarsPerDay > 0) {
             b.min30BarsPerDay(lMin30BarsPerDay);
+        }
+        if (lDayBodyPct != null && lDayBodyPct > 0) {
+            b.dayBodyGainPct(lDayBodyPct);
+        }
+        if (lDayPrevWeeks != null && lDayPrevWeeks >= 1) {
+            b.dayPrevWeeks(lDayPrevWeeks);
+        }
+        if (lDayBarsPerWeek != null && lDayBarsPerWeek > 0) {
+            b.dayBarsPerWeek(lDayBarsPerWeek);
+        }
+        if (lWeekBodyPct != null && lWeekBodyPct > 0) {
+            b.weekBodyGainPct(lWeekBodyPct);
+        }
+        if (lWeekPrevMonths != null && lWeekPrevMonths >= 1) {
+            b.weekPrevMonths(lWeekPrevMonths);
+        }
+        if (lWeekBarsPerMonth != null && lWeekBarsPerMonth > 0) {
+            b.weekBarsPerMonth(lWeekBarsPerMonth);
+        }
+        if (lMonthBodyPct != null && lMonthBodyPct > 0) {
+            b.monthBodyGainPct(lMonthBodyPct);
+        }
+        if (lMonthPrevYears != null && lMonthPrevYears >= 1) {
+            b.monthPrevYears(lMonthPrevYears);
+        }
+        if (lMonthBarsPerYear != null && lMonthBarsPerYear > 0) {
+            b.monthBarsPerYear(lMonthBarsPerYear);
+        }
+        if (lLongPriceFilter != null) {
+            b.enableLongPriceFilter(lLongPriceFilter != 0);
         }
         return UltraLowReboundStrategyParams.merge(b.build());
     }

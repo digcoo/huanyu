@@ -217,7 +217,8 @@ module.exports = {
     year: 50,
     month: 50,
     week: 50,
-    day: 50
+    day: 50,
+    min30: 50
   },
   calcPriceRange,
   drawBinanceKlines,

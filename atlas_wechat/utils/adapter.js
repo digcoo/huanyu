@@ -9,8 +9,14 @@ const STRATEGY_API = {
   preGolden: { strategy: 'preqsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
   resonance: { strategy: 'reson', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
   rebound: { strategy: 'default', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
-  ultraLow: { strategy: 'ulow', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' }
+  ladder: { strategy: 'ladder', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' }
 };
+
+function normalizeStrategyId(strategyId) {
+  if (!strategyId) return strategyId;
+  if (strategyId === 'ultraLow') return 'ladder';
+  return strategyId;
+}
 
 function normalizeCode(code) {
   if (!code) return '';
@@ -45,7 +51,7 @@ function extractCode(idOrCode) {
 
 function extractStrategy(id) {
   if (!id || id.indexOf('-') < 0) return 'trend';
-  return id.split('-')[0] || 'trend';
+  return normalizeStrategyId(id.split('-')[0] || 'trend');
 }
 
 function findMarketLabel(marketId) {
@@ -77,7 +83,9 @@ function mapSearchItem(item, strategy) {
     market: item.market || 'cn',
     marketLabel: findMarketLabel(item.market || 'cn'),
     price: item.price != null ? item.price : item.close,
-    changePct: normalizeChangePct(item)
+    changePct: normalizeChangePct(item),
+    signalMessage: item.signalMessage || '',
+    trendMessage: item.trendMessage || ''
   };
 }
 
@@ -206,10 +214,10 @@ function buildReboundSummary(item) {
   return signal.split(',')[0] || label || '';
 }
 
-function buildUltraLowTags(item) {
+function buildLadderTags(item) {
   var tags = [];
   var label = parseUnilateralTrendLabel(item.trendMessage);
-  if (item.trendMessage && item.trendMessage.indexOf('前日新高') >= 0) {
+  if (item.trendMessage && /前日.*新高/.test(item.trendMessage)) {
     tags.push('前日新高');
   }
   if (item.signalMessage && item.signalMessage.indexOf('high') >= 0) {
@@ -221,14 +229,14 @@ function buildUltraLowTags(item) {
   return tags;
 }
 
-function buildUltraLowSummary(item) {
+function buildLadderSummary(item) {
   var signal = item.signalMessage || '';
   if (signal) return signal.split(',')[0];
   return parseUnilateralTrendLabel(item.trendMessage) || '';
 }
 
 function mapRecommendation(item, strategyId) {
-  strategyId = strategyId || 'trend';
+  strategyId = normalizeStrategyId(strategyId || 'trend');
   var code = normalizeCode(item.code);
   var changePct = normalizeChangePct(item);
   var tags = [];
@@ -241,8 +249,8 @@ function mapRecommendation(item, strategyId) {
     tags = tags.concat(buildResonanceTags(item));
   } else if (strategyId === 'rebound') {
     tags = tags.concat(buildReboundTags(item));
-  } else if (strategyId === 'ultraLow') {
-    tags = tags.concat(buildUltraLowTags(item));
+  } else if (strategyId === 'ladder') {
+    tags = tags.concat(buildLadderTags(item));
   } else {
     if (item.signalMessage) tags.push('信号');
     else if (item.trendMessage) tags.push('趋势');
@@ -251,8 +259,8 @@ function mapRecommendation(item, strategyId) {
 
   var summaryParts = (strategyId === 'rebound'
     ? [buildReboundSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'ultraLow'
-    ? [buildUltraLowSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'ladder'
+    ? [buildLadderSummary(item), item.mainBusiness, item.summary]
     : [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
   ).filter(function (s) { return s && String(s).trim(); });
   return {
@@ -265,6 +273,8 @@ function mapRecommendation(item, strategyId) {
     changePct: changePct,
     tags: tags,
     summary: summaryParts.length ? summaryParts[0] : '',
+    signalMessage: item.signalMessage || '',
+    trendMessage: item.trendMessage || '',
     resonance: changePct > 2 ? 'strong' : changePct > 0 ? 'medium' : 'weak',
     mainBusiness: item.mainBusiness,
     dataDay: item.day || '',
@@ -379,7 +389,7 @@ function mapMarketIndices(list, period) {
 }
 
 function getStrategyApiParams(strategyId) {
-  return STRATEGY_API[strategyId] || STRATEGY_API.trend;
+  return STRATEGY_API[normalizeStrategyId(strategyId)] || STRATEGY_API.trend;
 }
 
 module.exports = {
@@ -397,6 +407,7 @@ module.exports = {
   mapCompass: mapCompass,
   mapMarketIndex: mapMarketIndex,
   mapMarketIndices: mapMarketIndices,
+  normalizeStrategyId: normalizeStrategyId,
   getStrategyApiParams: getStrategyApiParams,
   findMarketLabel: findMarketLabel
 };

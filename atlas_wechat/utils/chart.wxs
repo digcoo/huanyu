@@ -1,5 +1,5 @@
-var LABELS = { year: '年K', month: '月K', week: '周K', day: '日K' };
-var MAX = { year: 50, month: 50, week: 50, day: 50 };
+var LABELS = { year: '年K', month: '月K', week: '周K', day: '日K', min30: '30分' };
+var MAX = { year: 50, month: 50, week: 50, day: 50, min30: 50 };
 
 function periodLabel(period) {
   return LABELS[period] || '周K';

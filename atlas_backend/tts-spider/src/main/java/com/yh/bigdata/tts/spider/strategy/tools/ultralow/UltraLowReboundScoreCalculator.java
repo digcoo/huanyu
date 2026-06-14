@@ -4,7 +4,7 @@ import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.model.Trade;
 
 /**
- * 超短线 · 评分与展示
+ * 梯子突破 · 四档评分与展示（S=超短 A=短 B=中 C=长）
  */
 public final class UltraLowReboundScoreCalculator {
 
@@ -12,57 +12,128 @@ public final class UltraLowReboundScoreCalculator {
     }
 
     public static int computeScore(UltraLowReboundEvaluator.UltraLowEvaluation eval) {
-        int score = 30;
-        Min30BreakoutTools.BreakoutHit hit = eval.getBreakout();
-        if (hit == null) {
-            return score;
+        int score = 0;
+        if (eval.getUltraHit() != null) {
+            score += 35;
         }
-        Trade signal = hit.getSignalBar();
-        Trade ref = hit.getReferenceBar();
-        if (signal != null && signal.getShitiRate() != null) {
-            score += (int) (signal.getShitiRate() * 500);
+        if (eval.getShortHit() != null) {
+            score += 30;
         }
-        if (signal != null && ref != null
-                && signal.getHigh() != null && ref.getHigh() != null && ref.getHigh() > 0) {
-            score += (int) ((signal.getHigh() - ref.getHigh()) / ref.getHigh() * 300);
+        if (eval.getMediumHit() != null) {
+            score += 25;
         }
-        return score;
+        if (eval.getLongHit() != null) {
+            score += 20;
+        }
+        int modeCount = (eval.getUltraHit() != null ? 1 : 0)
+                + (eval.getShortHit() != null ? 1 : 0)
+                + (eval.getMediumHit() != null ? 1 : 0)
+                + (eval.getLongHit() != null ? 1 : 0);
+        if (modeCount >= 2) {
+            score += 12;
+        }
+        if (modeCount >= 3) {
+            score += 8;
+        }
+        if (modeCount >= 4) {
+            score += 5;
+        }
+        BreakoutLadderTools.TierHit primary = eval.primaryHit();
+        if (primary != null && primary.getSignalBar() != null) {
+            Trade signal = primary.getSignalBar();
+            if (signal.getShitiRate() != null) {
+                score += (int) (signal.getShitiRate() * 400);
+            }
+        }
+        return Math.max(score, 20);
     }
 
     public static char computeTier(UltraLowReboundEvaluator.UltraLowEvaluation eval) {
-        return eval.isHit() ? 'S' : 'N';
+        if (eval.getUltraHit() != null) {
+            return 'S';
+        }
+        if (eval.getShortHit() != null) {
+            return 'A';
+        }
+        if (eval.getMediumHit() != null) {
+            return 'B';
+        }
+        if (eval.getLongHit() != null) {
+            return 'C';
+        }
+        return 'N';
     }
 
     public static PeriodTypeEnum trendPeriodForTier(char tier) {
-        return PeriodTypeEnum.MIN30;
+        switch (tier) {
+            case 'S':
+                return PeriodTypeEnum.MIN30;
+            case 'A':
+                return PeriodTypeEnum.DAY;
+            case 'B':
+                return PeriodTypeEnum.WEEK;
+            case 'C':
+                return PeriodTypeEnum.MONTH;
+            default:
+                return PeriodTypeEnum.MIN30;
+        }
     }
 
     public static PeriodTypeEnum signalPeriodForTier(char tier) {
-        return PeriodTypeEnum.MIN30;
+        return trendPeriodForTier(tier);
     }
 
     public static String buildTrendLabel(char tier) {
-        return "前日新高强K";
-    }
-
-    public static String buildTrendDetail(UltraLowReboundEvaluator.UltraLowEvaluation eval) {
-        Min30BreakoutTools.BreakoutHit hit = eval.getBreakout();
-        if (hit == null || hit.getReferenceBar() == null) {
-            return "前1~2日30m新高强K";
+        switch (tier) {
+            case 'S':
+                return "超短·局部新高强K";
+            case 'A':
+                return "短线·局部新高强K";
+            case 'B':
+                return "中线·局部新高强K";
+            case 'C':
+                return "长线·局部新高强K";
+            default:
+                return "局部新高强K";
         }
-        return String.format("前高%.2f(区间新高),窗口%d根(今日%d根)",
-                hit.getReferenceBar().getHigh(), hit.getScanWindowSize(), hit.getTodayBarCount());
     }
 
-    public static String buildSignalDetail(UltraLowReboundEvaluator.UltraLowEvaluation eval) {
-        Min30BreakoutTools.BreakoutHit hit = eval.getBreakout();
+    public static String buildTrendDetail(UltraLowReboundEvaluator.UltraLowEvaluation eval, char tier) {
+        BreakoutLadderTools.TierHit hit = eval.hitForTier(tier);
+        if (hit == null || hit.getReferenceBar() == null) {
+            return tierLabel(tier) + "背景局部新高强K";
+        }
+        return String.format("前高%.2f(局部新高),窗口%d根(信号桶%d根)",
+                hit.getReferenceBar().getHigh(), hit.getScanWindowSize(), hit.getSignalBarCount());
+    }
+
+    public static String buildSignalDetail(UltraLowReboundEvaluator.UltraLowEvaluation eval, char tier) {
+        BreakoutLadderTools.TierHit hit = eval.hitForTier(tier);
         if (hit == null || hit.getSignalBar() == null || hit.getReferenceBar() == null) {
             return "";
         }
         Trade signal = hit.getSignalBar();
         Trade ref = hit.getReferenceBar();
         double bodyPct = signal.getShitiRate() != null ? signal.getShitiRate() * 100 : 0;
-        return String.format("当日30m high%.2f>%.2f close>bodyMax%.2f,实体+%.1f%%,现价≤突破high",
-                signal.getHigh(), ref.getHigh(), ref.getShitiMax(), bodyPct);
+        return String.format("%s首根突破 high%.2f>%.2f close>bodyMax%.2f,实体+%.1f%%,refDay=%s,sigDay=%s",
+                tierLabel(tier),
+                signal.getHigh(), ref.getHigh(), ref.getShitiMax(), bodyPct,
+                ref.getDay() != null ? ref.getDay() : "",
+                signal.getDay() != null ? signal.getDay() : "");
+    }
+
+    private static String tierLabel(char tier) {
+        switch (tier) {
+            case 'S':
+                return "超短";
+            case 'A':
+                return "短线";
+            case 'B':
+                return "中线";
+            case 'C':
+                return "长线";
+            default:
+                return "";
+        }
     }
 }

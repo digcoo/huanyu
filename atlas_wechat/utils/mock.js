@@ -146,11 +146,11 @@ const STRATEGIES = [
     desc: '大周期 MACD<0 · 小周期 MACD>0 · K线突破'
   },
   {
-    id: 'ultraLow',
-    name: '超短线',
-    icon: '⚡',
+    id: 'ladder',
+    name: '梯子突破',
+    icon: '🪜',
     badge: '30m',
-    desc: '前1~2日30m新高强K · 当日突破 · 现价≤突破high'
+    desc: '基准K+突破K · 前2日30m定基准 · 当日首根突破'
   }
 ];
 
@@ -176,7 +176,8 @@ function stock(strategy, market, code, name, price, changePct, tags, summary, re
       year: generateKlineData(50, price * (trends.yearBase || 0.82), vol * 1.8, trends.year),
       month: generateKlineData(50, price * (trends.monthBase || 0.92), vol * 1.3, trends.month),
       week: generateKlineData(50, price * (trends.weekBase || 0.98), vol, trends.week),
-      day: generateKlineData(50, price * (trends.dayBase || 0.99), vol * 0.85, trends.day)
+      day: generateKlineData(50, price * (trends.dayBase || 0.99), vol * 0.85, trends.day),
+      min30: generateKlineData(50, price * (trends.min30Base || 0.998), vol * 0.45, trends.min30 || trends.day)
     }
   };
 }
@@ -320,14 +321,14 @@ function buildStrategyRecommendations() {
           { year: 'down', month: 'down', week: 'down', day: 'flat', vol: 0.01 })
       ]
     },
-    ultraLow: {
+    ladder: {
       cn: [
-        stock('ultraLow', 'cn', '601012', '隆基绿能', 18.45, 3.68,
-          ['下跌中反弹', '30m大阳线'], '日K下跌中，30m大阳线实体+2.8%', 'medium',
-          { year: 'down', month: 'down', week: 'flat', day: 'up', vol: 0.035 }),
-        stock('ultraLow', 'cn', '000858', '五粮液', 128.6, 1.92,
-          ['企稳反弹', '30m大阳线'], '日K下跌企稳，30m大阳线实体+2.1%', 'medium',
-          { year: 'down', month: 'down', week: 'down', day: 'up', vol: 0.022 })
+        stock('ladder', 'cn', '601012', '隆基绿能', 18.45, 3.68,
+          ['前日新高', '30m突破'], '前2日30m局部新高强K · 当日首根突破', 'medium',
+          { year: 'down', month: 'down', week: 'flat', day: 'up', min30: 'up', vol: 0.035 }),
+        stock('ladder', 'cn', '000858', '五粮液', 128.6, 1.92,
+          ['前日新高', '30m突破'], '前2日30m局部新高 · 当日突破', 'medium',
+          { year: 'down', month: 'down', week: 'down', day: 'up', min30: 'up', vol: 0.022 })
       ],
       hk: [],
       us: [],

@@ -45,8 +45,9 @@
 
         <view wx:elif="{{item.type === 'picker'}}" class="field-block">
           <text class="field-label">{{item.label}}</text>
+          <text wx:if="{{item.hint}}" class="field-hint">{{item.hint}}</text>
           <picker mode="selector" range="{{tierLabels}}" value="{{tierIndex}}" bindchange="onTierChange">
-            <view class="picker-value">{{tierLabels[tierIndex] || '全部档位'}}</view>
+            <view class="picker-value">{{tierLabels[tierIndex] || item.label}}</view>
           </picker>
         </view>
       </block>

@@ -3,9 +3,11 @@ package com.yh.bigdata.tts.spider.service.impl;
 import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.dao.StockBaseMapper;
+import com.yh.bigdata.tts.common.dao.StockMin30Mapper;
 import com.yh.bigdata.tts.common.dto.atlas.*;
 import com.yh.bigdata.tts.common.model.StockAnnualReport;
 import com.yh.bigdata.tts.common.model.StockBase;
+import com.yh.bigdata.tts.common.model.StockMin30;
 import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.utils.StockCodeUtil;
 import com.yh.bigdata.tts.common.utils.StockQuoteUtils;
@@ -16,6 +18,8 @@ import com.yh.bigdata.tts.spider.service.AtlasDetailComputeService;
 import com.yh.bigdata.tts.spider.service.AtlasIndustryChainService;
 import com.yh.bigdata.tts.spider.service.AtlasStockApiService;
 import com.yh.bigdata.tts.spider.service.StockService;
+import com.yh.bigdata.tts.spider.strategy.tools.ultralow.LadderMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.ultralow.Min30BreakoutTools;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient.IndexDef;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient.Quote;
@@ -29,6 +33,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +47,9 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
 
     @Autowired
     private StockService stockService;
+
+    @Autowired
+    private StockMin30Mapper stockMin30Mapper;
 
     @Autowired
     private AtlasAnnualReportService atlasAnnualReportService;
@@ -85,6 +94,9 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
         }
         int safeLimit = Math.min(Math.max(limit, 1), 200);
         List<Trade> trades = RealtimeStockCache.getLastTrades(stock, periodType, safeLimit);
+        if ((trades == null || trades.isEmpty()) && periodType == PeriodTypeEnum.MIN30) {
+            trades = loadMin30FromDb(stock.getCode(), safeLimit);
+        }
         return trades.stream().map(this::toKlineBar).collect(Collectors.toList());
     }
 
@@ -100,7 +112,7 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
                 XueQiuHttpUtils.base_url,
                 stock.getCode().toUpperCase(),
                 System.currentTimeMillis(),
-                periodType.getCode(),
+                toXueQiuPeriod(periodType),
                 -safeLimit);
         try {
             String json = XueQiuHttpUtils.getData(url);
@@ -119,6 +131,21 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
             log.warn("refreshKlines failed, code={}, period={}", stock.getCode(), periodType.getCode(), e);
             return Collections.emptyList();
         }
+    }
+
+    @Override
+    public AtlasUlowMin30MarkersVo getUlowMin30Markers(String code) {
+        return getLadderMarkers(code, PeriodTypeEnum.MIN30.getCode());
+    }
+
+    @Override
+    public AtlasUlowMin30MarkersVo getLadderMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.MIN30;
+        }
+        return LadderMarkersTools.resolve(stock, periodType, UltraLowReboundStrategyParams.defaults());
     }
 
     @Override
@@ -365,6 +392,23 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
                 .low(nullSafe(trade.getLow()))
                 .close(nullSafe(trade.getClose()))
                 .build();
+    }
+
+    /** 雪球 API period：30 分钟为 30m，其余与日/周/月/年 code 一致 */
+    private static String toXueQiuPeriod(PeriodTypeEnum periodType) {
+        if (periodType == PeriodTypeEnum.MIN30) {
+            return "30m";
+        }
+        return periodType.getCode();
+    }
+
+    private List<Trade> loadMin30FromDb(String code, int limit) {
+        List<StockMin30> rows = stockMin30Mapper.selectAll(Collections.singletonList(code));
+        if (rows == null || rows.isEmpty()) {
+            return Collections.emptyList();
+        }
+        int from = Math.max(0, rows.size() - limit);
+        return new ArrayList<>(rows.subList(from, rows.size()));
     }
 
     private AtlasCompassModuleVo module(String title, String color, String insight, List<AtlasChartVo> charts) {

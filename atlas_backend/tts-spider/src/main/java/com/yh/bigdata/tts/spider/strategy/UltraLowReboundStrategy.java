@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 超短线（ulow）· 前1~2日 30m 新高强K + 当日突破
+ * 梯子突破（ladder）· 超短/短/中/长 四档突破阶梯
  */
 @Slf4j
 @Component
@@ -25,7 +25,7 @@ public class UltraLowReboundStrategy extends AbstractStrategy {
 
     @Override
     public StrategyTypeEnum getStrategy() {
-        return StrategyTypeEnum.ULTRA_LOW_REBOUND;
+        return StrategyTypeEnum.LADDER_BREAKOUT;
     }
 
     @Override

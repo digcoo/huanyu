@@ -36,13 +36,63 @@ var RESONANCE_DEFAULTS = {
   cTierMin: 'ALL'
 };
 
-var ULTRA_LOW_DEFAULTS = {
+var LADDER_DEFAULTS = {
   lMinAmountWan: 3000,
-  lTierMin: 'ALL',
-  lMin30BodyPct: 0.02,
-  lMin30PrevDays: 2,
-  lMin30BarsPerDay: 8
+  lEnableUltra: true,
+  lEnableShort: true,
+  lEnableMedium: true,
+  lEnableLong: true,
+  lTierMin: 'ALL'
 };
+
+var LADDER_SCHEMA = [
+  {
+    key: 'lMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 1000,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'lEnableUltra',
+    label: '超短突破',
+    hint: '30m · 前2日基准 + 当日首根突破',
+    type: 'switch'
+  },
+  {
+    key: 'lEnableShort',
+    label: '短线突破',
+    hint: '日K · 前2周基准 + 本周首根突破',
+    type: 'switch'
+  },
+  {
+    key: 'lEnableMedium',
+    label: '中线突破',
+    hint: '周K · 前2月基准 + 本月首根突破',
+    type: 'switch'
+  },
+  {
+    key: 'lEnableLong',
+    label: '长线突破',
+    hint: '月K · 前2年基准 + 本年首根突破',
+    type: 'switch'
+  },
+  {
+    key: 'lTierMin',
+    label: '最低展示档位',
+    type: 'picker',
+    options: [
+      { value: 'ALL', label: '全部档位' },
+      { value: 'C', label: 'C档及以上 (长线+)' },
+      { value: 'B', label: 'B档及以上 (中线+)' },
+      { value: 'A', label: 'A档及以上 (短线+)' },
+      { value: 'S', label: '仅超短 (S)' }
+    ]
+  }
+];
 
 var TREND_SCHEMA = [
   {
@@ -212,64 +262,12 @@ var RESONANCE_SCHEMA = [
   }
 ];
 
-var ULTRA_LOW_SCHEMA = [
-  {
-    key: 'lMinAmountWan',
-    label: '最低成交额',
-    hint: '近6日日均成交额（万）',
-    type: 'slider',
-    min: 1000,
-    max: 10000,
-    step: 500,
-    unit: '万'
-  },
-  {
-    key: 'lMin30BodyPct',
-    label: '30m涨幅下限',
-    hint: '大阳线实体或大涨幅 (close-open)/open',
-    type: 'slider',
-    min: 0.01,
-    max: 0.05,
-    step: 0.005,
-    unit: ''
-  },
-  {
-    key: 'lMin30PrevDays',
-    label: '前几个交易日',
-    hint: '不含当日，每日本8根',
-    type: 'slider',
-    min: 1,
-    max: 3,
-    step: 1,
-    unit: '日'
-  },
-  {
-    key: 'lMin30BarsPerDay',
-    label: '每日30m根数',
-    hint: '历史交易日截取根数，A股8',
-    type: 'slider',
-    min: 4,
-    max: 8,
-    step: 1,
-    unit: '根'
-  },
-  {
-    key: 'lTierMin',
-    label: '最低展示档位',
-    type: 'picker',
-    options: [
-      { value: 'ALL', label: '全部' },
-      { value: 'S', label: '仅命中 (S)' }
-    ]
-  }
-];
-
 var SCHEMA_BY_STRATEGY = {
   trend: TREND_SCHEMA,
   preGolden: PRE_GOLDEN_SCHEMA,
   resonance: RESONANCE_SCHEMA,
   rebound: REBOUND_SCHEMA,
-  ultraLow: ULTRA_LOW_SCHEMA
+  ladder: LADDER_SCHEMA
 };
 
 var DEFAULTS_BY_STRATEGY = {
@@ -277,17 +275,41 @@ var DEFAULTS_BY_STRATEGY = {
   preGolden: PRE_GOLDEN_DEFAULTS,
   resonance: RESONANCE_DEFAULTS,
   rebound: REBOUND_DEFAULTS,
-  ultraLow: ULTRA_LOW_DEFAULTS
+  ladder: LADDER_DEFAULTS
 };
 
 var TIER_PICKER = TREND_SCHEMA.find(function (f) { return f.key === 'uTierMin'; });
 var PRE_GOLDEN_TIER_PICKER = PRE_GOLDEN_SCHEMA.find(function (f) { return f.key === 'pTierMin'; });
 var RESONANCE_TIER_PICKER = RESONANCE_SCHEMA.find(function (f) { return f.key === 'cTierMin'; });
 var REBOUND_TIER_PICKER = REBOUND_SCHEMA.find(function (f) { return f.key === 'rTierMin'; });
-var ULTRA_LOW_TIER_PICKER = ULTRA_LOW_SCHEMA.find(function (f) { return f.key === 'lTierMin'; });
+var LADDER_TIER_PICKER = LADDER_SCHEMA.find(function (f) { return f.key === 'lTierMin'; });
+
+function migrateLadderTier(raw, out) {
+  if (!raw || !raw.lLadderTier) return;
+  var t = String(raw.lLadderTier).toUpperCase();
+  out.lEnableUltra = t === 'S';
+  out.lEnableShort = t === 'A';
+  out.lEnableMedium = t === 'B';
+  out.lEnableLong = t === 'C';
+}
+
+/** 列表主图默认周期：取已启用档位中最高频（超短优先） */
+function ladderPrimaryPeriod(params) {
+  var p = params || {};
+  if (p.lEnableUltra) return 'min30';
+  if (p.lEnableShort) return 'day';
+  if (p.lEnableMedium) return 'week';
+  if (p.lEnableLong) return 'month';
+  return 'min30';
+}
+
+function normalizeStrategyId(strategyId) {
+  if (strategyId === 'ultraLow') return 'ladder';
+  return strategyId;
+}
 
 function storageKey(strategyId) {
-  return STORAGE_PREFIX + (strategyId || 'trend');
+  return STORAGE_PREFIX + normalizeStrategyId(strategyId || 'trend');
 }
 
 function clone(obj) {
@@ -295,10 +317,11 @@ function clone(obj) {
 }
 
 function getDefaults(strategyId) {
-  return clone(DEFAULTS_BY_STRATEGY[strategyId] || {});
+  return clone(DEFAULTS_BY_STRATEGY[normalizeStrategyId(strategyId)] || {});
 }
 
 function normalize(strategyId, raw) {
+  strategyId = normalizeStrategyId(strategyId);
   var defaults = getDefaults(strategyId);
   var schema = SCHEMA_BY_STRATEGY[strategyId] || [];
   var out = clone(defaults);
@@ -329,12 +352,22 @@ function normalize(strategyId, raw) {
       out.rEnableShort = true;
     }
   }
+  if (strategyId === 'ladder') {
+    migrateLadderTier(raw, out);
+    if (!out.lEnableUltra && !out.lEnableShort && !out.lEnableMedium && !out.lEnableLong) {
+      out.lEnableUltra = true;
+    }
+  }
   return out;
 }
 
 function load(strategyId) {
+  strategyId = normalizeStrategyId(strategyId);
   try {
     var saved = wx.getStorageSync(storageKey(strategyId));
+    if (!saved && strategyId === 'ladder') {
+      saved = wx.getStorageSync(STORAGE_PREFIX + 'ultraLow');
+    }
     return normalize(strategyId, saved);
   } catch (e) {
     return getDefaults(strategyId);
@@ -354,11 +387,11 @@ function reset(strategyId) {
 }
 
 function getSchema(strategyId) {
-  return SCHEMA_BY_STRATEGY[strategyId] || [];
+  return SCHEMA_BY_STRATEGY[normalizeStrategyId(strategyId)] || [];
 }
 
 function hasCustomParams(strategyId) {
-  return (getSchema(strategyId) || []).length > 0;
+  return (getSchema(normalizeStrategyId(strategyId)) || []).length > 0;
 }
 
 /** 转为 findMy / rescan 查询参数 */
@@ -394,6 +427,7 @@ function tierLabelFrom(picker, tierVal) {
 }
 
 function formatSummary(strategyId) {
+  strategyId = normalizeStrategyId(strategyId);
   if (!hasCustomParams(strategyId)) return '';
   var p = load(strategyId);
   if (strategyId === 'rebound') {
@@ -428,9 +462,14 @@ function formatSummary(strategyId) {
     return (resModes.length ? resModes.join('+') : '未启用') + ' · '
       + tierLabelFrom(RESONANCE_TIER_PICKER, p.cTierMin);
   }
-  if (strategyId === 'ultraLow') {
-    return '前' + (p.lMin30PrevDays != null ? p.lMin30PrevDays : 2) + '日新高 · '
-      + '30m≥' + Math.round((p.lMin30BodyPct || 0.02) * 100) + '% · 当日突破';
+  if (strategyId === 'ladder') {
+    var lModes = [];
+    if (p.lEnableUltra) lModes.push('超短');
+    if (p.lEnableShort) lModes.push('短');
+    if (p.lEnableMedium) lModes.push('中');
+    if (p.lEnableLong) lModes.push('长');
+    return (lModes.length ? lModes.join('+') : '未启用') + ' · '
+      + tierLabelFrom(LADDER_TIER_PICKER, p.lTierMin);
   }
   return '';
 }
@@ -445,6 +484,7 @@ module.exports = {
   toApiParams: toApiParams,
   isCustomized: isCustomized,
   formatSummary: formatSummary,
-  normalize: normalize
+  normalize: normalize,
+  ladderPrimaryPeriod: ladderPrimaryPeriod
 };
 

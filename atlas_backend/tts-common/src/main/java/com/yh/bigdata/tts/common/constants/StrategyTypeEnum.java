@@ -12,7 +12,7 @@ public enum StrategyTypeEnum {
     PRE_GOLD_CROSS("preqsn", "预判金叉", 2),
     PERIOD_RESONANCE("reson", "周期共振", 3),
     DEFAUL("default", "深跌反弹", 4),
-    ULTRA_LOW_REBOUND("ulow", "超短线", 5),
+    LADDER_BREAKOUT("ladder", "梯子突破", 5),
     CROSS_BAND_PRESSURE("cross_band_pressure", "突破波段: 关键阻力位", 9);
 
 	private final String code;
@@ -20,6 +20,9 @@ public enum StrategyTypeEnum {
     private final int groupOrder;
 
 	public static StrategyTypeEnum getByCode(String code){
+		if ("ulow".equals(code)) {
+			code = "ladder";
+		}
 		for (StrategyTypeEnum type : StrategyTypeEnum.values()) {
 			if (type.getCode().equals(code)) {
 				return type;

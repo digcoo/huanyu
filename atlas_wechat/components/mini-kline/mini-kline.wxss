@@ -51,6 +51,14 @@
   white-space: nowrap;
 }
 
+.marker-label.marker-ref {
+  color: #f0b90b;
+}
+
+.marker-label.marker-signal {
+  color: #00d4ff;
+}
+
 .label {
   font-size: 18rpx;
   color: #848e9c;
@@ -157,6 +165,10 @@
   transform: translateX(-50%);
 }
 
+.add-marker.marker-ref .add-marker-line {
+  border-left-color: rgba(240, 185, 11, 0.85);
+}
+
 .add-marker-dot {
   position: absolute;
   top: 4%;
@@ -169,8 +181,21 @@
   box-shadow: 0 0 8rpx rgba(0, 212, 255, 0.8);
 }
 
+.add-marker.marker-ref .add-marker-dot {
+  background: #f0b90b;
+  box-shadow: 0 0 8rpx rgba(240, 185, 11, 0.85);
+}
+
 .candle-slot.is-marker .body {
   box-shadow: 0 0 0 1rpx rgba(0, 212, 255, 0.9);
+}
+
+.candle-slot.is-marker-ref .body {
+  box-shadow: 0 0 0 2rpx rgba(240, 185, 11, 0.95);
+}
+
+.candle-slot.is-marker-signal .body {
+  box-shadow: 0 0 0 2rpx rgba(0, 212, 255, 0.95);
 }
 
 .candle-slot {

@@ -3,6 +3,7 @@ package com.yh.bigdata.tts.spider.controller;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasCompassModuleVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasKlineBarVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasMarketIndexVo;
+import com.yh.bigdata.tts.common.dto.atlas.AtlasUlowMin30MarkersVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockDetailVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockSummaryVo;
 import com.yh.bigdata.tts.common.param.base.Response;
@@ -80,6 +81,19 @@ public class AtlasStockController {
                 return ResponseUtil.fail(ResponseUtil.NO_DATA);
             }
             return ResponseUtil.success(bars);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping({"/{code}/ladder/markers", "/{code}/ulow/markers"})
+    public Response<AtlasUlowMin30MarkersVo> getLadderMin30Markers(@PathVariable("code") String code) {
+        try {
+            AtlasUlowMin30MarkersVo markers = atlasStockApiService.getUlowMin30Markers(code);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
         } catch (NoSuchElementException ex) {
             return ResponseUtil.fail(ResponseUtil.NO_DATA);
         }

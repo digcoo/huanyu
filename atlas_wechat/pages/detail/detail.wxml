@@ -77,6 +77,9 @@
           maxBars="{{c.maxBars(activePeriod)}}"
           flipped="{{klineFlipped}}"
           resonance="{{detail.resonance}}"
+          activePeriod="{{activePeriod}}"
+          barMarkers="{{ladderBarMarkers}}"
+          markerEpoch="{{ladderMarkerEpoch}}"
         />
       </view>
     </view>

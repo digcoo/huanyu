@@ -387,6 +387,28 @@ function fallbackBarIndexByPeriod(klines, targetDate, period, sliceOffset) {
   return idx >= sliceOffset ? idx - sliceOffset : null;
 }
 
+function normalizeMarkerDay(raw) {
+  if (raw == null) return '';
+  return String(raw).trim().replace('T', ' ').slice(0, 19);
+}
+
+/** 30m 等按 day 字段精确匹配 K 线索引 */
+function findBarIndexByDay(klines, day, sliceOffset) {
+  sliceOffset = sliceOffset || 0;
+  if (!klines || !klines.length || !day) return null;
+  var target = normalizeMarkerDay(day);
+  var targetMin = target.slice(0, 16);
+  for (var i = klines.length - 1; i >= 0; i--) {
+    var cur = normalizeMarkerDay(klines[i].day);
+    if (!cur) continue;
+    if (cur === target || cur.slice(0, 16) === targetMin) {
+      if (i < sliceOffset) return null;
+      return i - sliceOffset;
+    }
+  }
+  return null;
+}
+
 /** 兼容旧接口 */
 function drawKlines(ctx, klines, width, height, options) {
   drawBinanceKlines(ctx, klines, width, height, options);
@@ -404,7 +426,8 @@ module.exports = {
     year: 50,
     month: 50,
     week: 50,
-    day: 50
+    day: 50,
+    min30: 50
   },
   calcPriceRange,
   calcCloseMASeries,
@@ -412,6 +435,7 @@ module.exports = {
   MA_LINE_CONFIGS,
   buildCloseMaSegments,
   findBarIndexByTimestamp,
+  findBarIndexByDay,
   drawCloseMaLines,
   drawBinanceKlines,
   drawKlines,

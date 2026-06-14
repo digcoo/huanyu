@@ -1,4 +1,4 @@
-const { calcPriceRange, buildCloseMaSegments, MA_LINE_CONFIGS, findBarIndexByTimestamp } = require('../../utils/kline');
+const { calcPriceRange, buildCloseMaSegments, MA_LINE_CONFIGS, findBarIndexByTimestamp, findBarIndexByDay } = require('../../utils/kline');
 
 const MA_LEGEND = MA_LINE_CONFIGS.map(function (cfg) {
   return {
@@ -56,6 +56,15 @@ Component({
     updatedLabel: {
       type: String,
       value: ''
+    },
+    /** [{ day, label, type: 'ref'|'signal' }] 梯子突破 30m 双 K 标记 */
+    barMarkers: {
+      type: Array,
+      value: []
+    },
+    markerEpoch: {
+      type: Number,
+      value: 0
     }
   },
 
@@ -64,7 +73,10 @@ Component({
     maLines: [],
     maSegments: [],
     maLegend: false,
-    markerLeft: null
+    markerLeft: null,
+    markerPositions: [],
+    markerLegend: [],
+    hasMarkerLegend: false
   },
 
   observers: {
@@ -84,6 +96,12 @@ Component({
       this.render(this.properties.klines);
     },
     activePeriod() {
+      this.render(this.properties.klines);
+    },
+    barMarkers() {
+      this.render(this.properties.klines);
+    },
+    markerEpoch() {
       this.render(this.properties.klines);
     }
   },
@@ -109,13 +127,17 @@ Component({
           maLines: [],
           maSegments: [],
           maLegend: false,
-          markerLeft: null
+          markerLeft: null,
+          markerPositions: [],
+          markerLegend: [],
+          hasMarkerLegend: false
         });
         return;
       }
 
       const markerLabel = this.properties.markerLabel;
       const markerAt = this.properties.markerAt;
+      const barMarkers = this.properties.barMarkers || [];
       const activePeriod = this.properties.activePeriod || 'week';
       const isCard = size === 'card' || size === 'wide';
       const limit = maxBars > 0 ? maxBars : 50;
@@ -133,7 +155,31 @@ Component({
       const minBodyPct = isCard ? 2.8 : 1.5;
 
       var markerIndex = null;
-      if (markerLabel) {
+      var markerTypesByIndex = {};
+      var markerPositions = [];
+      var markerLegend = [];
+
+      if (barMarkers.length && activePeriod === 'min30') {
+        barMarkers.forEach(function (m) {
+          if (!m || !m.day) return;
+          var idx = findBarIndexByDay(full, m.day, sliceOffset);
+          if (idx == null) return;
+          var type = m.type || 'signal';
+          markerTypesByIndex[idx] = type;
+          markerPositions.push({
+            key: type + '-' + idx,
+            left: (idx * slotW + slotW / 2).toFixed(2),
+            type: type
+          });
+          if (m.label) {
+            var exists = false;
+            for (var li = 0; li < markerLegend.length; li++) {
+              if (markerLegend[li].type === type) { exists = true; break; }
+            }
+            if (!exists) markerLegend.push({ type: type, label: m.label });
+          }
+        });
+      } else if (markerLabel) {
         if (markerAt != null && markerAt !== '' && markerAt !== 0) {
           markerIndex = findBarIndexByTimestamp(full, markerAt, activePeriod, sliceOffset);
         }
@@ -173,11 +219,15 @@ Component({
           showUpperWick: upperWickH > 0.2,
           showLowerWick: lowerWickH > 0.2,
           dirClass: isBull ? 'bull' : 'bear',
-          isMarker: markerIndex != null && i === markerIndex
+          markerType: markerTypesByIndex[i] || '',
+          slotClass: markerTypesByIndex[i]
+            ? ('is-marker-' + markerTypesByIndex[i])
+            : (markerIndex != null && i === markerIndex ? 'is-marker' : ''),
+          isMarker: markerTypesByIndex[i] != null || (markerIndex != null && i === markerIndex)
         };
       });
 
-      const markerLeft = markerIndex != null && count > 0
+      const markerLeft = markerIndex != null && count > 0 && !markerPositions.length
         ? ((markerIndex) * slotW + slotW / 2).toFixed(2)
         : null;
 
@@ -187,6 +237,9 @@ Component({
       this.setData({
         bars: bars,
         markerLeft: markerLeft,
+        markerPositions: markerPositions,
+        markerLegend: markerLegend,
+        hasMarkerLegend: markerLegend.length > 0,
         maLegend: showMA,
         maLines: showMA ? buildMaLegend(count) : [],
         maSegments: []
