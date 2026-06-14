@@ -68,8 +68,25 @@ public final class Min30BreakoutTools {
             return null;
         }
 
+        if (!isCurrentCloseNotAboveBreakoutHigh(stock, signalBar)) {
+            return null;
+        }
+
         return new BreakoutHit(refBar, signalBar, priorPeakHigh, window.size(),
                 Min30ScanWindowTools.countTodayBars(allBars));
+    }
+
+    /** 现价 ≤ 突破K high，避免追过突破高点（情绪耗尽） */
+    static boolean isCurrentCloseNotAboveBreakoutHigh(StockBase stock, Trade signalBar) {
+        if (stock == null || signalBar == null) {
+            return false;
+        }
+        Double currentClose = stock.getClose();
+        Double breakoutHigh = signalBar.getHigh();
+        if (currentClose == null || breakoutHigh == null) {
+            return false;
+        }
+        return currentClose <= breakoutHigh;
     }
 
     /** 前1~2日：大阳线或大涨幅，且 high 为区间新高（不含当日） */

@@ -62,7 +62,7 @@ public final class UltraLowReboundScoreCalculator {
         Trade signal = hit.getSignalBar();
         Trade ref = hit.getReferenceBar();
         double bodyPct = signal.getShitiRate() != null ? signal.getShitiRate() * 100 : 0;
-        return String.format("当日30m high%.2f>%.2f close>bodyMax%.2f,实体+%.1f%%",
+        return String.format("当日30m high%.2f>%.2f close>bodyMax%.2f,实体+%.1f%%,现价≤突破high",
                 signal.getHigh(), ref.getHigh(), ref.getShitiMax(), bodyPct);
     }
 }

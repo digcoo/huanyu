@@ -150,7 +150,7 @@ const STRATEGIES = [
     name: '超短线',
     icon: '⚡',
     badge: '30m',
-    desc: '前1~2日30m新高强K · 当日突破前高'
+    desc: '前1~2日30m新高强K · 当日突破 · 现价≤突破high'
   }
 ];
 
