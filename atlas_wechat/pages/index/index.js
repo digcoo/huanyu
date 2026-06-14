@@ -29,6 +29,24 @@ function filterIgnored(items, ignored) {
   });
 }
 
+function dedupeAppend(baseList, newItems) {
+  var seen = {};
+  (baseList || []).forEach(function (item) {
+    if (item && item.id) seen[item.id] = true;
+  });
+  var appended = [];
+  (newItems || []).forEach(function (item) {
+    if (item && item.id && !seen[item.id]) {
+      seen[item.id] = true;
+      appended.push(item);
+    }
+  });
+  return {
+    list: (baseList || []).concat(appended),
+    appended: appended
+  };
+}
+
 /**
  * 拉取推荐列表，跳过已忽略项；单页全部被忽略时自动继续下一页
  */
@@ -37,7 +55,7 @@ function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage
   startPage = startPage || 1;
   var accumulated = [];
   var totalNum = 0;
-  var lastPage = startPage;
+  var lastPage = startPage - 1;
   var hasMore = false;
 
   function fetchPage(page) {
@@ -59,6 +77,30 @@ function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage
   }
 
   return fetchPage(startPage);
+}
+
+/**
+ * 加载更多：严格按后端页码追加，避免与首屏重复
+ */
+function fetchNextRecommendationsPage(strategyId, ignored, backendPage) {
+  var nextPage = (backendPage || 1) + 1;
+
+  function fetchFrom(page) {
+    return stockApi.fetchRecommendations(strategyId, page, RECOMMEND_PAGE_SIZE).then(function (result) {
+      var visible = filterIgnored(result.items, ignored);
+      if (visible.length === 0 && result.hasMore) {
+        return fetchFrom(page + 1);
+      }
+      return {
+        items: visible,
+        page: result.page || page,
+        totalNum: result.totalNum != null ? result.totalNum : 0,
+        hasMore: !!result.hasMore
+      };
+    });
+  }
+
+  return fetchFrom(nextPage);
 }
 
 function attachKlinesInBackground(self, items, period) {
@@ -246,16 +288,25 @@ Page({
     var self = this;
     var strategyId = this.data.activeStrategy;
     var panel = this.selectComponent('#strategyParamsPanel');
+    var loadingShown = false;
+
+    function hideRescanLoading() {
+      if (!loadingShown) return;
+      loadingShown = false;
+      wx.hideLoading();
+    }
 
     this.setData({ rescanning: true });
     if (panel) panel.setApplying(true);
     wx.showLoading({ title: '重跑策略中…', mask: true });
+    loadingShown = true;
 
     return stockApi.triggerStrategyRescan(strategyId).then(function (result) {
       return self.loadMarketFromApi(self.data.activeMarket).then(function () {
         return result;
       });
     }).then(function (result) {
+      hideRescanLoading();
       if (showToast) {
         var saved = result && result.saved != null ? result.saved : 0;
         var ok = result && result.ok;
@@ -267,11 +318,12 @@ Page({
       }
       return result;
     }).catch(function () {
+      hideRescanLoading();
       if (showToast) {
         wx.showToast({ title: '重跑失败', icon: 'none' });
       }
     }).finally(function () {
-      wx.hideLoading();
+      hideRescanLoading();
       self.setData({ rescanning: false });
       if (panel) panel.setApplying(false);
     });
@@ -293,20 +345,24 @@ Page({
     const strategyId = this.data.activeStrategy;
     const period = this.data.activePeriod;
     const ignored = app.globalData.ignoredIds;
-    const nextPage = (this._loadPage || 1) + 1;
+    const backendPage = this._backendPage || this._loadPage || 1;
 
     this.setData({ loadingMore: true });
 
-    this._fetchRecommendPage(strategyId, period, nextPage, ignored).then(function (result) {
+    fetchNextRecommendationsPage(strategyId, ignored, backendPage).then(function (result) {
+      var merged = dedupeAppend(self._baseList, result.items);
+      self._backendPage = result.page;
       self._loadPage = result.page;
-      self._baseList = (self._baseList || []).concat(result.items);
+      self._baseList = merged.list;
       self.setData({
-        recommendations: mapChartKlines(self._baseList, period),
+        recommendations: mapChartKlines(merged.list, period),
         totalCount: result.totalNum,
         hasMore: result.hasMore,
         loadingMore: false
       });
-      applyKlinesForItems(self, result.items, period);
+      if (merged.appended.length) {
+        applyKlinesForItems(self, merged.appended, period);
+      }
     }).catch(function () {
       self.setData({ loadingMore: false });
       wx.showToast({ title: '加载更多失败', icon: 'none' });
@@ -353,6 +409,7 @@ Page({
 
     this.setData({ loading: true, hasMore: false, loadingMore: false, totalCount: 0 });
     this._loadPage = 1;
+    this._backendPage = 1;
 
     return this._fetchRecommendPage(strategyId, period, 1, ignored).then(function (result) {
       return Promise.all([
@@ -367,6 +424,7 @@ Page({
       var pageResult = results[0];
       var indices = results[1];
       self._loadPage = pageResult.page;
+      self._backendPage = pageResult.page;
       self._baseList = pageResult.items;
       self.setData({
         activeMarket: marketId,

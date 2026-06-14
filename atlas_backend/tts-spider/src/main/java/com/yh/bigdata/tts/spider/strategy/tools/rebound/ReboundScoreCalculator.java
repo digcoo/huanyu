@@ -1,104 +1,116 @@
 package com.yh.bigdata.tts.spider.strategy.tools.rebound;
 
+import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
+
 /**
- * 深坑反弹 v1.0 · 档位与 score
+ * 深跌反弹 v3.0 · 评分与展示档位（S=短线 A=中线 B=长线）
  */
 public final class ReboundScoreCalculator {
 
     private ReboundScoreCalculator() {
     }
 
-    public static char computeTier(ReboundEvaluator.ReboundEvaluation eval) {
-        ReboundPitTools.DeepPitNarrative narrative = eval.getNarrative();
-        ReboundTriggerTools.TriggerSnapshot trigger = eval.getTrigger();
-
-        boolean fullNarrative = narrative.isComplete() && narrative.stillRecoveryZone;
-        boolean breakBand = trigger.breakRevertBand();
-        boolean lowUp = trigger.lowShangYi();
-        boolean divergence = eval.isDivergence();
-
-        if (fullNarrative && breakBand && (lowUp || divergence)) {
-            return 'S';
-        }
-        if (eval.isModeA()) {
-            return 'A';
-        }
-        if (eval.isModeB()) {
-            return 'B';
-        }
-        if (eval.isModeC()) {
-            return 'C';
-        }
-        return 'C';
-    }
-
     public static int computeScore(ReboundEvaluator.ReboundEvaluation eval) {
         int score = 0;
-        ReboundPitTools.DeepPitNarrative narrative = eval.getNarrative();
-        ReboundPitTools.PitSnapshot week = eval.getWeekPit();
-        ReboundPitTools.PitSnapshot month = eval.getMonthPit();
-        ReboundTriggerTools.TriggerSnapshot trigger = eval.getTrigger();
-
-        if (narrative.longDecline) score += 20;
-        if (narrative.capitulation) score += 25;
-        if (narrative.pitFloorHeld && narrative.abovePanicLow) score += 18;
-        score += week.contextCount() * 8;
-        score += month.contextCount() * 10;
-        if (trigger.breakRevertBandWeek) score += 25;
-        if (trigger.breakRevertBandMonth) score += 30;
-        if (trigger.lowShangYiWeek) score += 15;
-        if (trigger.lowShangYiDay) score += 10;
-        if (trigger.macdCross) score += 12;
-        if (trigger.yangAboveMa5) score += 8;
-        if (eval.isDivergence()) score += 20;
-
-        char tier = eval.getTier();
-        if (tier == 'S') score += 20;
-        else if (tier == 'A') score += 12;
-        else if (tier == 'B') score += 6;
-
+        if (eval.isShortHit()) {
+            score += 40;
+        }
+        if (eval.isMediumHit()) {
+            score += 35;
+        }
+        if (eval.isLongHit()) {
+            score += 30;
+        }
+        int modeCount = (eval.isShortHit() ? 1 : 0) + (eval.isMediumHit() ? 1 : 0) + (eval.isLongHit() ? 1 : 0);
+        if (modeCount >= 2) {
+            score += 15;
+        }
+        if (modeCount >= 3) {
+            score += 10;
+        }
         return score;
     }
 
-    public static String buildTrendLabel(char tier, ReboundEvaluator.ReboundEvaluation eval) {
-        if (eval.isModeA()) {
-            return "恐慌释放后脱离";
+    public static char computeTier(ReboundEvaluator.ReboundEvaluation eval) {
+        if (eval.isShortHit()) {
+            return 'S';
         }
-        if (eval.isModeB()) {
-            return "坑底反弹接入";
+        if (eval.isMediumHit()) {
+            return 'A';
         }
-        if (eval.isModeC()) {
-            return "底背离反弹";
+        if (eval.isLongHit()) {
+            return 'B';
         }
-        return "深坑修复";
+        return 'N';
     }
 
-    public static String buildTrendDetail(ReboundPitTools.DeepPitNarrative narrative) {
-        StringBuilder sb = new StringBuilder();
-        if (narrative.longDecline) {
-            sb.append("长期下跌");
+    public static PeriodTypeEnum trendPeriodForTier(char tier) {
+        switch (tier) {
+            case 'S':
+                return PeriodTypeEnum.WEEK;
+            case 'A':
+                return PeriodTypeEnum.MONTH;
+            case 'B':
+                return PeriodTypeEnum.YEAR;
+            default:
+                return PeriodTypeEnum.WEEK;
         }
-        if (narrative.capitulation) {
-            if (sb.length() > 0) sb.append('+');
-            sb.append("恐慌释放");
-        }
-        if (narrative.pitFloorHeld && narrative.abovePanicLow) {
-            if (sb.length() > 0) sb.append('+');
-            sb.append("坑底企稳");
-        }
-        return sb.length() > 0 ? sb.toString() : "深坑叙事未完成";
     }
 
-    public static String buildSignalDetail(ReboundTriggerTools.TriggerSnapshot trigger,
-                                           boolean divergence) {
+    public static PeriodTypeEnum signalPeriodForTier(char tier) {
+        switch (tier) {
+            case 'S':
+                return PeriodTypeEnum.DAY;
+            case 'A':
+                return PeriodTypeEnum.WEEK;
+            case 'B':
+                return PeriodTypeEnum.MONTH;
+            default:
+                return PeriodTypeEnum.DAY;
+        }
+    }
+
+    public static String buildTrendLabel(char tier) {
+        switch (tier) {
+            case 'S':
+                return "短线深跌反弹";
+            case 'A':
+                return "中线深跌反弹";
+            case 'B':
+                return "长线深跌反弹";
+            default:
+                return "深跌反弹";
+        }
+    }
+
+    public static String buildTrendDetail(ReboundEvaluator.ReboundEvaluation eval) {
         StringBuilder sb = new StringBuilder();
-        if (trigger.breakRevertBandMonth) sb.append("月波段脱离,");
-        else if (trigger.breakRevertBandWeek) sb.append("周波段脱离,");
-        if (trigger.lowShangYiWeek) sb.append("周low上移,");
-        if (trigger.lowShangYiDay) sb.append("日low上移,");
-        if (trigger.macdCross) sb.append("日MACD,");
-        if (trigger.yangAboveMa5) sb.append("日阳>MA5,");
-        if (divergence) sb.append(ReboundDivergenceTools.SIGNAL_MSG).append(',');
+        if (eval.isShortHit()) {
+            sb.append("周MACD<0,");
+        }
+        if (eval.isMediumHit()) {
+            sb.append("月MACD<0,");
+        }
+        if (eval.isLongHit()) {
+            sb.append("年MACD<0,");
+        }
+        if (sb.length() == 0) {
+            return "MACD<0";
+        }
+        return sb.substring(0, sb.length() - 1);
+    }
+
+    public static String buildSignalDetail(ReboundEvaluator.ReboundEvaluation eval) {
+        StringBuilder sb = new StringBuilder();
+        if (eval.isShortHit()) {
+            sb.append("日K突破前高/实体,");
+        }
+        if (eval.isMediumHit()) {
+            sb.append("周K突破前高/实体,");
+        }
+        if (eval.isLongHit()) {
+            sb.append("月K突破前高/实体,");
+        }
         if (sb.length() == 0) {
             return "";
         }

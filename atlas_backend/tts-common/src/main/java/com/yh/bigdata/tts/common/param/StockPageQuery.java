@@ -58,22 +58,12 @@ public class StockPageQuery extends PageQuery {
     /** @deprecated v3.0 忽略 */
     private Boolean uEnableModeBWeak;
 
-    /** 深坑反弹 · 最低日均成交额（万） */
+    /** 深跌反弹 · 最低日均成交额（万） */
     private Integer rMinAmountWan;
-    /** 深坑反弹 · 日 K 恐慌大跌阈值（%） */
-    private Double rCapitulationDayPct;
-    /** 深坑反弹 · 周 K 恐慌大跌阈值（%） */
-    private Double rCapitulationWeekPct;
-    /** 深坑反弹 · 相对 52 周高最小回撤（%） */
-    private Double rMinDrawdownPct;
-    /** 深坑反弹 · 恐慌日 K 回溯根数 */
-    private Integer rCapitulationLookbackDays;
-    /** 深坑反弹 · 恐慌周 K 回溯根数 */
-    private Integer rCapitulationLookbackWeeks;
-    private Boolean rEnableModeA;
-    private Boolean rEnableModeB;
-    private Boolean rEnableModeC;
-    /** 深坑反弹 · 最低档位 ALL/S/A/B/C */
+    private Boolean rEnableShort;
+    private Boolean rEnableMedium;
+    private Boolean rEnableLong;
+    /** 深跌反弹 · 最低档位 ALL/S/A/B */
     private String rTierMin;
 
     /** 预判金叉 · 最低日均成交额（万） */
@@ -154,29 +144,14 @@ public class StockPageQuery extends PageQuery {
         if (rMinAmountWan != null) {
             incoming.setMinAvgAmount(rMinAmountWan * 10_000D);
         }
-        if (rCapitulationDayPct != null) {
-            incoming.setCapitulationDayRate(rCapitulationDayPct / 100.0);
+        if (rEnableShort != null) {
+            incoming.setEnableShort(rEnableShort);
         }
-        if (rCapitulationWeekPct != null) {
-            incoming.setCapitulationWeekRate(rCapitulationWeekPct / 100.0);
+        if (rEnableMedium != null) {
+            incoming.setEnableMedium(rEnableMedium);
         }
-        if (rMinDrawdownPct != null) {
-            incoming.setMinDrawdownFrom52w(rMinDrawdownPct / 100.0);
-        }
-        if (rCapitulationLookbackDays != null) {
-            incoming.setCapitulationLookbackDays(rCapitulationLookbackDays);
-        }
-        if (rCapitulationLookbackWeeks != null) {
-            incoming.setCapitulationLookbackWeeks(rCapitulationLookbackWeeks);
-        }
-        if (rEnableModeA != null) {
-            incoming.setEnableModeA(rEnableModeA);
-        }
-        if (rEnableModeB != null) {
-            incoming.setEnableModeB(rEnableModeB);
-        }
-        if (rEnableModeC != null) {
-            incoming.setEnableModeC(rEnableModeC);
+        if (rEnableLong != null) {
+            incoming.setEnableLong(rEnableLong);
         }
         if (rTierMin != null && !rTierMin.isEmpty()) {
             incoming.setTierMin(rTierMin);

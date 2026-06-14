@@ -8,7 +8,7 @@ const STRATEGY_API = {
   trend: { strategy: 'qsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
   preGolden: { strategy: 'preqsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
   resonance: { strategy: 'reson', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
-  rebound: { strategy: 'default', trendPeriodTypes: 'week,month', opPeriodType: 'day' }
+  rebound: { strategy: 'default', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' }
 };
 
 function normalizeCode(code) {
@@ -173,29 +173,35 @@ function buildReboundTags(item) {
   var tags = [];
   var tier = parseUnilateralTier(item.trendMessage);
   var label = parseUnilateralTrendLabel(item.trendMessage);
-  if (tier === 'S') tags.push('共振反弹');
-  else if (tier === 'A') tags.push('深坑脱离');
-  else if (tier === 'B') tags.push('底上移');
-  else if (tier === 'C') tags.push('底背离');
-  if (item.signalMessage && item.signalMessage.indexOf('波段脱离') >= 0) {
-    tags.push('脱离确认');
+  var isV3 = label.indexOf('深跌反弹') >= 0
+    || (item.signalMessage && /日K突破|周K突破|月K突破/.test(item.signalMessage));
+  if (tier === 'S') tags.push('短线深跌');
+  else if (tier === 'A') tags.push('中线深跌');
+  else if (tier === 'B') tags.push('长线深跌');
+  if (item.signalMessage && item.signalMessage.indexOf('日K突破') >= 0) {
+    tags.push('日K突破');
   }
-  if (item.signalMessage && item.signalMessage.indexOf('底背离') >= 0) {
-    tags.push('MACD背离');
+  if (item.signalMessage && item.signalMessage.indexOf('周K突破') >= 0) {
+    tags.push('周K突破');
   }
-  if (item.signalMessage && item.signalMessage.indexOf('low上移') >= 0) {
-    tags.push('结构修复');
+  if (item.signalMessage && item.signalMessage.indexOf('月K突破') >= 0) {
+    tags.push('月K突破');
   }
-  if (item.signalMessage && item.signalMessage.indexOf('恐慌') >= 0) {
-    tags.push('恐慌释放');
-  }
-  if (label && label.indexOf('坑底') >= 0 && tags.indexOf('坑底反弹') < 0) {
-    tags.push('坑底反弹');
-  }
-  if (label && tags.indexOf(label) < 0 && label.length <= 12) {
+  // v3.0 文案才追加趋势标签；旧版「恐慌释放后脱离」等不再展示
+  if (isV3 && label && tags.indexOf(label) < 0 && label.length <= 12) {
     tags.push(label);
   }
   return tags;
+}
+
+function buildReboundSummary(item) {
+  var signal = item.signalMessage || '';
+  if (signal.indexOf('日K突破') >= 0 || signal.indexOf('周K突破') >= 0 || signal.indexOf('月K突破') >= 0) {
+    return signal.split(',')[0];
+  }
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (label.indexOf('深跌反弹') >= 0) return label;
+  return signal.split(',')[0] || label || '';
 }
 
 function mapRecommendation(item, strategyId) {
@@ -218,8 +224,10 @@ function mapRecommendation(item, strategyId) {
   }
   tags = tags.filter(function (t, i) { return tags.indexOf(t) === i; });
 
-  var summaryParts = [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
-    .filter(function (s) { return s && String(s).trim(); });
+  var summaryParts = (strategyId === 'rebound'
+    ? [buildReboundSummary(item), item.mainBusiness, item.summary]
+    : [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
+  ).filter(function (s) { return s && String(s).trim(); });
   return {
     id: makeStockId(strategyId, 'cn', code),
     strategy: strategyId,

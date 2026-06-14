@@ -139,11 +139,11 @@ const STRATEGIES = [
   },
   {
     id: 'rebound',
-    name: '深坑反弹',
+    name: '深跌反弹',
     icon: '🕳️',
     iconImage: '/assets/strategy/rebound-icon.png',
     badge: 'REBOUND',
-    desc: '长期深跌 · 恐慌释放 · 反弹接入'
+    desc: '大周期 MACD<0 · 小周期 K线突破'
   }
 ];
 

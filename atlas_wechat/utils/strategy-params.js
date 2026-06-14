@@ -14,14 +14,9 @@ var TREND_DEFAULTS = {
 
 var REBOUND_DEFAULTS = {
   rMinAmountWan: 3000,
-  rCapitulationDayPct: 6,
-  rCapitulationWeekPct: 5,
-  rMinDrawdownPct: 20,
-  rCapitulationLookbackDays: 15,
-  rCapitulationLookbackWeeks: 6,
-  rEnableModeA: true,
-  rEnableModeB: true,
-  rEnableModeC: true,
+  rEnableShort: true,
+  rEnableMedium: true,
+  rEnableLong: true,
   rTierMin: 'ALL'
 };
 
@@ -85,54 +80,6 @@ var TREND_SCHEMA = [
 
 var REBOUND_SCHEMA = [
   {
-    key: 'rCapitulationDayPct',
-    label: '日K恐慌跌幅',
-    hint: '情绪释放大阴线阈值（%）',
-    type: 'slider',
-    min: 3,
-    max: 12,
-    step: 1,
-    unit: '%'
-  },
-  {
-    key: 'rCapitulationWeekPct',
-    label: '周K恐慌跌幅',
-    hint: '大周期恐慌释放（%）',
-    type: 'slider',
-    min: 3,
-    max: 15,
-    step: 1,
-    unit: '%'
-  },
-  {
-    key: 'rMinDrawdownPct',
-    label: '最小回撤',
-    hint: '相对52周高回撤（%）',
-    type: 'slider',
-    min: 10,
-    max: 50,
-    step: 5,
-    unit: '%'
-  },
-  {
-    key: 'rCapitulationLookbackDays',
-    label: '日K回溯',
-    hint: '恐慌大跌检索根数',
-    type: 'slider',
-    min: 5,
-    max: 30,
-    step: 1
-  },
-  {
-    key: 'rCapitulationLookbackWeeks',
-    label: '周K回溯',
-    hint: '恐慌大跌检索根数',
-    type: 'slider',
-    min: 3,
-    max: 12,
-    step: 1
-  },
-  {
     key: 'rMinAmountWan',
     label: '最低成交额',
     hint: '近6日日均成交额（万）',
@@ -143,19 +90,21 @@ var REBOUND_SCHEMA = [
     unit: '万'
   },
   {
-    key: 'rEnableModeA',
-    label: '脱离（模式A）',
-    hint: '反转波段突破',
+    key: 'rEnableShort',
+    label: '短线深跌',
+    hint: '周 MACD<0 + 日K突破',
     type: 'switch'
   },
   {
-    key: 'rEnableModeB',
-    label: '底上移（模式B）',
+    key: 'rEnableMedium',
+    label: '中线深跌',
+    hint: '月 MACD<0 + 周K突破',
     type: 'switch'
   },
   {
-    key: 'rEnableModeC',
-    label: '底背离（模式C）',
+    key: 'rEnableLong',
+    label: '长线深跌',
+    hint: '年 MACD<0 + 月K突破',
     type: 'switch'
   },
   {
@@ -164,8 +113,9 @@ var REBOUND_SCHEMA = [
     type: 'picker',
     options: [
       { value: 'ALL', label: '全部档位' },
-      { value: 'A', label: 'A档及以上 (S+A)' },
-      { value: 'S', label: '仅 S 档' }
+      { value: 'B', label: 'B档及以上 (长线+)' },
+      { value: 'A', label: 'A档及以上 (中线+)' },
+      { value: 'S', label: '仅短线 (S)' }
     ]
   }
 ];
@@ -311,6 +261,11 @@ function normalize(strategyId, raw) {
   if (strategyId === 'resonance' && !out.cEnableShort && !out.cEnableMedium && !out.cEnableLong) {
     out.cEnableShort = true;
   }
+  if (strategyId === 'rebound') {
+    if (!out.rEnableShort && !out.rEnableMedium && !out.rEnableLong) {
+      out.rEnableShort = true;
+    }
+  }
   return out;
 }
 
@@ -379,7 +334,11 @@ function formatSummary(strategyId) {
   if (!hasCustomParams(strategyId)) return '';
   var p = load(strategyId);
   if (strategyId === 'rebound') {
-    return '日跌' + p.rCapitulationDayPct + '% · 回撤' + p.rMinDrawdownPct + '% · '
+    var rModes = [];
+    if (p.rEnableShort) rModes.push('短线');
+    if (p.rEnableMedium) rModes.push('中线');
+    if (p.rEnableLong) rModes.push('长线');
+    return (rModes.length ? rModes.join('+') : '未启用') + ' · '
       + tierLabelFrom(REBOUND_TIER_PICKER, p.rTierMin);
   }
   if (strategyId === 'trend') {

@@ -4,11 +4,12 @@ import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.param.ReboundStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.pregolden.PreGoldenBreakoutTools;
+import com.yh.bigdata.tts.spider.strategy.tools.unilateral.UnilateralMacdTools;
 import lombok.Getter;
 
 /**
- * 深坑反弹 v1.0 · 评估编排
- * @see docs/strategies/深坑反弹策略.md
+ * 深跌反弹 v3.0 · 大周期 MACD&lt;0 + 小周期 K 线突破
  */
 public final class ReboundEvaluator {
 
@@ -19,20 +20,23 @@ public final class ReboundEvaluator {
                                                ReboundStrategyParams params) {
         ReboundStrategyParams p = params != null ? params : ReboundStrategyParams.defaults();
 
-        ReboundPitTools.DeepPitNarrative narrative = ReboundPitTools.evaluateNarrative(stock, p);
-        ReboundPitTools.PitSnapshot weekPit = ReboundPitTools.evaluateWeek(stock);
-        ReboundPitTools.PitSnapshot monthPit = ReboundPitTools.evaluateMonth(stock);
-        ReboundTriggerTools.TriggerSnapshot trigger = ReboundTriggerTools.evaluate(stock);
-        boolean divergence = ReboundDivergenceTools.checkMonthMacdBullishDivergence(stock);
+        boolean weekMacdNegative = UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.WEEK);
+        boolean monthMacdNegative = UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.MONTH);
+        boolean yearMacdNegative = UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.YEAR);
 
-        boolean pitOk = narrative.isComplete();
-        boolean modeA = p.isEnableModeA() && ReboundTriggerTools.isModeA(trigger);
-        boolean modeB = p.isEnableModeB() && ReboundTriggerTools.isModeB(trigger);
-        boolean modeC = p.isEnableModeC() && ReboundTriggerTools.isModeC(trigger, divergence);
-        boolean hit = pitOk && (modeA || modeB || modeC);
+        boolean dayBreakout = PreGoldenBreakoutTools.checkBreakout(stock, PeriodTypeEnum.DAY);
+        boolean weekBreakout = PreGoldenBreakoutTools.checkBreakout(stock, PeriodTypeEnum.WEEK);
+        boolean monthBreakout = PreGoldenBreakoutTools.checkBreakout(stock, PeriodTypeEnum.MONTH);
+
+        boolean shortHit = p.isEnableShort() && weekMacdNegative && dayBreakout;
+        boolean mediumHit = p.isEnableMedium() && monthMacdNegative && weekBreakout;
+        boolean longHit = p.isEnableLong() && yearMacdNegative && monthBreakout;
+        boolean hit = shortHit || mediumHit || longHit;
 
         ReboundEvaluation eval = new ReboundEvaluation(
-                narrative, weekPit, monthPit, trigger, divergence, pitOk, modeA, modeB, modeC, hit);
+                shortHit, mediumHit, longHit,
+                weekMacdNegative, monthMacdNegative, yearMacdNegative,
+                dayBreakout, weekBreakout, monthBreakout, hit);
 
         if (hit && checkResult != null) {
             fillMessages(checkResult, eval, p);
@@ -48,52 +52,46 @@ public final class ReboundEvaluator {
             return;
         }
 
-        String trendLabel = ReboundScoreCalculator.buildTrendLabel(tier, eval);
-        String trendDetail = ReboundScoreCalculator.buildTrendDetail(eval.getNarrative());
-        checkResult.addTrendPeriod(PeriodTypeEnum.WEEK, "[" + tier + "]" + trendLabel + "|" + trendDetail);
-
-        String signalDetail = ReboundScoreCalculator.buildSignalDetail(eval.trigger, eval.divergence);
-        if (!signalDetail.isEmpty()) {
-            checkResult.addSignal(PeriodTypeEnum.DAY, signalDetail);
-        }
+        String trendLabel = ReboundScoreCalculator.buildTrendLabel(tier);
+        String trendDetail = ReboundScoreCalculator.buildTrendDetail(eval);
+        checkResult.addTrendPeriod(
+                ReboundScoreCalculator.trendPeriodForTier(tier),
+                "[" + tier + "]" + trendLabel + "|" + trendDetail);
+        checkResult.addSignal(
+                ReboundScoreCalculator.signalPeriodForTier(tier),
+                ReboundScoreCalculator.buildSignalDetail(eval));
         eval.setTier(tier);
         eval.setScore(ReboundScoreCalculator.computeScore(eval));
     }
 
     @Getter
     public static final class ReboundEvaluation {
-        private final ReboundPitTools.DeepPitNarrative narrative;
-        private final ReboundPitTools.PitSnapshot weekPit;
-        private final ReboundPitTools.PitSnapshot monthPit;
-        private final ReboundTriggerTools.TriggerSnapshot trigger;
-        private final boolean divergence;
-        private final boolean pitOk;
-        private final boolean modeA;
-        private final boolean modeB;
-        private final boolean modeC;
+        private final boolean shortHit;
+        private final boolean mediumHit;
+        private final boolean longHit;
+        private final boolean weekMacdNegative;
+        private final boolean monthMacdNegative;
+        private final boolean yearMacdNegative;
+        private final boolean dayBreakout;
+        private final boolean weekBreakout;
+        private final boolean monthBreakout;
         private boolean hit;
         private int score;
         private char tier;
 
-        public ReboundEvaluation(ReboundPitTools.DeepPitNarrative narrative,
-                                 ReboundPitTools.PitSnapshot weekPit,
-                                 ReboundPitTools.PitSnapshot monthPit,
-                                 ReboundTriggerTools.TriggerSnapshot trigger,
-                                 boolean divergence,
-                                 boolean pitOk,
-                                 boolean modeA,
-                                 boolean modeB,
-                                 boolean modeC,
+        public ReboundEvaluation(boolean shortHit, boolean mediumHit, boolean longHit,
+                                 boolean weekMacdNegative, boolean monthMacdNegative, boolean yearMacdNegative,
+                                 boolean dayBreakout, boolean weekBreakout, boolean monthBreakout,
                                  boolean hit) {
-            this.narrative = narrative;
-            this.weekPit = weekPit;
-            this.monthPit = monthPit;
-            this.trigger = trigger;
-            this.divergence = divergence;
-            this.pitOk = pitOk;
-            this.modeA = modeA;
-            this.modeB = modeB;
-            this.modeC = modeC;
+            this.shortHit = shortHit;
+            this.mediumHit = mediumHit;
+            this.longHit = longHit;
+            this.weekMacdNegative = weekMacdNegative;
+            this.monthMacdNegative = monthMacdNegative;
+            this.yearMacdNegative = yearMacdNegative;
+            this.dayBreakout = dayBreakout;
+            this.weekBreakout = weekBreakout;
+            this.monthBreakout = monthBreakout;
             this.hit = hit;
         }
 
@@ -107,22 +105,6 @@ public final class ReboundEvaluator {
 
         public boolean isHit() {
             return hit;
-        }
-
-        public boolean isModeA() {
-            return modeA;
-        }
-
-        public boolean isModeB() {
-            return modeB;
-        }
-
-        public boolean isModeC() {
-            return modeC;
-        }
-
-        public boolean isDivergence() {
-            return divergence;
         }
     }
 }

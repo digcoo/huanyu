@@ -85,7 +85,7 @@ Page({
   onCopyCode() {
     const detail = this.data.detail;
     if (!detail || !detail.code) return;
-    const code = adapter.displayCode(detail.code);
+    const code = adapter.normalizeCode(detail.code);
     if (!code) return;
     wx.setClipboardData({
       data: code,

@@ -21,6 +21,20 @@ function fetchHealth() {
   return api.get('/stock/health');
 }
 
+function resolveHasMore(data, page, itemCount) {
+  if (!data) return false;
+  if (data.isMore === 1 || data.isMore === true) return true;
+  if (data.isMore === 0 || data.isMore === false) return false;
+  if (data.currentPage != null && data.totalPage != null) {
+    return data.currentPage < data.totalPage;
+  }
+  if (data.totalNum != null && itemCount > 0) {
+    var size = data.pageSize || RECOMMEND_PAGE_SIZE;
+    return page * size < data.totalNum;
+  }
+  return itemCount >= RECOMMEND_PAGE_SIZE;
+}
+
 function fetchRecommendations(strategyId, page, size) {
   page = page || 1;
   size = size || RECOMMEND_PAGE_SIZE;
@@ -40,7 +54,7 @@ function fetchRecommendations(strategyId, page, size) {
       items: items,
       page: data.currentPage || page,
       totalNum: data.totalNum != null ? data.totalNum : items.length,
-      hasMore: data.isMore === 1
+      hasMore: resolveHasMore(data, page, items.length)
     };
   });
 }
