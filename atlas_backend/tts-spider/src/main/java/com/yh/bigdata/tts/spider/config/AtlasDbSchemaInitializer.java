@@ -152,6 +152,31 @@ public class AtlasDbSchemaInitializer implements ApplicationRunner {
             + "  KEY `idx_openid_removed` (`openid`,`removed_at`)"
             + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='自选历史复盘'";
 
+    private static final String CREATE_MIN30K = ""
+            + "CREATE TABLE IF NOT EXISTS `min30k` ("
+            + "  `day` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+            + "  `code` varchar(10) NOT NULL,"
+            + "  `name` varchar(20) DEFAULT NULL,"
+            + "  `open` double DEFAULT NULL,"
+            + "  `high` double DEFAULT NULL,"
+            + "  `low` double DEFAULT NULL,"
+            + "  `close` double DEFAULT NULL,"
+            + "  `prev_close` double DEFAULT NULL,"
+            + "  `volume` bigint(20) DEFAULT NULL,"
+            + "  `amount` double DEFAULT NULL,"
+            + "  `ma5` double DEFAULT NULL,"
+            + "  `ma10` double DEFAULT NULL,"
+            + "  `ma20` double DEFAULT NULL,"
+            + "  `ma30` double DEFAULT NULL,"
+            + "  `ma60` double DEFAULT NULL,"
+            + "  `ma120` double DEFAULT NULL,"
+            + "  `cross_params` varchar(512) DEFAULT NULL,"
+            + "  `create_time` datetime DEFAULT NULL,"
+            + "  `update_time` datetime DEFAULT NULL,"
+            + "  `percent` double DEFAULT NULL COMMENT '变化率、涨幅',"
+            + "  PRIMARY KEY (`code`,`day`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='30分钟K线'";
+
     private static final String[][] BASE_COLUMNS = {
             {"industry", "varchar(64) DEFAULT NULL COMMENT '申万行业末级'"},
             {"industry_csrc", "varchar(128) DEFAULT NULL COMMENT '证监会行业'"},
@@ -192,11 +217,12 @@ public class AtlasDbSchemaInitializer implements ApplicationRunner {
             stmt.execute(CREATE_USER_SESSION);
             stmt.execute(CREATE_USER_WATCHLIST);
             stmt.execute(CREATE_USER_WATCH_HISTORY);
+            stmt.execute(CREATE_MIN30K);
             migrateBaseColumns(conn);
             dropBaseMaColumns(conn);
             migrateAnnualReportUnique(conn);
             migratePriceColumnNames(conn);
-            log.info("AtlasDbSchemaInitializer: schema ready (annual, target, relation, benchmark, base columns, price columns)");
+            log.info("AtlasDbSchemaInitializer: schema ready (annual, target, relation, benchmark, min30k, base columns, price columns)");
         } catch (Exception e) {
             log.error("AtlasDbSchemaInitializer failed", e);
             throw e;

@@ -36,6 +36,14 @@ var RESONANCE_DEFAULTS = {
   cTierMin: 'ALL'
 };
 
+var ULTRA_LOW_DEFAULTS = {
+  lMinAmountWan: 3000,
+  lTierMin: 'ALL',
+  lMin30BodyPct: 0.02,
+  lMin30PrevDays: 2,
+  lMin30BarsPerDay: 8
+};
+
 var TREND_SCHEMA = [
   {
     key: 'uMinAmountWan',
@@ -92,19 +100,19 @@ var REBOUND_SCHEMA = [
   {
     key: 'rEnableShort',
     label: '短线深跌',
-    hint: '周 MACD<0 + 日K突破',
+    hint: '周 MACD<0 + 日 MACD>0 + 日K突破',
     type: 'switch'
   },
   {
     key: 'rEnableMedium',
     label: '中线深跌',
-    hint: '月 MACD<0 + 周K突破',
+    hint: '月 MACD<0 + 周 MACD>0 + 周K突破',
     type: 'switch'
   },
   {
     key: 'rEnableLong',
     label: '长线深跌',
-    hint: '年 MACD<0 + 月K突破',
+    hint: '年 MACD<0 + 月 MACD>0 + 月K突破',
     type: 'switch'
   },
   {
@@ -204,24 +212,79 @@ var RESONANCE_SCHEMA = [
   }
 ];
 
+var ULTRA_LOW_SCHEMA = [
+  {
+    key: 'lMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 1000,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'lMin30BodyPct',
+    label: '30m涨幅下限',
+    hint: '大阳线实体或大涨幅 (close-open)/open',
+    type: 'slider',
+    min: 0.01,
+    max: 0.05,
+    step: 0.005,
+    unit: ''
+  },
+  {
+    key: 'lMin30PrevDays',
+    label: '前几个交易日',
+    hint: '不含当日，每日本8根',
+    type: 'slider',
+    min: 1,
+    max: 3,
+    step: 1,
+    unit: '日'
+  },
+  {
+    key: 'lMin30BarsPerDay',
+    label: '每日30m根数',
+    hint: '历史交易日截取根数，A股8',
+    type: 'slider',
+    min: 4,
+    max: 8,
+    step: 1,
+    unit: '根'
+  },
+  {
+    key: 'lTierMin',
+    label: '最低展示档位',
+    type: 'picker',
+    options: [
+      { value: 'ALL', label: '全部' },
+      { value: 'S', label: '仅命中 (S)' }
+    ]
+  }
+];
+
 var SCHEMA_BY_STRATEGY = {
   trend: TREND_SCHEMA,
   preGolden: PRE_GOLDEN_SCHEMA,
   resonance: RESONANCE_SCHEMA,
-  rebound: REBOUND_SCHEMA
+  rebound: REBOUND_SCHEMA,
+  ultraLow: ULTRA_LOW_SCHEMA
 };
 
 var DEFAULTS_BY_STRATEGY = {
   trend: TREND_DEFAULTS,
   preGolden: PRE_GOLDEN_DEFAULTS,
   resonance: RESONANCE_DEFAULTS,
-  rebound: REBOUND_DEFAULTS
+  rebound: REBOUND_DEFAULTS,
+  ultraLow: ULTRA_LOW_DEFAULTS
 };
 
 var TIER_PICKER = TREND_SCHEMA.find(function (f) { return f.key === 'uTierMin'; });
 var PRE_GOLDEN_TIER_PICKER = PRE_GOLDEN_SCHEMA.find(function (f) { return f.key === 'pTierMin'; });
 var RESONANCE_TIER_PICKER = RESONANCE_SCHEMA.find(function (f) { return f.key === 'cTierMin'; });
 var REBOUND_TIER_PICKER = REBOUND_SCHEMA.find(function (f) { return f.key === 'rTierMin'; });
+var ULTRA_LOW_TIER_PICKER = ULTRA_LOW_SCHEMA.find(function (f) { return f.key === 'lTierMin'; });
 
 function storageKey(strategyId) {
   return STORAGE_PREFIX + (strategyId || 'trend');
@@ -246,7 +309,7 @@ function normalize(strategyId, raw) {
     if (raw[field.key] === undefined || raw[field.key] === null) return;
     if (field.type === 'switch') {
       out[field.key] = !!raw[field.key];
-    } else if (field.key === 'uTierMin' || field.key === 'rTierMin' || field.key === 'pTierMin' || field.key === 'cTierMin') {
+    } else if (field.key === 'uTierMin' || field.key === 'rTierMin' || field.key === 'pTierMin' || field.key === 'cTierMin' || field.key === 'lTierMin') {
       out[field.key] = String(raw[field.key]).toUpperCase();
     } else {
       out[field.key] = raw[field.key];
@@ -364,6 +427,10 @@ function formatSummary(strategyId) {
     if (p.cEnableLong) resModes.push('长线');
     return (resModes.length ? resModes.join('+') : '未启用') + ' · '
       + tierLabelFrom(RESONANCE_TIER_PICKER, p.cTierMin);
+  }
+  if (strategyId === 'ultraLow') {
+    return '前' + (p.lMin30PrevDays != null ? p.lMin30PrevDays : 2) + '日新高 · '
+      + '30m≥' + Math.round((p.lMin30BodyPct || 0.02) * 100) + '% · 当日突破';
   }
   return '';
 }

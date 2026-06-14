@@ -9,12 +9,14 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.yh.bigdata.tts.common.dao.StockBaseMapper;
 import com.yh.bigdata.tts.common.dao.StockDayMapper;
+import com.yh.bigdata.tts.common.dao.StockMin30Mapper;
 import com.yh.bigdata.tts.common.dao.StockMonthMapper;
 import com.yh.bigdata.tts.common.dao.StockQuarterMapper;
 import com.yh.bigdata.tts.common.dao.StockWeekMapper;
 import com.yh.bigdata.tts.common.dao.StockYearMapper;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockDay;
+import com.yh.bigdata.tts.common.model.StockMin30;
 import com.yh.bigdata.tts.common.model.StockMonth;
 import com.yh.bigdata.tts.common.model.StockQuarter;
 import com.yh.bigdata.tts.common.model.StockWeek;
@@ -45,6 +47,9 @@ public class StockServiceImpl implements StockService {
 
     @Autowired
     StockYearMapper stockYearMapper;
+
+    @Autowired
+    StockMin30Mapper stockMin30Mapper;
 
 	@Override
 	public Page<StockBase> findByPageQuery(StockPageQuery pageQuery) {
@@ -222,6 +227,11 @@ public class StockServiceImpl implements StockService {
 	@Override
 	public List<StockQuarter> findAllStockQuarters(List<String> codes) {
 		return stockQuarterMapper.selectAll(codes);
+	}
+
+	@Override
+	public List<StockMin30> findAllStockMin30s(List<String> codes) {
+		return stockMin30Mapper.selectAll(codes);
 	}
 
 }

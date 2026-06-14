@@ -24,6 +24,7 @@ public class RealtimeStockCache {
 	public static Map<String, List> monthMap = Maps.newConcurrentMap();
 	public static Map<String, List> yearMap = Maps.newConcurrentMap();
 	public static Map<String, List> quarterMap = Maps.newConcurrentMap();
+	public static Map<String, List> min30Map = Maps.newConcurrentMap();
 	public static Set<StockTarget> oldTargetStocks = Sets.newConcurrentHashSet();
 
     //code -> 时间窗口
@@ -51,6 +52,9 @@ public class RealtimeStockCache {
 			break;
 		case DAY:
 			trades = RealtimeStockCache.dayMap.get(code);
+			break;
+		case MIN30:
+			trades = RealtimeStockCache.min30Map.get(code);
 			break;
 		default:
 			break;

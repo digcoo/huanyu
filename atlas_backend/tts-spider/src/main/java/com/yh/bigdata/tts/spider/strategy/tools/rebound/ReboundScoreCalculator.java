@@ -86,13 +86,13 @@ public final class ReboundScoreCalculator {
     public static String buildTrendDetail(ReboundEvaluator.ReboundEvaluation eval) {
         StringBuilder sb = new StringBuilder();
         if (eval.isShortHit()) {
-            sb.append("周MACD<0,");
+            sb.append("周MACD<0,日MACD>0,");
         }
         if (eval.isMediumHit()) {
-            sb.append("月MACD<0,");
+            sb.append("月MACD<0,周MACD>0,");
         }
         if (eval.isLongHit()) {
-            sb.append("年MACD<0,");
+            sb.append("年MACD<0,月MACD>0,");
         }
         if (sb.length() == 0) {
             return "MACD<0";

@@ -143,7 +143,14 @@ const STRATEGIES = [
     icon: '🕳️',
     iconImage: '/assets/strategy/rebound-icon.png',
     badge: 'REBOUND',
-    desc: '大周期 MACD<0 · 小周期 K线突破'
+    desc: '大周期 MACD<0 · 小周期 MACD>0 · K线突破'
+  },
+  {
+    id: 'ultraLow',
+    name: '超短线',
+    icon: '⚡',
+    badge: '30m',
+    desc: '前1~2日30m新高强K · 当日突破前高'
   }
 ];
 
@@ -312,6 +319,22 @@ function buildStrategyRecommendations() {
           ['收益率下行', '宽松预期', '深坑后反弹'], '降准预期下债券深坑反弹，收益率下行', 'medium',
           { year: 'down', month: 'down', week: 'down', day: 'flat', vol: 0.01 })
       ]
+    },
+    ultraLow: {
+      cn: [
+        stock('ultraLow', 'cn', '601012', '隆基绿能', 18.45, 3.68,
+          ['下跌中反弹', '30m大阳线'], '日K下跌中，30m大阳线实体+2.8%', 'medium',
+          { year: 'down', month: 'down', week: 'flat', day: 'up', vol: 0.035 }),
+        stock('ultraLow', 'cn', '000858', '五粮液', 128.6, 1.92,
+          ['企稳反弹', '30m大阳线'], '日K下跌企稳，30m大阳线实体+2.1%', 'medium',
+          { year: 'down', month: 'down', week: 'down', day: 'up', vol: 0.022 })
+      ],
+      hk: [],
+      us: [],
+      crypto: [],
+      futures: [],
+      forex: [],
+      bond: []
     }
   };
 

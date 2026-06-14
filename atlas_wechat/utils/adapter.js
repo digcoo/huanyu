@@ -8,7 +8,8 @@ const STRATEGY_API = {
   trend: { strategy: 'qsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
   preGolden: { strategy: 'preqsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
   resonance: { strategy: 'reson', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
-  rebound: { strategy: 'default', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' }
+  rebound: { strategy: 'default', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
+  ultraLow: { strategy: 'ulow', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' }
 };
 
 function normalizeCode(code) {
@@ -174,7 +175,8 @@ function buildReboundTags(item) {
   var tier = parseUnilateralTier(item.trendMessage);
   var label = parseUnilateralTrendLabel(item.trendMessage);
   var isV3 = label.indexOf('深跌反弹') >= 0
-    || (item.signalMessage && /日K突破|周K突破|月K突破/.test(item.signalMessage));
+    || (item.signalMessage && /日K突破|周K突破|月K突破/.test(item.signalMessage))
+    || (item.trendMessage && /MACD[<>]0/.test(item.trendMessage));
   if (tier === 'S') tags.push('短线深跌');
   else if (tier === 'A') tags.push('中线深跌');
   else if (tier === 'B') tags.push('长线深跌');
@@ -204,6 +206,27 @@ function buildReboundSummary(item) {
   return signal.split(',')[0] || label || '';
 }
 
+function buildUltraLowTags(item) {
+  var tags = [];
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (item.trendMessage && item.trendMessage.indexOf('前日新高') >= 0) {
+    tags.push('前日新高');
+  }
+  if (item.signalMessage && item.signalMessage.indexOf('high') >= 0) {
+    tags.push('当日突破');
+  }
+  if (label && tags.indexOf(label) < 0 && label.length <= 12) {
+    tags.push(label);
+  }
+  return tags;
+}
+
+function buildUltraLowSummary(item) {
+  var signal = item.signalMessage || '';
+  if (signal) return signal.split(',')[0];
+  return parseUnilateralTrendLabel(item.trendMessage) || '';
+}
+
 function mapRecommendation(item, strategyId) {
   strategyId = strategyId || 'trend';
   var code = normalizeCode(item.code);
@@ -218,6 +241,8 @@ function mapRecommendation(item, strategyId) {
     tags = tags.concat(buildResonanceTags(item));
   } else if (strategyId === 'rebound') {
     tags = tags.concat(buildReboundTags(item));
+  } else if (strategyId === 'ultraLow') {
+    tags = tags.concat(buildUltraLowTags(item));
   } else {
     if (item.signalMessage) tags.push('信号');
     else if (item.trendMessage) tags.push('趋势');
@@ -226,6 +251,8 @@ function mapRecommendation(item, strategyId) {
 
   var summaryParts = (strategyId === 'rebound'
     ? [buildReboundSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'ultraLow'
+    ? [buildUltraLowSummary(item), item.mainBusiness, item.summary]
     : [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
   ).filter(function (s) { return s && String(s).trim(); });
   return {

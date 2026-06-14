@@ -5,6 +5,7 @@ import java.util.List;
 import com.github.pagehelper.Page;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockDay;
+import com.yh.bigdata.tts.common.model.StockMin30;
 import com.yh.bigdata.tts.common.model.StockMonth;
 import com.yh.bigdata.tts.common.model.StockQuarter;
 import com.yh.bigdata.tts.common.model.StockWeek;
@@ -69,5 +70,7 @@ public interface StockService {
 	List<StockMonth> findAllStockMonths(List<String> codes);
 	List<StockYear> findAllStockYears(List<String> codes);
 	List<StockQuarter> findAllStockQuarters(List<String> codes);
+
+	List<StockMin30> findAllStockMin30s(List<String> codes);
 
 }

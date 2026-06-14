@@ -61,7 +61,12 @@ public class MyApplicationLoader {
                 return p;
             }));
 
-            log.info("MyApplicationLoader strat cost = {}s", (System.currentTimeMillis() - start) / 1000);
+            List<String> filterCodes = filterStocks.stream().map(StockBase::getCode).collect(Collectors.toList());
+            List<StockMin30> stockMin30s = stockService.findAllStockMin30s(filterCodes);
+            RealtimeStockCache.min30Map = TradeConvertHelper.parseSortMapList(stockMin30s, PeriodTypeEnum.MIN30);
+
+            log.info("MyApplicationLoader strat cost = {}s, min30 codes={}",
+                    (System.currentTimeMillis() - start) / 1000, RealtimeStockCache.min30Map.size());
 
         } catch (Exception e) {
             log.error("MyApplicationLoader onApplicationEvent exception....", e);

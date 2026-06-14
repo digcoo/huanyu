@@ -253,7 +253,8 @@ public class StockBaseController {
         if (pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.TREND_NEW
                 && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.PRE_GOLD_CROSS
                 && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.PERIOD_RESONANCE
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.DEFAUL) {
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.DEFAUL
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.ULTRA_LOW_REBOUND) {
             log.warn("rescan unsupported strategy: {}", pageQuery.getStrategy());
             return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
         }
@@ -308,7 +309,12 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getCEnableShort()),
                 String.valueOf(pageQuery.getCEnableMedium()),
                 String.valueOf(pageQuery.getCEnableLong()),
-                String.valueOf(pageQuery.getCTierMin()));
+                String.valueOf(pageQuery.getCTierMin()),
+                String.valueOf(pageQuery.getLMinAmountWan()),
+                String.valueOf(pageQuery.getLTierMin()),
+                String.valueOf(pageQuery.getLMin30BodyPct()),
+                String.valueOf(pageQuery.getLMin30PrevDays()),
+                String.valueOf(pageQuery.getLMin30BarsPerDay()));
     }
 
     public void clearRecommendCache() {
@@ -339,6 +345,7 @@ public class StockBaseController {
                 .preGolden(stockPageQuery.toPreGoldenParams())
                 .resonance(stockPageQuery.toResonanceParams())
                 .rebound(stockPageQuery.toReboundParams())
+                .ultraLow(stockPageQuery.toUltraLowParams())
                 .build();
 
     }

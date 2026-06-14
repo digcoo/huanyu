@@ -9,7 +9,7 @@ import com.yh.bigdata.tts.spider.strategy.tools.unilateral.UnilateralMacdTools;
 import lombok.Getter;
 
 /**
- * 深跌反弹 v3.0 · 大周期 MACD&lt;0 + 小周期 K 线突破
+ * 深跌反弹 v3.1 · 大周期 MACD&lt;0 + 小周期 MACD&gt;0 + 小周期 K 线突破
  */
 public final class ReboundEvaluator {
 
@@ -23,19 +23,23 @@ public final class ReboundEvaluator {
         boolean weekMacdNegative = UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.WEEK);
         boolean monthMacdNegative = UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.MONTH);
         boolean yearMacdNegative = UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.YEAR);
+        boolean dayMacdPositive = UnilateralMacdTools.isMacdPositive(stock, PeriodTypeEnum.DAY);
+        boolean weekMacdPositive = UnilateralMacdTools.isMacdPositive(stock, PeriodTypeEnum.WEEK);
+        boolean monthMacdPositive = UnilateralMacdTools.isMacdPositive(stock, PeriodTypeEnum.MONTH);
 
         boolean dayBreakout = PreGoldenBreakoutTools.checkBreakout(stock, PeriodTypeEnum.DAY);
         boolean weekBreakout = PreGoldenBreakoutTools.checkBreakout(stock, PeriodTypeEnum.WEEK);
         boolean monthBreakout = PreGoldenBreakoutTools.checkBreakout(stock, PeriodTypeEnum.MONTH);
 
-        boolean shortHit = p.isEnableShort() && weekMacdNegative && dayBreakout;
-        boolean mediumHit = p.isEnableMedium() && monthMacdNegative && weekBreakout;
-        boolean longHit = p.isEnableLong() && yearMacdNegative && monthBreakout;
+        boolean shortHit = p.isEnableShort() && weekMacdNegative && dayMacdPositive && dayBreakout;
+        boolean mediumHit = p.isEnableMedium() && monthMacdNegative && weekMacdPositive && weekBreakout;
+        boolean longHit = p.isEnableLong() && yearMacdNegative && monthMacdPositive && monthBreakout;
         boolean hit = shortHit || mediumHit || longHit;
 
         ReboundEvaluation eval = new ReboundEvaluation(
                 shortHit, mediumHit, longHit,
                 weekMacdNegative, monthMacdNegative, yearMacdNegative,
+                dayMacdPositive, weekMacdPositive, monthMacdPositive,
                 dayBreakout, weekBreakout, monthBreakout, hit);
 
         if (hit && checkResult != null) {
@@ -72,6 +76,9 @@ public final class ReboundEvaluator {
         private final boolean weekMacdNegative;
         private final boolean monthMacdNegative;
         private final boolean yearMacdNegative;
+        private final boolean dayMacdPositive;
+        private final boolean weekMacdPositive;
+        private final boolean monthMacdPositive;
         private final boolean dayBreakout;
         private final boolean weekBreakout;
         private final boolean monthBreakout;
@@ -81,6 +88,7 @@ public final class ReboundEvaluator {
 
         public ReboundEvaluation(boolean shortHit, boolean mediumHit, boolean longHit,
                                  boolean weekMacdNegative, boolean monthMacdNegative, boolean yearMacdNegative,
+                                 boolean dayMacdPositive, boolean weekMacdPositive, boolean monthMacdPositive,
                                  boolean dayBreakout, boolean weekBreakout, boolean monthBreakout,
                                  boolean hit) {
             this.shortHit = shortHit;
@@ -89,6 +97,9 @@ public final class ReboundEvaluator {
             this.weekMacdNegative = weekMacdNegative;
             this.monthMacdNegative = monthMacdNegative;
             this.yearMacdNegative = yearMacdNegative;
+            this.dayMacdPositive = dayMacdPositive;
+            this.weekMacdPositive = weekMacdPositive;
+            this.monthMacdPositive = monthMacdPositive;
             this.dayBreakout = dayBreakout;
             this.weekBreakout = weekBreakout;
             this.monthBreakout = monthBreakout;

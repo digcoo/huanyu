@@ -3,10 +3,12 @@ package com.yh.bigdata.tts.spider.scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.yh.bigdata.tts.spider.crawler.StockBaseCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockDayXueQiuCrawler;
+import com.yh.bigdata.tts.spider.xueqiu.StockMin30XueQiuCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockMonthXueQiuCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockQuarterXueQiuCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockWeekXueQiuCrawler;
@@ -32,6 +34,12 @@ public class DayAllSpiderScheduler {
 	StockDayXueQiuCrawler stockDayCrawler;
 
 	@Autowired
+	StockMin30XueQiuCrawler stockMin30Crawler;
+
+	@Value("${spider.min30.default-count:50}")
+	private int min30DefaultCount;
+
+	@Autowired
 	StockWeekXueQiuCrawler stockWeekCrawler;
 
 	@Autowired
@@ -54,6 +62,7 @@ public class DayAllSpiderScheduler {
 //			}
 			stockBaseCrawler.run();
 			stockDayCrawler.run(null, 40);
+			stockMin30Crawler.run(null, min30DefaultCount);
 			stockWeekCrawler.run(null, 2);
 			stockMonthCrawler.run(null, 2);
 			stockQuarterCrawler.run(null, 2);

@@ -93,6 +93,9 @@ public class StockTargetScheduler {
             if (contextParam.getResonance() == null) {
                 contextParam.setResonance(com.yh.bigdata.tts.common.param.ResonanceStrategyParams.defaults());
             }
+            if (contextParam.getUltraLow() == null) {
+                contextParam.setUltraLow(com.yh.bigdata.tts.common.param.UltraLowReboundStrategyParams.defaults());
+            }
             int saved = 0;
             String lastDay = stockTargetMapper.selectLatestDay();
             Set<String> oldStockTargetList = new HashSet<>();

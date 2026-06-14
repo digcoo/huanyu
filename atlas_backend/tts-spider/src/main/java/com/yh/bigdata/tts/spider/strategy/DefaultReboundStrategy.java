@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 深跌反弹（default）· v3.0：Gate + 短/中/长 MACD&lt;0 + K 线突破
+ * 深跌反弹（default）· v3.1：Gate + 大周期 MACD&lt;0 + 小周期 MACD&gt;0 + K 线突破
  * @see docs/strategies/深坑反弹策略.md
  */
 @Slf4j

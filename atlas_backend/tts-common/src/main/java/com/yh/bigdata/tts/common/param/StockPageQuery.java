@@ -82,6 +82,16 @@ public class StockPageQuery extends PageQuery {
     /** 周期共振 · 最低档位 ALL/S/A/B */
     private String cTierMin;
 
+    /** 超短线 · 最低日均成交额（万） */
+    private Integer lMinAmountWan;
+    private String lTierMin;
+    /** 30m 大阳线/大涨幅下限（0~1） */
+    private Double lMin30BodyPct;
+    /** 向前几个交易日（不含当日，1~2） */
+    private Integer lMin30PrevDays;
+    /** 每交易日最多几根 30m */
+    private Integer lMin30BarsPerDay;
+
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
 	}
@@ -197,6 +207,27 @@ public class StockPageQuery extends PageQuery {
             b.tierMin(cTierMin);
         }
         return ResonanceStrategyParams.merge(b.build());
+    }
+
+    public UltraLowReboundStrategyParams toUltraLowParams() {
+        UltraLowReboundStrategyParams.UltraLowReboundStrategyParamsBuilder b =
+                UltraLowReboundStrategyParams.builder();
+        if (lMinAmountWan != null) {
+            b.minAvgAmount(lMinAmountWan * 10_000D);
+        }
+        if (lTierMin != null && !lTierMin.isEmpty()) {
+            b.tierMin(lTierMin);
+        }
+        if (lMin30BodyPct != null && lMin30BodyPct > 0) {
+            b.min30BodyGainPct(lMin30BodyPct);
+        }
+        if (lMin30PrevDays != null && lMin30PrevDays >= 1) {
+            b.min30PrevDays(lMin30PrevDays);
+        }
+        if (lMin30BarsPerDay != null && lMin30BarsPerDay > 0) {
+            b.min30BarsPerDay(lMin30BarsPerDay);
+        }
+        return UltraLowReboundStrategyParams.merge(b.build());
     }
 	
 }

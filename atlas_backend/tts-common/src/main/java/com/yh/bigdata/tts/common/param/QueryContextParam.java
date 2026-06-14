@@ -30,6 +30,9 @@ public class QueryContextParam extends PageQuery {
     /** 周期共振策略自定义参数 */
     private ResonanceStrategyParams resonance;
 
+    /** 超低反弹策略自定义参数 */
+    private UltraLowReboundStrategyParams ultraLow;
+
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
@@ -37,6 +40,7 @@ public class QueryContextParam extends PageQuery {
                 .preGolden(PreGoldenStrategyParams.defaults())
                 .resonance(ResonanceStrategyParams.defaults())
                 .rebound(ReboundStrategyParams.defaults())
+                .ultraLow(UltraLowReboundStrategyParams.defaults())
                 .build();
     }
 	
