@@ -107,9 +107,21 @@ function fetchKlinesRefresh(code, period, limit) {
   });
 }
 
-/** 梯子突破 · 30m 基准 K / 突破 K 标记 */
-function fetchLadderMarkers(code) {
-  return api.get('/stock/' + encodePath(code) + '/ladder/markers').then(function (res) {
+/** 梯子突破 · 基准 K / 突破 K 标记 */
+function fetchLadderMarkers(code, period) {
+  return api.get('/stock/' + encodePath(code) + '/ladder/markers', {
+    period: period || 'min30'
+  }).then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
+/** 回踩抬升 · L0/H1/L1/介入 标记 */
+function fetchRetestMarkers(code, period) {
+  return api.get('/stock/' + encodePath(code) + '/retest/markers', {
+    period: period || 'day'
+  }).then(function (res) {
     if (!res.ok || !res.data) return null;
     return res.data;
   });
@@ -181,6 +193,7 @@ module.exports = {
   fetchKlines: fetchKlines,
   fetchKlinesRefresh: fetchKlinesRefresh,
   fetchLadderMarkers: fetchLadderMarkers,
+  fetchRetestMarkers: fetchRetestMarkers,
   fetchUlowMarkers: fetchLadderMarkers,
   fetchSummary: fetchSummary,
   search: search,

@@ -13,6 +13,8 @@ public enum StrategyTypeEnum {
     PERIOD_RESONANCE("reson", "周期共振", 3),
     DEFAUL("default", "深跌反弹", 4),
     LADDER_BREAKOUT("ladder", "梯子突破", 5),
+    RETEST("retest", "回踩抬升", 6),
+    GC2_BREAKOUT("gc2", "金叉二次突破", 7),
     CROSS_BAND_PRESSURE("cross_band_pressure", "突破波段: 关键阻力位", 9);
 
 	private final String code;

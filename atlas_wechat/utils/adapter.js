@@ -9,7 +9,9 @@ const STRATEGY_API = {
   preGolden: { strategy: 'preqsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
   resonance: { strategy: 'reson', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
   rebound: { strategy: 'default', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
-  ladder: { strategy: 'ladder', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' }
+  ladder: { strategy: 'ladder', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' },
+  retest: { strategy: 'retest', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  gc2: { strategy: 'gc2', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' }
 };
 
 function normalizeStrategyId(strategyId) {
@@ -235,6 +237,58 @@ function buildLadderSummary(item) {
   return parseUnilateralTrendLabel(item.trendMessage) || '';
 }
 
+function buildGc2Tags(item) {
+  var tags = [];
+  var tier = parseUnilateralTier(item.trendMessage);
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (tier === 'S') tags.push('日线金叉突破');
+  else if (tier === 'A') tags.push('周线金叉突破');
+  else if (tier === 'B') tags.push('月线金叉突破');
+  if (item.signalMessage && item.signalMessage.indexOf('refDay=') >= 0) {
+    tags.push('突破金叉高点');
+  }
+  if (label && tags.indexOf(label) < 0 && label.length <= 14) {
+    tags.push(label);
+  }
+  return tags;
+}
+
+function buildGc2Summary(item) {
+  var signal = item.signalMessage || '';
+  if (signal) return signal.split(',')[0];
+  return parseUnilateralTrendLabel(item.trendMessage) || '';
+}
+
+function parseRetestModes(item) {
+  var text = [item.signalMessage, item.trendMessage].join('|');
+  var m = text.match(/modes=([^,|]+)/);
+  if (!m) return [];
+  return m[1].split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+}
+
+function buildRetestTags(item) {
+  var tags = [];
+  var tier = parseUnilateralTier(item.trendMessage);
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  var modes = parseRetestModes(item);
+  if (modes.indexOf('bear') >= 0) tags.push('下跌反转');
+  if (modes.indexOf('bull') >= 0) tags.push('上涨中继');
+  if (tier === 'S') tags.push('超短回踩');
+  else if (tier === 'A') tags.push('短线回踩');
+  else if (tier === 'B') tags.push('中线回踩');
+  else if (tier === 'C') tags.push('长线回踩');
+  if (label && tags.indexOf(label) < 0 && label.length <= 14) {
+    tags.push(label);
+  }
+  return tags;
+}
+
+function buildRetestSummary(item) {
+  var signal = item.signalMessage || '';
+  if (signal) return signal.split(',')[0];
+  return parseUnilateralTrendLabel(item.trendMessage) || '';
+}
+
 function mapRecommendation(item, strategyId) {
   strategyId = normalizeStrategyId(strategyId || 'trend');
   var code = normalizeCode(item.code);
@@ -251,6 +305,10 @@ function mapRecommendation(item, strategyId) {
     tags = tags.concat(buildReboundTags(item));
   } else if (strategyId === 'ladder') {
     tags = tags.concat(buildLadderTags(item));
+  } else if (strategyId === 'retest') {
+    tags = tags.concat(buildRetestTags(item));
+  } else if (strategyId === 'gc2') {
+    tags = tags.concat(buildGc2Tags(item));
   } else {
     if (item.signalMessage) tags.push('信号');
     else if (item.trendMessage) tags.push('趋势');
@@ -261,6 +319,10 @@ function mapRecommendation(item, strategyId) {
     ? [buildReboundSummary(item), item.mainBusiness, item.summary]
     : strategyId === 'ladder'
     ? [buildLadderSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'retest'
+    ? [buildRetestSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'gc2'
+    ? [buildGc2Summary(item), item.mainBusiness, item.summary]
     : [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
   ).filter(function (s) { return s && String(s).trim(); });
   return {

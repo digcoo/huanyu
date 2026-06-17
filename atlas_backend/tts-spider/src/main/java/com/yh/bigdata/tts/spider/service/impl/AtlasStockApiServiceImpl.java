@@ -18,8 +18,12 @@ import com.yh.bigdata.tts.spider.service.AtlasDetailComputeService;
 import com.yh.bigdata.tts.spider.service.AtlasIndustryChainService;
 import com.yh.bigdata.tts.spider.service.AtlasStockApiService;
 import com.yh.bigdata.tts.spider.service.StockService;
+import com.yh.bigdata.tts.common.param.Gc2StrategyParams;
+import com.yh.bigdata.tts.common.param.RetestStrategyParams;
+import com.yh.bigdata.tts.common.param.UltraLowReboundStrategyParams;
+import com.yh.bigdata.tts.spider.strategy.tools.gc2.Gc2MarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.retest.RetestMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.LadderMarkersTools;
-import com.yh.bigdata.tts.spider.strategy.tools.ultralow.Min30BreakoutTools;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient.IndexDef;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient.Quote;
@@ -33,8 +37,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -146,6 +148,26 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
             periodType = PeriodTypeEnum.MIN30;
         }
         return LadderMarkersTools.resolve(stock, periodType, UltraLowReboundStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasRetestMarkersVo getRetestMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return RetestMarkersTools.resolve(stock, periodType, RetestStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getGc2Markers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return Gc2MarkersTools.resolve(stock, periodType, Gc2StrategyParams.defaults());
     }
 
     @Override

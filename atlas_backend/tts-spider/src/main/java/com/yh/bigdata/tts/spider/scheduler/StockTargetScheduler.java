@@ -96,6 +96,12 @@ public class StockTargetScheduler {
             if (contextParam.getUltraLow() == null) {
                 contextParam.setUltraLow(com.yh.bigdata.tts.common.param.UltraLowReboundStrategyParams.defaults());
             }
+            if (contextParam.getRetest() == null) {
+                contextParam.setRetest(com.yh.bigdata.tts.common.param.RetestStrategyParams.defaults());
+            }
+            if (contextParam.getGc2() == null) {
+                contextParam.setGc2(com.yh.bigdata.tts.common.param.Gc2StrategyParams.defaults());
+            }
             int saved = 0;
             String lastDay = stockTargetMapper.selectLatestDay();
             Set<String> oldStockTargetList = new HashSet<>();

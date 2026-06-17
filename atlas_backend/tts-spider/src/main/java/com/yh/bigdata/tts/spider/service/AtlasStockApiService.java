@@ -22,6 +22,10 @@ public interface AtlasStockApiService {
 
     AtlasUlowMin30MarkersVo getLadderMarkers(String code, String period);
 
+    AtlasRetestMarkersVo getRetestMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getGc2Markers(String code, String period);
+
     AtlasStockDetailVo getDetail(String code);
 
     Map<String, AtlasCompassModuleVo> getCompass(String code);

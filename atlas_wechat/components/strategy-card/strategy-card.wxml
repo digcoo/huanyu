@@ -53,6 +53,7 @@
       resonance="{{item.resonance}}"
       activePeriod="{{activePeriod}}"
       barMarkers="{{item.barMarkers}}"
+      markerEpoch="{{item.markerEpoch || 0}}"
       updatedLabel="{{item.dataUpdatedLabel}}"
     />
     <view wx:else class="chart-empty">

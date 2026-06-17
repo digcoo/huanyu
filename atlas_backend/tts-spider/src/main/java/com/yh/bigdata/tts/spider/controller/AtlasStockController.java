@@ -3,6 +3,7 @@ package com.yh.bigdata.tts.spider.controller;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasCompassModuleVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasKlineBarVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasMarketIndexVo;
+import com.yh.bigdata.tts.common.dto.atlas.AtlasRetestMarkersVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasUlowMin30MarkersVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockDetailVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockSummaryVo;
@@ -87,9 +88,41 @@ public class AtlasStockController {
     }
 
     @GetMapping({"/{code}/ladder/markers", "/{code}/ulow/markers"})
-    public Response<AtlasUlowMin30MarkersVo> getLadderMin30Markers(@PathVariable("code") String code) {
+    public Response<AtlasUlowMin30MarkersVo> getLadderMin30Markers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "min30") String period) {
         try {
-            AtlasUlowMin30MarkersVo markers = atlasStockApiService.getUlowMin30Markers(code);
+            AtlasUlowMin30MarkersVo markers = atlasStockApiService.getLadderMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/retest/markers")
+    public Response<AtlasRetestMarkersVo> getRetestMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasRetestMarkersVo markers = atlasStockApiService.getRetestMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/gc2/markers")
+    public Response<AtlasGc2MarkersVo> getGc2Markers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getGc2Markers(code, period);
             if (markers == null) {
                 return ResponseUtil.fail(ResponseUtil.NO_DATA);
             }

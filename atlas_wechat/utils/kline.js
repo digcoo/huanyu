@@ -398,12 +398,25 @@ function findBarIndexByDay(klines, day, sliceOffset) {
   if (!klines || !klines.length || !day) return null;
   var target = normalizeMarkerDay(day);
   var targetMin = target.slice(0, 16);
-  for (var i = klines.length - 1; i >= 0; i--) {
+  var hasTime = target.length > 10;
+
+  for (var i = 0; i < klines.length; i++) {
     var cur = normalizeMarkerDay(klines[i].day);
     if (!cur) continue;
     if (cur === target || cur.slice(0, 16) === targetMin) {
       if (i < sliceOffset) return null;
       return i - sliceOffset;
+    }
+  }
+
+  if (!hasTime) {
+    var targetDate = target.slice(0, 10);
+    for (var j = klines.length - 1; j >= 0; j--) {
+      var curDay = normalizeMarkerDay(klines[j].day);
+      if (curDay && curDay.slice(0, 10) === targetDate) {
+        if (j < sliceOffset) return null;
+        return j - sliceOffset;
+      }
     }
   }
   return null;

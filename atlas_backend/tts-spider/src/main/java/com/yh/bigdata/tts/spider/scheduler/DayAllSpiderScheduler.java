@@ -60,13 +60,14 @@ public class DayAllSpiderScheduler {
 //			if (!SinaHttpUtils.isTradeOfCurrentDay()) {
 //				return;
 //			}
+            String code = null;
 			stockBaseCrawler.run();
-			stockDayCrawler.run(null, 40);
-			stockMin30Crawler.run(null, min30DefaultCount);
-			stockWeekCrawler.run(null, 2);
-			stockMonthCrawler.run(null, 2);
-			stockQuarterCrawler.run(null, 2);
-			stockYearCrawler.run(null, 2);
+			stockDayCrawler.run(code, 100);
+			stockMin30Crawler.run(code, 16);
+			stockWeekCrawler.run(code, 100);
+			stockMonthCrawler.run(code, 100);
+			stockQuarterCrawler.run(code, 100);
+			stockYearCrawler.run(code, 100);
 		} catch (Exception e) {
 			logger.error("DayAllSpiderScheduler exception..... ", e);
 		}

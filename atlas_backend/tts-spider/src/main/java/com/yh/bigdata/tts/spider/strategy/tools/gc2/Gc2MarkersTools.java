@@ -1,35 +1,34 @@
-package com.yh.bigdata.tts.spider.strategy.tools.ultralow;
+package com.yh.bigdata.tts.spider.strategy.tools.gc2;
 
 import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
+import com.yh.bigdata.tts.common.dto.atlas.AtlasGc2MarkersVo;
 import com.yh.bigdata.tts.common.model.StockBase;
-import com.yh.bigdata.tts.common.param.UltraLowReboundStrategyParams;
-import com.yh.bigdata.tts.common.dto.atlas.AtlasUlowMin30MarkersVo;
+import com.yh.bigdata.tts.common.param.Gc2StrategyParams;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 梯子突破 · 基准K / 突破K 标记（各周期）
+ * 金叉二次突破 · 金叉K / 突破K 标记
  */
-public final class LadderMarkersTools {
+public final class Gc2MarkersTools {
 
     private static final Pattern REF_DAY = Pattern.compile("refDay=([^,|]+(?:\\s[^,|]+)*)");
     private static final Pattern SIG_DAY = Pattern.compile("sigDay=([^,|]+(?:\\s[^,|]+)*)");
 
-    private LadderMarkersTools() {
+    private Gc2MarkersTools() {
     }
 
-    public static AtlasUlowMin30MarkersVo resolve(StockBase stock, PeriodTypeEnum period,
-                                                  UltraLowReboundStrategyParams params) {
+    public static AtlasGc2MarkersVo resolve(StockBase stock, PeriodTypeEnum period, Gc2StrategyParams params) {
         if (stock == null) {
             return null;
         }
-        UltraLowReboundStrategyParams p = params != null ? params : UltraLowReboundStrategyParams.defaults();
-        PeriodTypeEnum pType = period != null ? period : PeriodTypeEnum.MIN30;
+        Gc2StrategyParams p = params != null ? params : Gc2StrategyParams.defaults();
+        PeriodTypeEnum pType = period != null ? period : PeriodTypeEnum.DAY;
 
-        BreakoutLadderTools.TierHit hit = findHitForPeriod(stock, pType, p);
+        Gc2BreakoutTools.TierHit hit = findHitForPeriod(stock, pType, p);
         if (hit != null && hit.getReferenceBar() != null && hit.getSignalBar() != null) {
-            return AtlasUlowMin30MarkersVo.builder()
+            return AtlasGc2MarkersVo.builder()
                     .referenceDay(hit.getReferenceBar().getDay())
                     .referenceHigh(hit.getReferenceBar().getHigh())
                     .signalDay(hit.getSignalBar().getDay())
@@ -41,27 +40,25 @@ public final class LadderMarkersTools {
         return parseFromText(combined);
     }
 
-    public static BreakoutLadderTools.TierHit findHitForPeriod(StockBase stock, PeriodTypeEnum period,
-                                                               UltraLowReboundStrategyParams params) {
-        UltraLowReboundStrategyParams p = params != null ? params : UltraLowReboundStrategyParams.defaults();
+    public static Gc2BreakoutTools.TierHit findHitForPeriod(StockBase stock, PeriodTypeEnum period,
+                                                            Gc2StrategyParams params) {
+        Gc2StrategyParams p = params != null ? params : Gc2StrategyParams.defaults();
         if (period == null) {
-            return BreakoutLadderTools.findUltraHit(stock, p);
+            return Gc2BreakoutTools.findShortHit(stock, p);
         }
         switch (period) {
-            case MIN30:
-                return BreakoutLadderTools.findUltraHit(stock, p);
             case DAY:
-                return BreakoutLadderTools.findShortHit(stock, p);
+                return Gc2BreakoutTools.findShortHit(stock, p);
             case WEEK:
-                return BreakoutLadderTools.findMediumHit(stock, p);
+                return Gc2BreakoutTools.findMediumHit(stock, p);
             case MONTH:
-                return BreakoutLadderTools.findLongHit(stock, p);
+                return Gc2BreakoutTools.findLongHit(stock, p);
             default:
                 return null;
         }
     }
 
-    public static AtlasUlowMin30MarkersVo parseFromText(String text) {
+    public static AtlasGc2MarkersVo parseFromText(String text) {
         if (text == null || text.isEmpty()) {
             return null;
         }
@@ -70,7 +67,7 @@ public final class LadderMarkersTools {
         if (refDay.isEmpty() && sigDay.isEmpty()) {
             return null;
         }
-        return AtlasUlowMin30MarkersVo.builder()
+        return AtlasGc2MarkersVo.builder()
                 .referenceDay(refDay)
                 .signalDay(sigDay)
                 .build();

@@ -45,6 +45,28 @@ var LADDER_DEFAULTS = {
   lTierMin: 'ALL'
 };
 
+var RETEST_DEFAULTS = {
+  tMinAmountWan: 3000,
+  tEnableBear: true,
+  tEnableBull: true,
+  tEnableUltra: true,
+  tEnableShort: true,
+  tEnableMedium: true,
+  tEnableLong: true,
+  tTierMin: 'ALL'
+};
+
+var GC2_DEFAULTS = {
+  g2MinAmountWan: 5000,
+  g2EnableShort: true,
+  g2EnableMedium: false,
+  g2EnableLong: false,
+  g2TierMin: 'ALL',
+  g2LookbackShort: 60,
+  g2LookbackMedium: 52,
+  g2LookbackLong: 24
+};
+
 var LADDER_SCHEMA = [
   {
     key: 'lMinAmountWan',
@@ -82,6 +104,67 @@ var LADDER_SCHEMA = [
   },
   {
     key: 'lTierMin',
+    label: '最低展示档位',
+    type: 'picker',
+    options: [
+      { value: 'ALL', label: '全部档位' },
+      { value: 'C', label: 'C档及以上 (长线+)' },
+      { value: 'B', label: 'B档及以上 (中线+)' },
+      { value: 'A', label: 'A档及以上 (短线+)' },
+      { value: 'S', label: '仅超短 (S)' }
+    ]
+  }
+];
+
+var RETEST_SCHEMA = [
+  {
+    key: 'tMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 1000,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'tEnableBear',
+    label: '下跌反转',
+    hint: '深跌背景 · 强弹回踩再升',
+    type: 'switch'
+  },
+  {
+    key: 'tEnableBull',
+    label: '上涨中继',
+    hint: '趋势背景 · 二次回踩再升',
+    type: 'switch'
+  },
+  {
+    key: 'tEnableUltra',
+    label: '超短档',
+    hint: '30m · L0/H1/L1/介入',
+    type: 'switch'
+  },
+  {
+    key: 'tEnableShort',
+    label: '短线档',
+    hint: '日K结构',
+    type: 'switch'
+  },
+  {
+    key: 'tEnableMedium',
+    label: '中线档',
+    hint: '周K结构',
+    type: 'switch'
+  },
+  {
+    key: 'tEnableLong',
+    label: '长线档',
+    hint: '月K结构',
+    type: 'switch'
+  },
+  {
+    key: 'tTierMin',
     label: '最低展示档位',
     type: 'picker',
     options: [
@@ -262,12 +345,56 @@ var RESONANCE_SCHEMA = [
   }
 ];
 
+var GC2_SCHEMA = [
+  {
+    key: 'g2MinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 1000,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'g2EnableShort',
+    label: '短线突破',
+    hint: '日K MACD金叉 · 突破金叉高点',
+    type: 'switch'
+  },
+  {
+    key: 'g2EnableMedium',
+    label: '中线突破',
+    hint: '周K MACD金叉 · 突破金叉高点',
+    type: 'switch'
+  },
+  {
+    key: 'g2EnableLong',
+    label: '长线突破',
+    hint: '月K MACD金叉 · 突破金叉高点',
+    type: 'switch'
+  },
+  {
+    key: 'g2TierMin',
+    label: '最低展示档位',
+    type: 'picker',
+    options: [
+      { value: 'ALL', label: '全部档位' },
+      { value: 'B', label: 'B档及以上 (长线+)' },
+      { value: 'A', label: 'A档及以上 (中线+)' },
+      { value: 'S', label: '仅短线 (S)' }
+    ]
+  }
+];
+
 var SCHEMA_BY_STRATEGY = {
   trend: TREND_SCHEMA,
   preGolden: PRE_GOLDEN_SCHEMA,
   resonance: RESONANCE_SCHEMA,
   rebound: REBOUND_SCHEMA,
-  ladder: LADDER_SCHEMA
+  ladder: LADDER_SCHEMA,
+  retest: RETEST_SCHEMA,
+  gc2: GC2_SCHEMA
 };
 
 var DEFAULTS_BY_STRATEGY = {
@@ -275,7 +402,9 @@ var DEFAULTS_BY_STRATEGY = {
   preGolden: PRE_GOLDEN_DEFAULTS,
   resonance: RESONANCE_DEFAULTS,
   rebound: REBOUND_DEFAULTS,
-  ladder: LADDER_DEFAULTS
+  ladder: LADDER_DEFAULTS,
+  retest: RETEST_DEFAULTS,
+  gc2: GC2_DEFAULTS
 };
 
 var TIER_PICKER = TREND_SCHEMA.find(function (f) { return f.key === 'uTierMin'; });
@@ -283,6 +412,8 @@ var PRE_GOLDEN_TIER_PICKER = PRE_GOLDEN_SCHEMA.find(function (f) { return f.key 
 var RESONANCE_TIER_PICKER = RESONANCE_SCHEMA.find(function (f) { return f.key === 'cTierMin'; });
 var REBOUND_TIER_PICKER = REBOUND_SCHEMA.find(function (f) { return f.key === 'rTierMin'; });
 var LADDER_TIER_PICKER = LADDER_SCHEMA.find(function (f) { return f.key === 'lTierMin'; });
+var RETEST_TIER_PICKER = RETEST_SCHEMA.find(function (f) { return f.key === 'tTierMin'; });
+var GC2_TIER_PICKER = GC2_SCHEMA.find(function (f) { return f.key === 'g2TierMin'; });
 
 function migrateLadderTier(raw, out) {
   if (!raw || !raw.lLadderTier) return;
@@ -301,6 +432,31 @@ function ladderPrimaryPeriod(params) {
   if (p.lEnableMedium) return 'week';
   if (p.lEnableLong) return 'month';
   return 'min30';
+}
+
+function retestPrimaryPeriod(params) {
+  var p = params || {};
+  if (p.tEnableUltra) return 'min30';
+  if (p.tEnableShort) return 'day';
+  if (p.tEnableMedium) return 'week';
+  if (p.tEnableLong) return 'month';
+  return 'day';
+}
+
+function gc2PrimaryPeriod(params) {
+  var p = params || {};
+  if (p.g2EnableShort) return 'day';
+  if (p.g2EnableMedium) return 'week';
+  if (p.g2EnableLong) return 'month';
+  return 'day';
+}
+
+function chartPrimaryPeriod(strategyId, params) {
+  strategyId = normalizeStrategyId(strategyId);
+  if (strategyId === 'ladder') return ladderPrimaryPeriod(params);
+  if (strategyId === 'retest') return retestPrimaryPeriod(params);
+  if (strategyId === 'gc2') return gc2PrimaryPeriod(params);
+  return null;
 }
 
 function normalizeStrategyId(strategyId) {
@@ -332,7 +488,7 @@ function normalize(strategyId, raw) {
     if (raw[field.key] === undefined || raw[field.key] === null) return;
     if (field.type === 'switch') {
       out[field.key] = !!raw[field.key];
-    } else if (field.key === 'uTierMin' || field.key === 'rTierMin' || field.key === 'pTierMin' || field.key === 'cTierMin' || field.key === 'lTierMin') {
+    } else if (field.key === 'uTierMin' || field.key === 'rTierMin' || field.key === 'pTierMin' || field.key === 'cTierMin' || field.key === 'lTierMin' || field.key === 'tTierMin' || field.key === 'g2TierMin') {
       out[field.key] = String(raw[field.key]).toUpperCase();
     } else {
       out[field.key] = raw[field.key];
@@ -356,6 +512,19 @@ function normalize(strategyId, raw) {
     migrateLadderTier(raw, out);
     if (!out.lEnableUltra && !out.lEnableShort && !out.lEnableMedium && !out.lEnableLong) {
       out.lEnableUltra = true;
+    }
+  }
+  if (strategyId === 'retest') {
+    if (!out.tEnableBear && !out.tEnableBull) {
+      out.tEnableBear = true;
+    }
+    if (!out.tEnableUltra && !out.tEnableShort && !out.tEnableMedium && !out.tEnableLong) {
+      out.tEnableUltra = true;
+    }
+  }
+  if (strategyId === 'gc2') {
+    if (!out.g2EnableShort && !out.g2EnableMedium && !out.g2EnableLong) {
+      out.g2EnableShort = true;
     }
   }
   return out;
@@ -471,6 +640,27 @@ function formatSummary(strategyId) {
     return (lModes.length ? lModes.join('+') : '未启用') + ' · '
       + tierLabelFrom(LADDER_TIER_PICKER, p.lTierMin);
   }
+  if (strategyId === 'retest') {
+    var tModes = [];
+    if (p.tEnableBear) tModes.push('下跌反转');
+    if (p.tEnableBull) tModes.push('上涨中继');
+    var tTiers = [];
+    if (p.tEnableUltra) tTiers.push('超短');
+    if (p.tEnableShort) tTiers.push('短');
+    if (p.tEnableMedium) tTiers.push('中');
+    if (p.tEnableLong) tTiers.push('长');
+    return (tModes.length ? tModes.join('+') : '未启用模式') + ' · '
+      + (tTiers.length ? tTiers.join('+') : '未启用档位') + ' · '
+      + tierLabelFrom(RETEST_TIER_PICKER, p.tTierMin);
+  }
+  if (strategyId === 'gc2') {
+    var g2Modes = [];
+    if (p.g2EnableShort) g2Modes.push('短线');
+    if (p.g2EnableMedium) g2Modes.push('中线');
+    if (p.g2EnableLong) g2Modes.push('长线');
+    return (g2Modes.length ? g2Modes.join('+') : '未启用') + ' · '
+      + tierLabelFrom(GC2_TIER_PICKER, p.g2TierMin);
+  }
   return '';
 }
 
@@ -485,6 +675,9 @@ module.exports = {
   isCustomized: isCustomized,
   formatSummary: formatSummary,
   normalize: normalize,
-  ladderPrimaryPeriod: ladderPrimaryPeriod
+  ladderPrimaryPeriod: ladderPrimaryPeriod,
+  retestPrimaryPeriod: retestPrimaryPeriod,
+  gc2PrimaryPeriod: gc2PrimaryPeriod,
+  chartPrimaryPeriod: chartPrimaryPeriod
 };
 

@@ -10,7 +10,7 @@ const auth = require('../../utils/auth');
 const stockApi = require('../../utils/stock-api');
 const adapter = require('../../utils/adapter');
 const strategyParams = require('../../utils/strategy-params');
-const ladderMarkers = require('../../utils/ladder-markers');
+const barMarkers = require('../../utils/bar-markers');
 
 const app = getApp();
 
@@ -20,18 +20,20 @@ function mapChartKlines(list, period, strategyId) {
   return list.map(function (item) {
     var fromStore = item.klines && item.klines[period] ? item.klines[period].slice() : null;
     var klines = fromStore || (item.chartKlines ? item.chartKlines.slice() : []);
-    var barMarkers = ladderMarkers.shouldShowLadderMarkers(strategyId, period)
+    var markers = barMarkers.shouldShowBarMarkers(strategyId, period)
       ? (item.barMarkers && item.barMarkers.length
         ? item.barMarkers.slice()
-        : ladderMarkers.resolveBarMarkersForItem(item, strategyId, period, klines))
+        : barMarkers.resolveBarMarkersForItem(item, strategyId, period, klines))
       : [];
-    return Object.assign({}, item, { chartKlines: klines, barMarkers: barMarkers });
+    return Object.assign({}, item, { chartKlines: klines, barMarkers: markers });
   });
 }
 
 function normalizeSavedStrategy(strategyId) {
   if (strategyId === 'ultraLow') return 'ladder';
-  return strategyId;
+  if (strategyId === 'retest') return 'trend';
+  var known = STRATEGIES.some(function (s) { return s.id === strategyId; });
+  return known ? strategyId : 'trend';
 }
 
 function filterIgnored(items, ignored) {
@@ -127,7 +129,7 @@ function attachKlinesInBackground(self, items, period) {
       self._baseList = self._baseList.map(function (item) {
         return klineById[item.id] ? Object.assign({}, item, klineById[item.id]) : item;
       });
-      return ladderMarkers.enrichItemsWithLadderMarkers(self._baseList, strategyId, activePeriod).then(function (enriched) {
+      return barMarkers.enrichItemsWithBarMarkers(self._baseList, strategyId, activePeriod).then(function (enriched) {
         self._baseList = enriched;
         self.setData({
           recommendations: mapChartKlines(enriched, activePeriod, strategyId)
@@ -195,9 +197,8 @@ Page({
     if (savedStrategy !== wx.getStorageSync('activeStrategy')) {
       wx.setStorageSync('activeStrategy', savedStrategy);
     }
-    const initialPeriod = savedStrategy === 'ladder'
-      ? strategyParams.ladderPrimaryPeriod(strategyParams.load('ladder'))
-      : savedPeriod;
+    const initialPeriod = strategyParams.chartPrimaryPeriod(savedStrategy, strategyParams.load(savedStrategy))
+      || savedPeriod;
     const klineFlipped = !!wx.getStorageSync('klineFlipped');
 
     this.setData({
@@ -276,12 +277,13 @@ Page({
     this.refreshParamsBadge(strategyId);
 
     if (strategyId === 'ladder') {
-      var ladderPeriod = strategyParams.ladderPrimaryPeriod(
-        detail.params || strategyParams.load('ladder')
+      var chartPeriod = strategyParams.chartPrimaryPeriod(
+        strategyId,
+        detail.params || strategyParams.load(strategyId)
       );
-      if (ladderPeriod !== this.data.activePeriod) {
-        wx.setStorageSync('activePeriod', ladderPeriod);
-        this.setData({ activePeriod: ladderPeriod });
+      if (chartPeriod && chartPeriod !== this.data.activePeriod) {
+        wx.setStorageSync('activePeriod', chartPeriod);
+        this.setData({ activePeriod: chartPeriod });
       }
     }
 
@@ -458,7 +460,7 @@ Page({
       self._loadPage = pageResult.page;
       self._backendPage = pageResult.page;
       self._baseList = pageResult.items;
-      return ladderMarkers.enrichItemsWithLadderMarkers(pageResult.items, strategyId, period).then(function (enriched) {
+      return barMarkers.enrichItemsWithBarMarkers(pageResult.items, strategyId, period).then(function (enriched) {
         self._baseList = enriched;
         self.setData({
           activeMarket: marketId,
@@ -503,8 +505,9 @@ Page({
     const strategyId = e.detail.strategyId;
     wx.setStorageSync('activeStrategy', strategyId);
     var period = this.data.activePeriod;
-    if (strategyId === 'ladder') {
-      period = strategyParams.ladderPrimaryPeriod(strategyParams.load('ladder'));
+    var chartPeriod = strategyParams.chartPrimaryPeriod(strategyId, strategyParams.load(strategyId));
+    if (chartPeriod) {
+      period = chartPeriod;
       wx.setStorageSync('activePeriod', period);
     }
     this.setData({

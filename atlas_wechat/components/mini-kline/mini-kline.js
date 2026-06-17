@@ -159,7 +159,7 @@ Component({
       var markerPositions = [];
       var markerLegend = [];
 
-      if (barMarkers.length && activePeriod === 'min30') {
+      if (barMarkers.length) {
         barMarkers.forEach(function (m) {
           if (!m || !m.day) return;
           var idx = findBarIndexByDay(full, m.day, sliceOffset);

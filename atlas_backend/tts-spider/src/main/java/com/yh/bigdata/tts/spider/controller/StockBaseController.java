@@ -254,7 +254,9 @@ public class StockBaseController {
                 && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.PRE_GOLD_CROSS
                 && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.PERIOD_RESONANCE
                 && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.DEFAUL
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.LADDER_BREAKOUT) {
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.LADDER_BREAKOUT
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.RETEST
+                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.GC2_BREAKOUT) {
             log.warn("rescan unsupported strategy: {}", pageQuery.getStrategy());
             return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
         }
@@ -314,7 +316,23 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getLTierMin()),
                 String.valueOf(pageQuery.getLMin30BodyPct()),
                 String.valueOf(pageQuery.getLMin30PrevDays()),
-                String.valueOf(pageQuery.getLMin30BarsPerDay()));
+                String.valueOf(pageQuery.getLMin30BarsPerDay()),
+                String.valueOf(pageQuery.getTMinAmountWan()),
+                String.valueOf(pageQuery.getTTierMin()),
+                String.valueOf(pageQuery.getTEnableBear()),
+                String.valueOf(pageQuery.getTEnableBull()),
+                String.valueOf(pageQuery.getTEnableUltra()),
+                String.valueOf(pageQuery.getTEnableShort()),
+                String.valueOf(pageQuery.getTEnableMedium()),
+                String.valueOf(pageQuery.getTEnableLong()),
+                String.valueOf(pageQuery.getG2MinAmountWan()),
+                String.valueOf(pageQuery.getG2TierMin()),
+                String.valueOf(pageQuery.getG2EnableShort()),
+                String.valueOf(pageQuery.getG2EnableMedium()),
+                String.valueOf(pageQuery.getG2EnableLong()),
+                String.valueOf(pageQuery.getG2LookbackShort()),
+                String.valueOf(pageQuery.getG2LookbackMedium()),
+                String.valueOf(pageQuery.getG2LookbackLong()));
     }
 
     public void clearRecommendCache() {
@@ -346,6 +364,8 @@ public class StockBaseController {
                 .resonance(stockPageQuery.toResonanceParams())
                 .rebound(stockPageQuery.toReboundParams())
                 .ultraLow(stockPageQuery.toUltraLowParams())
+                .retest(stockPageQuery.toRetestParams())
+                .gc2(stockPageQuery.toGc2Params())
                 .build();
 
     }

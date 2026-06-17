@@ -107,6 +107,26 @@ public class StockPageQuery extends PageQuery {
     /** 长线现价过滤 1=启用 0=关闭 */
     private Integer lLongPriceFilter;
 
+    /** 回踩抬升 · 最低日均成交额（万） */
+    private Integer tMinAmountWan;
+    private String tTierMin;
+    private Boolean tEnableBear;
+    private Boolean tEnableBull;
+    private Boolean tEnableUltra;
+    private Boolean tEnableShort;
+    private Boolean tEnableMedium;
+    private Boolean tEnableLong;
+
+    /** 金叉二次突破 · 最低日均成交额（万） */
+    private Integer g2MinAmountWan;
+    private String g2TierMin;
+    private Boolean g2EnableShort;
+    private Boolean g2EnableMedium;
+    private Boolean g2EnableLong;
+    private Integer g2LookbackShort;
+    private Integer g2LookbackMedium;
+    private Integer g2LookbackLong;
+
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
 	}
@@ -285,6 +305,64 @@ public class StockPageQuery extends PageQuery {
             b.enableLongPriceFilter(lLongPriceFilter != 0);
         }
         return UltraLowReboundStrategyParams.merge(b.build());
+    }
+
+    public RetestStrategyParams toRetestParams() {
+        RetestStrategyParams.RetestStrategyParamsBuilder b = RetestStrategyParams.builder();
+        if (tMinAmountWan != null) {
+            b.minAvgAmount(tMinAmountWan * 10_000D);
+        }
+        if (tTierMin != null && !tTierMin.isEmpty()) {
+            b.tierMin(tTierMin);
+        }
+        if (tEnableBear != null) {
+            b.enableBear(tEnableBear);
+        }
+        if (tEnableBull != null) {
+            b.enableBull(tEnableBull);
+        }
+        if (tEnableUltra != null) {
+            b.enableUltra(tEnableUltra);
+        }
+        if (tEnableShort != null) {
+            b.enableShort(tEnableShort);
+        }
+        if (tEnableMedium != null) {
+            b.enableMedium(tEnableMedium);
+        }
+        if (tEnableLong != null) {
+            b.enableLong(tEnableLong);
+        }
+        return RetestStrategyParams.merge(b.build());
+    }
+
+    public Gc2StrategyParams toGc2Params() {
+        Gc2StrategyParams.Gc2StrategyParamsBuilder b = Gc2StrategyParams.builder();
+        if (g2MinAmountWan != null) {
+            b.minAvgAmount(g2MinAmountWan * 10_000D);
+        }
+        if (g2TierMin != null && !g2TierMin.isEmpty()) {
+            b.tierMin(g2TierMin);
+        }
+        if (g2EnableShort != null) {
+            b.enableShort(g2EnableShort);
+        }
+        if (g2EnableMedium != null) {
+            b.enableMedium(g2EnableMedium);
+        }
+        if (g2EnableLong != null) {
+            b.enableLong(g2EnableLong);
+        }
+        if (g2LookbackShort != null && g2LookbackShort >= 10) {
+            b.lookbackShort(g2LookbackShort);
+        }
+        if (g2LookbackMedium != null && g2LookbackMedium >= 10) {
+            b.lookbackMedium(g2LookbackMedium);
+        }
+        if (g2LookbackLong != null && g2LookbackLong >= 6) {
+            b.lookbackLong(g2LookbackLong);
+        }
+        return Gc2StrategyParams.merge(b.build());
     }
 	
 }
