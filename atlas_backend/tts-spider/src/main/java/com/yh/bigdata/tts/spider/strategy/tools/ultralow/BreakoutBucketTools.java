@@ -30,7 +30,8 @@ public final class BreakoutBucketTools {
         return day.length() >= 10 ? day.substring(0, 10) : day;
     }
 
-    static String weekKey(Trade bar) {
+    /** ISO 自然周（yyyy-Www） */
+    public static String weekKey(Trade bar) {
         LocalDate d = parseDay(bar);
         if (d == null) {
             return null;
@@ -40,12 +41,14 @@ public final class BreakoutBucketTools {
         return year + "-W" + String.format("%02d", week);
     }
 
-    static String monthKey(Trade bar) {
+    /** ISO 自然月（yyyy-MM） */
+    public static String monthKey(Trade bar) {
         LocalDate d = parseDay(bar);
         return d != null ? d.format(YM) : null;
     }
 
-    static String yearKey(Trade bar) {
+    /** 自然年（yyyy） */
+    public static String yearKey(Trade bar) {
         LocalDate d = parseDay(bar);
         return d != null ? d.format(Y) : null;
     }

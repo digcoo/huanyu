@@ -244,6 +244,15 @@ public class BacktestServiceImpl implements BacktestService {
         if (incoming.getUltraShort() != null) {
             base.setUltraShort(com.yh.bigdata.tts.common.param.UltraShortStrategyParams.merge(incoming.getUltraShort()));
         }
+        if (incoming.getTrendV2() != null) {
+            base.setTrendV2(com.yh.bigdata.tts.common.param.TrendV2StrategyParams.merge(incoming.getTrendV2()));
+        }
+        if (incoming.getMedium() != null) {
+            base.setMedium(com.yh.bigdata.tts.common.param.MediumStrategyParams.merge(incoming.getMedium()));
+        }
+        if (incoming.getLongTerm() != null) {
+            base.setLongTerm(com.yh.bigdata.tts.common.param.LongStrategyParams.merge(incoming.getLongTerm()));
+        }
         return base;
     }
 

@@ -45,6 +45,15 @@ public class QueryContextParam extends PageQuery {
     /** 超短线策略自定义参数 */
     private UltraShortStrategyParams ultraShort;
 
+    /** 趋势策略 v2 自定义参数 */
+    private TrendV2StrategyParams trendV2;
+
+    /** 中线策略自定义参数 */
+    private MediumStrategyParams medium;
+
+    /** 长线策略自定义参数 */
+    private LongStrategyParams longTerm;
+
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
@@ -57,6 +66,9 @@ public class QueryContextParam extends PageQuery {
                 .gc2(Gc2StrategyParams.defaults())
                 .dc2(Dc2StrategyParams.defaults())
                 .ultraShort(UltraShortStrategyParams.defaults())
+                .trendV2(TrendV2StrategyParams.defaults())
+                .medium(MediumStrategyParams.defaults())
+                .longTerm(LongStrategyParams.defaults())
                 .build();
     }
 	

@@ -133,6 +133,33 @@ function fetchUltraMarkers(code, period) {
   });
 }
 
+/** 短线 · 基准 K / 突破 K 标记 */
+function fetchTrendMarkers(code, period) {
+  var params = Object.assign({ period: period || 'day' }, strategyParams.toApiParams('trend'));
+  return api.get('/stock/' + encodePath(code) + '/trend/markers', params).then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
+/** 中线 · 基准 K / 突破 K 标记 */
+function fetchMediumMarkers(code, period) {
+  var params = Object.assign({ period: period || 'week' }, strategyParams.toApiParams('medium'));
+  return api.get('/stock/' + encodePath(code) + '/medium/markers', params).then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
+/** 长线 · 基准 K / 突破 K 标记 */
+function fetchLongMarkers(code, period) {
+  var params = Object.assign({ period: period || 'month' }, strategyParams.toApiParams('long'));
+  return api.get('/stock/' + encodePath(code) + '/long/markers', params).then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
 /** 回踩抬升 · L0/H1/L1/介入 标记 */
 function fetchRetestMarkers(code, period) {
   return api.get('/stock/' + encodePath(code) + '/retest/markers', {
@@ -232,6 +259,9 @@ module.exports = {
   fetchKlinesRefresh: fetchKlinesRefresh,
   fetchLadderMarkers: fetchLadderMarkers,
   fetchUltraMarkers: fetchUltraMarkers,
+  fetchTrendMarkers: fetchTrendMarkers,
+  fetchMediumMarkers: fetchMediumMarkers,
+  fetchLongMarkers: fetchLongMarkers,
   fetchRetestMarkers: fetchRetestMarkers,
   fetchGc2Markers: fetchGc2Markers,
   fetchDc2Markers: fetchDc2Markers,

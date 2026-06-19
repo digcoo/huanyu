@@ -29,6 +29,7 @@
 .toolbar-inner strategy-tabs {
   display: block;
   width: 100%;
+  margin-bottom: 12rpx;
 }
 
 .nav-content {

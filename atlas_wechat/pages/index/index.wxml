@@ -60,6 +60,12 @@
 
     <view class="toolbar-inner">
 
+      <strategy-tabs
+        strategies="{{strategies}}"
+        activeStrategy="{{activeStrategy}}"
+        bind:change="onStrategyChange"
+      />
+
       <view class="period-bar">
 
         <period-switcher
@@ -193,7 +199,7 @@
     id="strategyParamsPanel"
     visible="{{paramsVisible}}"
     strategyId="{{activeStrategy}}"
-    strategyTitle="超短线策略"
+    strategyTitle="{{strategyTitle}}"
     statusBarHeight="{{statusBarHeight}}"
     bind:close="onParamsClose"
     bind:apply="onParamsApply"

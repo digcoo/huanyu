@@ -6,7 +6,7 @@ Component({
     },
     activeStrategy: {
       type: String,
-      value: 'trend'
+      value: 'ultra'
     }
   },
 

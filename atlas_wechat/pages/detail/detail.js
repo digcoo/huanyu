@@ -9,6 +9,9 @@ const gc2Markers = require('../../utils/gc2-markers');
 const dc2Markers = require('../../utils/dc2-markers');
 const strategyParams = require('../../utils/strategy-params');
 const ultraMarkers = require('../../utils/ultra-markers');
+const trendMarkers = require('../../utils/trend-markers');
+const mediumMarkers = require('../../utils/medium-markers');
+const longMarkers = require('../../utils/long-markers');
 
 function mapChartKlines(detail, period) {
   if (!detail || !detail.klines) return [];
@@ -173,25 +176,24 @@ function syncDc2Markers(page, detail, period, klines) {
   });
 }
 
-function syncUltraMarkers(page, detail, period, klines) {
-  if (!detail || !ultraMarkers.isUltraStrategy(adapter.extractStrategy(detail.id))
-      || !ultraMarkers.shouldShowUltraMarkers(adapter.extractStrategy(detail.id), period)) {
+function syncRefSigMarkers(page, detail, period, klines, opts) {
+  if (!detail || !opts.shouldShow(adapter.extractStrategy(detail.id), period)) {
     return Promise.resolve(clearBarMarkers(page));
   }
   if (config.useMock) {
-    return Promise.resolve(applyBarMarkers(page, ultraMarkers.buildMockUltraMarkers(klines || page.data.chartKlines)));
+    return Promise.resolve(applyBarMarkers(page, opts.buildMock(klines || page.data.chartKlines)));
   }
 
   function applyMarkerVo(m) {
-    return applyBarMarkers(page, ultraMarkers.markersVoToBarMarkers(m));
+    return applyBarMarkers(page, opts.markersVoToBarMarkers(m));
   }
 
-  var cached = ultraMarkers.parseMarkersFromSignal(detail);
+  var cached = opts.parseMarkersFromSignal(detail);
   if (cached && (cached.referenceDay || cached.signalDay)) {
     return Promise.resolve(applyMarkerVo(cached));
   }
 
-  return stockApi.fetchUltraMarkers(detail.code, period).then(function (m) {
+  return opts.fetchMarkers(detail.code, period).then(function (m) {
     if (m && (m.referenceDay || m.signalDay)) {
       return applyMarkerVo(m);
     }
@@ -202,7 +204,7 @@ function syncUltraMarkers(page, detail, period, klines) {
       if (item && item.trendMessage) {
         detail.trendMessage = item.trendMessage;
       }
-      var parsed = ultraMarkers.parseMarkersFromSignal(detail);
+      var parsed = opts.parseMarkersFromSignal(detail);
       if (parsed && (parsed.referenceDay || parsed.signalDay)) {
         return applyMarkerVo(parsed);
       }
@@ -213,10 +215,59 @@ function syncUltraMarkers(page, detail, period, klines) {
   });
 }
 
+function syncUltraMarkers(page, detail, period, klines) {
+  return syncRefSigMarkers(page, detail, period, klines, {
+    shouldShow: ultraMarkers.shouldShowUltraMarkers,
+    buildMock: ultraMarkers.buildMockUltraMarkers,
+    markersVoToBarMarkers: ultraMarkers.markersVoToBarMarkers,
+    parseMarkersFromSignal: ultraMarkers.parseMarkersFromSignal,
+    fetchMarkers: stockApi.fetchUltraMarkers
+  });
+}
+
+function syncTrendMarkers(page, detail, period, klines) {
+  return syncRefSigMarkers(page, detail, period, klines, {
+    shouldShow: trendMarkers.shouldShowTrendMarkers,
+    buildMock: trendMarkers.buildMockTrendMarkers,
+    markersVoToBarMarkers: trendMarkers.markersVoToBarMarkers,
+    parseMarkersFromSignal: trendMarkers.parseMarkersFromSignal,
+    fetchMarkers: stockApi.fetchTrendMarkers
+  });
+}
+
+function syncMediumMarkers(page, detail, period, klines) {
+  return syncRefSigMarkers(page, detail, period, klines, {
+    shouldShow: mediumMarkers.shouldShowMediumMarkers,
+    buildMock: mediumMarkers.buildMockMediumMarkers,
+    markersVoToBarMarkers: mediumMarkers.markersVoToBarMarkers,
+    parseMarkersFromSignal: mediumMarkers.parseMarkersFromSignal,
+    fetchMarkers: stockApi.fetchMediumMarkers
+  });
+}
+
+function syncLongMarkers(page, detail, period, klines) {
+  return syncRefSigMarkers(page, detail, period, klines, {
+    shouldShow: longMarkers.shouldShowLongMarkers,
+    buildMock: longMarkers.buildMockLongMarkers,
+    markersVoToBarMarkers: longMarkers.markersVoToBarMarkers,
+    parseMarkersFromSignal: longMarkers.parseMarkersFromSignal,
+    fetchMarkers: stockApi.fetchLongMarkers
+  });
+}
+
 function syncBarMarkers(page, detail, period, klines) {
   var strategyId = adapter.extractStrategy(detail && detail.id);
   if (ultraMarkers.shouldShowUltraMarkers(strategyId, period)) {
     return syncUltraMarkers(page, detail, period, klines);
+  }
+  if (trendMarkers.shouldShowTrendMarkers(strategyId, period)) {
+    return syncTrendMarkers(page, detail, period, klines);
+  }
+  if (mediumMarkers.shouldShowMediumMarkers(strategyId, period)) {
+    return syncMediumMarkers(page, detail, period, klines);
+  }
+  if (longMarkers.shouldShowLongMarkers(strategyId, period)) {
+    return syncLongMarkers(page, detail, period, klines);
   }
   if (ladderMarkers.shouldShowLadderMarkers(strategyId, period)) {
     return syncLadderMarkers(page, detail, period, klines);

@@ -146,6 +146,47 @@ public class StockPageQuery extends PageQuery {
     /** 超短线 · 须当前K为突破K（1=是 0=当日有突破K即可） */
     private Boolean ulRequireCurrentBreakout;
 
+    /** 短线 · 最低日均成交额（万） */
+    private Integer trMinAmountWan;
+    /** 短线 · 基准背景周数（自然周，默认 2） */
+    private Integer trPrevWeeks;
+    /** 短线 · 须当前日K为突破K */
+    private Boolean trRequireCurrentBreakout;
+    /** 短线 · 月 MACD&gt;0 */
+    private Boolean trRequireMonthMacd;
+    /** 短线 · 周 MACD&gt;0 */
+    private Boolean trRequireWeekMacd;
+    /** 短线 · 日 MACD&gt;0 */
+    private Boolean trRequireDayMacd;
+    /** 短线 · 周K MACD 金叉 */
+    private Boolean trRequireWeekGoldenCross;
+
+    /** 中线 · 最低日均成交额（万） */
+    private Integer mdMinAmountWan;
+    /** 中线 · 基准背景月数（自然月，默认 2） */
+    private Integer mdPrevMonths;
+    /** 中线 · 须当前周K为突破K */
+    private Boolean mdRequireCurrentBreakout;
+    /** 中线 · 月 MACD&gt;0 */
+    private Boolean mdRequireMonthMacd;
+    /** 中线 · 年 MACD&gt;0 */
+    private Boolean mdRequireYearMacd;
+    /** 中线 · 月K MACD 金叉 */
+    private Boolean mdRequireMonthGoldenCross;
+
+    /** 长线 · 最低日均成交额（万） */
+    private Integer lgMinAmountWan;
+    /** 长线 · 基准背景年数（自然年，默认 2） */
+    private Integer lgPrevYears;
+    /** 长线 · 须当前月K为突破K */
+    private Boolean lgRequireCurrentBreakout;
+    /** 长线 · 年 MACD&gt;0 */
+    private Boolean lgRequireYearMacd;
+    /** 长线 · 月 MACD&gt;0 */
+    private Boolean lgRequireMonthMacd;
+    /** 长线 · 年K MACD 金叉 */
+    private Boolean lgRequireYearGoldenCross;
+
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
 	}
@@ -425,6 +466,78 @@ public class StockPageQuery extends PageQuery {
             b.requireCurrentBreakout(ulRequireCurrentBreakout);
         }
         return UltraShortStrategyParams.merge(b.build());
+    }
+
+    public TrendV2StrategyParams toTrendV2Params() {
+        TrendV2StrategyParams.TrendV2StrategyParamsBuilder b = TrendV2StrategyParams.builder();
+        if (trMinAmountWan != null) {
+            b.minAvgAmount(trMinAmountWan * 10_000D);
+        }
+        if (trPrevWeeks != null && trPrevWeeks >= 1) {
+            b.prevWeeks(trPrevWeeks);
+        }
+        if (trRequireCurrentBreakout != null) {
+            b.requireCurrentBreakout(trRequireCurrentBreakout);
+        }
+        if (trRequireMonthMacd != null) {
+            b.requireMonthMacd(trRequireMonthMacd);
+        }
+        if (trRequireWeekMacd != null) {
+            b.requireWeekMacd(trRequireWeekMacd);
+        }
+        if (trRequireDayMacd != null) {
+            b.requireDayMacd(trRequireDayMacd);
+        }
+        if (trRequireWeekGoldenCross != null) {
+            b.requireWeekGoldenCross(trRequireWeekGoldenCross);
+        }
+        return TrendV2StrategyParams.merge(b.build());
+    }
+
+    public MediumStrategyParams toMediumParams() {
+        MediumStrategyParams.MediumStrategyParamsBuilder b = MediumStrategyParams.builder();
+        if (mdMinAmountWan != null) {
+            b.minAvgAmount(mdMinAmountWan * 10_000D);
+        }
+        if (mdPrevMonths != null && mdPrevMonths >= 1) {
+            b.prevMonths(mdPrevMonths);
+        }
+        if (mdRequireCurrentBreakout != null) {
+            b.requireCurrentBreakout(mdRequireCurrentBreakout);
+        }
+        if (mdRequireMonthMacd != null) {
+            b.requireMonthMacd(mdRequireMonthMacd);
+        }
+        if (mdRequireYearMacd != null) {
+            b.requireYearMacd(mdRequireYearMacd);
+        }
+        if (mdRequireMonthGoldenCross != null) {
+            b.requireMonthGoldenCross(mdRequireMonthGoldenCross);
+        }
+        return MediumStrategyParams.merge(b.build());
+    }
+
+    public LongStrategyParams toLongParams() {
+        LongStrategyParams.LongStrategyParamsBuilder b = LongStrategyParams.builder();
+        if (lgMinAmountWan != null) {
+            b.minAvgAmount(lgMinAmountWan * 10_000D);
+        }
+        if (lgPrevYears != null && lgPrevYears >= 1) {
+            b.prevYears(lgPrevYears);
+        }
+        if (lgRequireCurrentBreakout != null) {
+            b.requireCurrentBreakout(lgRequireCurrentBreakout);
+        }
+        if (lgRequireYearMacd != null) {
+            b.requireYearMacd(lgRequireYearMacd);
+        }
+        if (lgRequireMonthMacd != null) {
+            b.requireMonthMacd(lgRequireMonthMacd);
+        }
+        if (lgRequireYearGoldenCross != null) {
+            b.requireYearGoldenCross(lgRequireYearGoldenCross);
+        }
+        return LongStrategyParams.merge(b.build());
     }
 
 }

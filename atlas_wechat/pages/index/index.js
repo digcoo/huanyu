@@ -14,6 +14,20 @@ const barMarkers = require('../../utils/bar-markers');
 const app = getApp();
 const DEFAULT_STRATEGY = 'ultra';
 
+const ACTIVE_STRATEGIES = [
+  { id: 'ultra', name: '超短线', icon: '⚡' },
+  { id: 'trend', name: '短线', icon: '📈' },
+  { id: 'medium', name: '中线', icon: '📊' },
+  { id: 'long', name: '长线', icon: '📉' }
+];
+
+const STRATEGY_TITLES = {
+  ultra: '超短线策略',
+  trend: '短线策略',
+  medium: '中线策略',
+  long: '长线策略'
+};
+
 const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
 
 function mapChartKlines(list, period, strategyId) {
@@ -30,7 +44,13 @@ function mapChartKlines(list, period, strategyId) {
 }
 
 function normalizeSavedStrategy(strategyId) {
-  return DEFAULT_STRATEGY;
+  var id = strategyId || DEFAULT_STRATEGY;
+  var ok = ACTIVE_STRATEGIES.some(function (s) { return s.id === id; });
+  return ok ? id : DEFAULT_STRATEGY;
+}
+
+function strategyTitleFor(strategyId) {
+  return STRATEGY_TITLES[strategyId] || '策略';
 }
 
 function filterIgnored(items, ignored) {
@@ -179,7 +199,9 @@ Page({
     navPaddingRight: 96,
 
     markets: buildMarketsForUI(),
+    strategies: ACTIVE_STRATEGIES,
     activeStrategy: DEFAULT_STRATEGY,
+    strategyTitle: strategyTitleFor(DEFAULT_STRATEGY),
 
     activeMarket: 'cn',
     indices: [],
@@ -221,6 +243,7 @@ Page({
       navPaddingRight,
       activePeriod: initialPeriod,
       activeStrategy: savedStrategy,
+      strategyTitle: strategyTitleFor(savedStrategy),
       klineFlipped
     });
 
@@ -516,6 +539,30 @@ Page({
       icon: 'none',
       duration: 2000
     });
+  },
+
+  onStrategyChange(e) {
+    var strategyId = e.detail && e.detail.strategyId;
+    if (!strategyId || strategyId === this.data.activeStrategy) return;
+    if (!normalizeSavedStrategy(strategyId)) return;
+
+    wx.setStorageSync('activeStrategy', strategyId);
+    var period = strategyParams.chartPrimaryPeriod(strategyId, strategyParams.load(strategyId))
+      || this.data.activePeriod;
+    wx.setStorageSync('activePeriod', period);
+
+    this.setData({
+      activeStrategy: strategyId,
+      activePeriod: period,
+      strategyTitle: strategyTitleFor(strategyId)
+    });
+    this.refreshParamsBadge(strategyId);
+
+    if (config.useMock) {
+      this.loadMarket(this.data.activeMarket);
+    } else {
+      this.loadMarketFromApi(this.data.activeMarket);
+    }
   },
 
   onPeriodChange(e) {

@@ -10,6 +10,9 @@ import com.yh.bigdata.tts.common.dto.atlas.AtlasUlowMin30MarkersVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockDetailVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockSummaryVo;
 import com.yh.bigdata.tts.common.param.StockPageQuery;
+import com.yh.bigdata.tts.common.param.LongStrategyParams;
+import com.yh.bigdata.tts.common.param.MediumStrategyParams;
+import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.common.param.base.Response;
 import com.yh.bigdata.tts.common.param.base.ResponseUtil;
@@ -116,6 +119,63 @@ public class AtlasStockController {
                     ? query.toUltraShortParams()
                     : UltraShortStrategyParams.defaults();
             AtlasUlowMin30MarkersVo markers = atlasStockApiService.getUltraMarkers(code, period, params);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/trend/markers")
+    public Response<AtlasUlowMin30MarkersVo> getTrendDayMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period,
+            StockPageQuery query) {
+        try {
+            TrendV2StrategyParams params = query != null
+                    ? query.toTrendV2Params()
+                    : TrendV2StrategyParams.defaults();
+            AtlasUlowMin30MarkersVo markers = atlasStockApiService.getTrendMarkers(code, period, params);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/medium/markers")
+    public Response<AtlasUlowMin30MarkersVo> getMediumWeekMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "week") String period,
+            StockPageQuery query) {
+        try {
+            MediumStrategyParams params = query != null
+                    ? query.toMediumParams()
+                    : MediumStrategyParams.defaults();
+            AtlasUlowMin30MarkersVo markers = atlasStockApiService.getMediumMarkers(code, period, params);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/long/markers")
+    public Response<AtlasUlowMin30MarkersVo> getLongMonthMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "month") String period,
+            StockPageQuery query) {
+        try {
+            LongStrategyParams params = query != null
+                    ? query.toLongParams()
+                    : LongStrategyParams.defaults();
+            AtlasUlowMin30MarkersVo markers = atlasStockApiService.getLongMarkers(code, period, params);
             if (markers == null) {
                 return ResponseUtil.fail(ResponseUtil.NO_DATA);
             }

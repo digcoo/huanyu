@@ -22,11 +22,17 @@ import com.yh.bigdata.tts.common.param.Dc2StrategyParams;
 import com.yh.bigdata.tts.common.param.Gc2StrategyParams;
 import com.yh.bigdata.tts.common.param.RetestStrategyParams;
 import com.yh.bigdata.tts.common.param.UltraLowReboundStrategyParams;
+import com.yh.bigdata.tts.common.param.LongStrategyParams;
+import com.yh.bigdata.tts.common.param.MediumStrategyParams;
+import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.strategy.tools.dc2.Dc2MarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.gc2.Gc2MarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.retest.RetestMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.LadderMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.longterm.LongMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.medium.MediumMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.trend.TrendMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.UltraShortMarkersTools;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient.IndexDef;
@@ -168,6 +174,39 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
         }
         UltraShortStrategyParams p = params != null ? params : UltraShortStrategyParams.defaults();
         return UltraShortMarkersTools.resolve(stock, periodType, p);
+    }
+
+    @Override
+    public AtlasUlowMin30MarkersVo getTrendMarkers(String code, String period, TrendV2StrategyParams params) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        TrendV2StrategyParams p = params != null ? params : TrendV2StrategyParams.defaults();
+        return TrendMarkersTools.resolve(stock, periodType, p);
+    }
+
+    @Override
+    public AtlasUlowMin30MarkersVo getMediumMarkers(String code, String period, MediumStrategyParams params) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.WEEK;
+        }
+        MediumStrategyParams p = params != null ? params : MediumStrategyParams.defaults();
+        return MediumMarkersTools.resolve(stock, periodType, p);
+    }
+
+    @Override
+    public AtlasUlowMin30MarkersVo getLongMarkers(String code, String period, LongStrategyParams params) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.MONTH;
+        }
+        LongStrategyParams p = params != null ? params : LongStrategyParams.defaults();
+        return LongMarkersTools.resolve(stock, periodType, p);
     }
 
     @Override

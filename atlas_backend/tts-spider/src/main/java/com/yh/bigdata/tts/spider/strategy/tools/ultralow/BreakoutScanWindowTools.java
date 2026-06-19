@@ -17,7 +17,7 @@ public final class BreakoutScanWindowTools {
     private BreakoutScanWindowTools() {
     }
 
-    static final class ScanWindow {
+    public static final class ScanWindow {
         private final List<Trade> priorBars;
         private final List<Trade> signalBars;
         private final String signalUnitKey;
@@ -28,24 +28,24 @@ public final class BreakoutScanWindowTools {
             this.signalUnitKey = signalUnitKey;
         }
 
-        List<Trade> getPriorBars() {
+        public List<Trade> getPriorBars() {
             return priorBars;
         }
 
-        List<Trade> getSignalBars() {
+        public List<Trade> getSignalBars() {
             return signalBars;
         }
 
-        String getSignalUnitKey() {
+        public String getSignalUnitKey() {
             return signalUnitKey;
         }
 
-        int totalSize() {
+        public int totalSize() {
             return priorBars.size() + signalBars.size();
         }
     }
 
-    static ScanWindow buildScanWindow(List<Trade> allBars, Function<Trade, String> unitKeyFn,
+    public static ScanWindow buildScanWindow(List<Trade> allBars, Function<Trade, String> unitKeyFn,
                                       int prevUnits, int maxBarsPerUnit) {
         if (CollectionUtils.isEmpty(allBars) || prevUnits < 0 || maxBarsPerUnit <= 0) {
             return new ScanWindow(new ArrayList<>(), new ArrayList<>(), null);

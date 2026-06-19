@@ -5,10 +5,13 @@
 var STORAGE_PREFIX = 'strategyParams_';
 
 var TREND_DEFAULTS = {
-  uMinAmountWan: 5000,
-  uEnableShort: true,
-  uEnableLong: true,
-  uTierMin: 'ALL'
+  trMinAmountWan: 5000,
+  trPrevWeeks: 2,
+  trRequireCurrentBreakout: false,
+  trRequireMonthMacd: false,
+  trRequireWeekMacd: false,
+  trRequireDayMacd: false,
+  trRequireWeekGoldenCross: false
 };
 
 var REBOUND_DEFAULTS = {
@@ -230,12 +233,7 @@ var RETEST_SCHEMA = [
 
 var TREND_SCHEMA = [
   {
-    type: 'section',
-    label: '硬门槛',
-    hint: '不满足则不入池'
-  },
-  {
-    key: 'uMinAmountWan',
+    key: 'trMinAmountWan',
     label: '最低成交额',
     hint: '近6日日均成交额（万）',
     type: 'slider',
@@ -245,36 +243,48 @@ var TREND_SCHEMA = [
     unit: '万'
   },
   {
-    type: 'section',
-    label: '启用档位',
-    hint: '短/长两档，可单独或同时开启'
-  },
-  {
-    key: 'uEnableShort',
-    label: '短线（S）',
-    hint: '月K 或 周K MACD > 0 · 日K 金叉',
-    type: 'switch'
-  },
-  {
-    key: 'uEnableLong',
-    label: '长线（B）',
-    hint: '年K 或 月K MACD > 0 · 周K 金叉',
-    type: 'switch'
+    key: 'trPrevWeeks',
+    label: '基准背景周数',
+    hint: '自然周，信号周之前的完整周数',
+    type: 'slider',
+    min: 1,
+    max: 4,
+    step: 1,
+    unit: '周'
   },
   {
     type: 'section',
-    label: '列表筛选'
+    label: '突破K'
   },
   {
-    key: 'uTierMin',
-    label: '最低展示档位',
-    hint: '过滤扫描结果展示的最低档位',
-    type: 'picker',
-    options: [
-      { value: 'ALL', label: '全部档位' },
-      { value: 'B', label: '长线及以上（含短线）' },
-      { value: 'S', label: '仅短线（S）' }
-    ]
+    key: 'trRequireCurrentBreakout',
+    label: '当前日K须为突破K',
+    hint: '关闭则本周任一日K满足即可',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: 'MACD（可选）'
+  },
+  {
+    key: 'trRequireMonthMacd',
+    label: '月 MACD>0',
+    type: 'switch'
+  },
+  {
+    key: 'trRequireWeekMacd',
+    label: '周 MACD>0',
+    type: 'switch'
+  },
+  {
+    key: 'trRequireDayMacd',
+    label: '日 MACD>0',
+    type: 'switch'
+  },
+  {
+    key: 'trRequireWeekGoldenCross',
+    label: '周K MACD 金叉',
+    type: 'switch'
   }
 ];
 
@@ -462,9 +472,133 @@ var DC2_SCHEMA = [
   }
 ];
 
+var MEDIUM_DEFAULTS = {
+  mdMinAmountWan: 5000,
+  mdPrevMonths: 2,
+  mdRequireCurrentBreakout: false,
+  mdRequireMonthMacd: false,
+  mdRequireYearMacd: false,
+  mdRequireMonthGoldenCross: false
+};
+
+var MEDIUM_SCHEMA = [
+  {
+    key: 'mdMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 1000,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'mdPrevMonths',
+    label: '基准背景月数',
+    hint: '自然月，信号月之前的完整月数',
+    type: 'slider',
+    min: 1,
+    max: 4,
+    step: 1,
+    unit: '月'
+  },
+  {
+    type: 'section',
+    label: '突破K'
+  },
+  {
+    key: 'mdRequireCurrentBreakout',
+    label: '当前周K须为突破K',
+    hint: '关闭则本月任一周K满足即可',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: 'MACD（可选）'
+  },
+  {
+    key: 'mdRequireMonthMacd',
+    label: '月 MACD>0',
+    type: 'switch'
+  },
+  {
+    key: 'mdRequireYearMacd',
+    label: '年 MACD>0',
+    type: 'switch'
+  },
+  {
+    key: 'mdRequireMonthGoldenCross',
+    label: '月K MACD 金叉',
+    type: 'switch'
+  }
+];
+
+var LONG_DEFAULTS = {
+  lgMinAmountWan: 5000,
+  lgPrevYears: 2,
+  lgRequireCurrentBreakout: false,
+  lgRequireYearMacd: false,
+  lgRequireMonthMacd: false,
+  lgRequireYearGoldenCross: false
+};
+
+var LONG_SCHEMA = [
+  {
+    key: 'lgMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 1000,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'lgPrevYears',
+    label: '基准背景年数',
+    hint: '自然年，信号年之前完整年数',
+    type: 'slider',
+    min: 1,
+    max: 4,
+    step: 1,
+    unit: '年'
+  },
+  {
+    type: 'section',
+    label: '突破K'
+  },
+  {
+    key: 'lgRequireCurrentBreakout',
+    label: '当前月K须为突破K',
+    hint: '关闭则本年任一月K满足即可',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: 'MACD（可选）'
+  },
+  {
+    key: 'lgRequireYearMacd',
+    label: '年 MACD>0',
+    type: 'switch'
+  },
+  {
+    key: 'lgRequireMonthMacd',
+    label: '月 MACD>0',
+    type: 'switch'
+  },
+  {
+    key: 'lgRequireYearGoldenCross',
+    label: '年K MACD 金叉',
+    type: 'switch'
+  }
+];
+
 var SCHEMA_BY_STRATEGY = {
   ultra: ULTRA_SCHEMA,
   trend: TREND_SCHEMA,
+  medium: MEDIUM_SCHEMA,
+  long: LONG_SCHEMA,
   resonance: RESONANCE_SCHEMA,
   rebound: REBOUND_SCHEMA,
   ladder: LADDER_SCHEMA,
@@ -476,6 +610,8 @@ var SCHEMA_BY_STRATEGY = {
 var DEFAULTS_BY_STRATEGY = {
   ultra: ULTRA_DEFAULTS,
   trend: TREND_DEFAULTS,
+  medium: MEDIUM_DEFAULTS,
+  long: LONG_DEFAULTS,
   resonance: RESONANCE_DEFAULTS,
   rebound: REBOUND_DEFAULTS,
   ladder: LADDER_DEFAULTS,
@@ -484,7 +620,7 @@ var DEFAULTS_BY_STRATEGY = {
   dc2: DC2_DEFAULTS
 };
 
-var TIER_PICKER = TREND_SCHEMA.find(function (f) { return f.key === 'uTierMin'; });
+var TIER_PICKER = null;
 var RESONANCE_TIER_PICKER = RESONANCE_SCHEMA.find(function (f) { return f.key === 'cTierMin'; });
 var REBOUND_TIER_PICKER = REBOUND_SCHEMA.find(function (f) { return f.key === 'rTierMin'; });
 var LADDER_TIER_PICKER = LADDER_SCHEMA.find(function (f) { return f.key === 'lTierMin'; });
@@ -537,6 +673,9 @@ function dc2PrimaryPeriod(params) {
 function chartPrimaryPeriod(strategyId, params) {
   strategyId = normalizeStrategyId(strategyId);
   if (strategyId === 'ultra') return 'min30';
+  if (strategyId === 'trend') return 'day';
+  if (strategyId === 'medium') return 'week';
+  if (strategyId === 'long') return 'month';
   if (strategyId === 'ladder') return ladderPrimaryPeriod(params);
   if (strategyId === 'retest') return retestPrimaryPeriod(params);
   if (strategyId === 'gc2') return gc2PrimaryPeriod(params);
@@ -579,12 +718,6 @@ function normalize(strategyId, raw) {
       out[field.key] = raw[field.key];
     }
   });
-  if (strategyId === 'trend' && !out.uEnableShort && !out.uEnableLong) {
-    out.uEnableShort = true;
-  }
-  if (strategyId === 'trend' && out.uTierMin === 'A') {
-    out.uTierMin = 'B';
-  }
   if (strategyId === 'resonance' && !out.cEnableShort && !out.cEnableMedium && !out.cEnableLong) {
     out.cEnableShort = true;
   }
@@ -704,11 +837,38 @@ function formatSummary(strategyId) {
       + tierLabelFrom(REBOUND_TIER_PICKER, p.rTierMin);
   }
   if (strategyId === 'trend') {
-    var modes = [];
-    if (p.uEnableShort) modes.push('短线');
-    if (p.uEnableLong) modes.push('长线');
-    return (modes.length ? modes.join('+') : '未启用') + ' · '
-      + tierLabelFrom(TIER_PICKER, p.uTierMin);
+    var macdParts = [];
+    if (p.trRequireMonthMacd) macdParts.push('月MACD');
+    if (p.trRequireWeekMacd) macdParts.push('周MACD');
+    if (p.trRequireDayMacd) macdParts.push('日MACD');
+    if (p.trRequireWeekGoldenCross) macdParts.push('周金叉');
+    var amountPart = (p.trMinAmountWan != null ? p.trMinAmountWan : 5000) + '万';
+    var weekPart = (p.trPrevWeeks != null ? p.trPrevWeeks : 2) + '周基准';
+    var sigPart = p.trRequireCurrentBreakout ? '当日突破' : '本周突破';
+    return amountPart + ' · ' + weekPart + ' · ' + sigPart
+      + (macdParts.length ? ' · ' + macdParts.join('+') : '');
+  }
+  if (strategyId === 'medium') {
+    var mdMacdParts = [];
+    if (p.mdRequireMonthMacd) mdMacdParts.push('月MACD');
+    if (p.mdRequireYearMacd) mdMacdParts.push('年MACD');
+    if (p.mdRequireMonthGoldenCross) mdMacdParts.push('月金叉');
+    var mdAmountPart = (p.mdMinAmountWan != null ? p.mdMinAmountWan : 5000) + '万';
+    var monthPart = (p.mdPrevMonths != null ? p.mdPrevMonths : 2) + '月基准';
+    var mdSigPart = p.mdRequireCurrentBreakout ? '当周突破' : '本月突破';
+    return mdAmountPart + ' · ' + monthPart + ' · ' + mdSigPart
+      + (mdMacdParts.length ? ' · ' + mdMacdParts.join('+') : '');
+  }
+  if (strategyId === 'long') {
+    var lgMacdParts = [];
+    if (p.lgRequireYearMacd) lgMacdParts.push('年MACD');
+    if (p.lgRequireMonthMacd) lgMacdParts.push('月MACD');
+    if (p.lgRequireYearGoldenCross) lgMacdParts.push('年金叉');
+    var lgAmountPart = (p.lgMinAmountWan != null ? p.lgMinAmountWan : 5000) + '万';
+    var yearPart = (p.lgPrevYears != null ? p.lgPrevYears : 2) + '年基准';
+    var lgSigPart = p.lgRequireCurrentBreakout ? '当月突破' : '本年突破';
+    return lgAmountPart + ' · ' + yearPart + ' · ' + lgSigPart
+      + (lgMacdParts.length ? ' · ' + lgMacdParts.join('+') : '');
   }
   if (strategyId === 'resonance') {
     var resModes = [];

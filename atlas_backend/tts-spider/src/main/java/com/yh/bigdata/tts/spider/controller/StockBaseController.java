@@ -337,7 +337,27 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getUlMinAmountWan()),
                 String.valueOf(pageQuery.getUlRequireMonthMacd()),
                 String.valueOf(pageQuery.getUlRequireWeekMacd()),
-                String.valueOf(pageQuery.getUlRequireDayMacd()));
+                String.valueOf(pageQuery.getUlRequireDayMacd()),
+                String.valueOf(pageQuery.getUlRequireCurrentBreakout()),
+                String.valueOf(pageQuery.getTrMinAmountWan()),
+                String.valueOf(pageQuery.getTrPrevWeeks()),
+                String.valueOf(pageQuery.getTrRequireCurrentBreakout()),
+                String.valueOf(pageQuery.getTrRequireMonthMacd()),
+                String.valueOf(pageQuery.getTrRequireWeekMacd()),
+                String.valueOf(pageQuery.getTrRequireDayMacd()),
+                String.valueOf(pageQuery.getTrRequireWeekGoldenCross()),
+                String.valueOf(pageQuery.getMdMinAmountWan()),
+                String.valueOf(pageQuery.getMdPrevMonths()),
+                String.valueOf(pageQuery.getMdRequireCurrentBreakout()),
+                String.valueOf(pageQuery.getMdRequireMonthMacd()),
+                String.valueOf(pageQuery.getMdRequireYearMacd()),
+                String.valueOf(pageQuery.getMdRequireMonthGoldenCross()),
+                String.valueOf(pageQuery.getLgMinAmountWan()),
+                String.valueOf(pageQuery.getLgPrevYears()),
+                String.valueOf(pageQuery.getLgRequireCurrentBreakout()),
+                String.valueOf(pageQuery.getLgRequireYearMacd()),
+                String.valueOf(pageQuery.getLgRequireMonthMacd()),
+                String.valueOf(pageQuery.getLgRequireYearGoldenCross()));
     }
 
     public void clearRecommendCache() {
@@ -373,6 +393,9 @@ public class StockBaseController {
                 .gc2(stockPageQuery.toGc2Params())
                 .dc2(stockPageQuery.toDc2Params())
                 .ultraShort(stockPageQuery.toUltraShortParams())
+                .trendV2(stockPageQuery.toTrendV2Params())
+                .medium(stockPageQuery.toMediumParams())
+                .longTerm(stockPageQuery.toLongParams())
                 .build();
 
     }

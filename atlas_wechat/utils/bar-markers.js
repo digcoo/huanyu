@@ -1,15 +1,45 @@
 const ultraMarkers = require('./ultra-markers');
+const trendMarkers = require('./trend-markers');
+const mediumMarkers = require('./medium-markers');
+const longMarkers = require('./long-markers');
 
 function shouldShowBarMarkers(strategyId, period) {
-  return ultraMarkers.shouldShowUltraMarkers(strategyId, period);
+  return ultraMarkers.shouldShowUltraMarkers(strategyId, period)
+    || trendMarkers.shouldShowTrendMarkers(strategyId, period)
+    || mediumMarkers.shouldShowMediumMarkers(strategyId, period)
+    || longMarkers.shouldShowLongMarkers(strategyId, period);
 }
 
 function resolveBarMarkersForItem(item, strategyId, period, klines) {
-  return ultraMarkers.resolveBarMarkersForItem(item, strategyId, period, klines);
+  if (ultraMarkers.shouldShowUltraMarkers(strategyId, period)) {
+    return ultraMarkers.resolveBarMarkersForItem(item, strategyId, period, klines);
+  }
+  if (trendMarkers.shouldShowTrendMarkers(strategyId, period)) {
+    return trendMarkers.resolveBarMarkersForItem(item, strategyId, period, klines);
+  }
+  if (mediumMarkers.shouldShowMediumMarkers(strategyId, period)) {
+    return mediumMarkers.resolveBarMarkersForItem(item, strategyId, period, klines);
+  }
+  if (longMarkers.shouldShowLongMarkers(strategyId, period)) {
+    return longMarkers.resolveBarMarkersForItem(item, strategyId, period, klines);
+  }
+  return [];
 }
 
 function enrichItemsWithBarMarkers(items, strategyId, period) {
-  return ultraMarkers.enrichItemsWithUltraMarkers(items, strategyId, period);
+  if (ultraMarkers.shouldShowUltraMarkers(strategyId, period)) {
+    return ultraMarkers.enrichItemsWithUltraMarkers(items, strategyId, period);
+  }
+  if (trendMarkers.shouldShowTrendMarkers(strategyId, period)) {
+    return trendMarkers.enrichItemsWithTrendMarkers(items, strategyId, period);
+  }
+  if (mediumMarkers.shouldShowMediumMarkers(strategyId, period)) {
+    return mediumMarkers.enrichItemsWithMediumMarkers(items, strategyId, period);
+  }
+  if (longMarkers.shouldShowLongMarkers(strategyId, period)) {
+    return longMarkers.enrichItemsWithLongMarkers(items, strategyId, period);
+  }
+  return Promise.resolve(items || []);
 }
 
 module.exports = {
