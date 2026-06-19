@@ -102,6 +102,16 @@ function parseUnilateralTrendLabel(trendMessage) {
   return s.replace(/^\([^)]*:\s*/, '').replace(/\).*$/, '').trim();
 }
 
+function appendUltraShortTags(item, tags) {
+  var text = [item.trendMessage, item.signalMessage].join('|');
+  if (/\[ULTRA\]|局部新高\/最近强K基准/.test(text)) {
+    tags.push('基准30m');
+  }
+  if (/30m突破/.test(text)) {
+    tags.push('超短突破');
+  }
+}
+
 function buildTrendV2Tags(item) {
   var tags = [];
   if (item.trendMessage && /\[SHORT\]|周内局部新高/.test(item.trendMessage)) {
@@ -110,6 +120,7 @@ function buildTrendV2Tags(item) {
   if (item.signalMessage && /日K突破|sigDay=/.test(item.signalMessage)) {
     tags.push('突破日K');
   }
+  appendUltraShortTags(item, tags);
   if (item.trendMessage && /月MACD>0/.test(item.trendMessage)) tags.push('月MACD');
   if (item.trendMessage && /周MACD>0/.test(item.trendMessage)) tags.push('周MACD');
   if (item.trendMessage && /日MACD>0/.test(item.trendMessage)) tags.push('日MACD');
@@ -127,6 +138,7 @@ function buildMediumTags(item) {
   if (item.signalMessage && /周K突破|sigDay=/.test(item.signalMessage)) {
     tags.push('突破周K');
   }
+  appendUltraShortTags(item, tags);
   if (item.trendMessage && /月MACD>0/.test(item.trendMessage)) tags.push('月MACD');
   if (item.trendMessage && /年MACD>0/.test(item.trendMessage)) tags.push('年MACD');
   if (item.signalMessage && item.signalMessage.indexOf('月K MACD金叉') >= 0) {
@@ -143,6 +155,7 @@ function buildLongTags(item) {
   if (item.signalMessage && /月K突破|sigDay=/.test(item.signalMessage)) {
     tags.push('突破月K');
   }
+  appendUltraShortTags(item, tags);
   if (item.trendMessage && /年MACD>0/.test(item.trendMessage)) tags.push('年MACD');
   if (item.trendMessage && /月MACD>0/.test(item.trendMessage)) tags.push('月MACD');
   if (item.signalMessage && item.signalMessage.indexOf('年K MACD金叉') >= 0) {

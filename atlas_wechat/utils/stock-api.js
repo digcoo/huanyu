@@ -16,11 +16,21 @@ function encodePath(code) {
 
 /** 策略 API 查询参数（findMy / rescan 共用） */
 function buildStrategyQueryParams(strategyId) {
-  return Object.assign(
+  var params = Object.assign(
     {},
     adapter.getStrategyApiParams(strategyId),
     strategyParams.toApiParams(strategyId)
   );
+  if (strategyId === 'trend' || strategyId === 'medium' || strategyId === 'long') {
+    var own = strategyParams.load(strategyId);
+    var requireUltra = strategyId === 'trend' ? own.trRequireUltra !== false
+      : strategyId === 'medium' ? own.mdRequireUltra !== false
+      : own.lgRequireUltra !== false;
+    if (requireUltra) {
+      Object.assign(params, strategyParams.toApiParams('ultra'));
+    }
+  }
+  return params;
 }
 
 function fetchHealth() {

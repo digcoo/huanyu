@@ -44,6 +44,10 @@ public class LongStrategyParams {
     @Builder.Default
     private boolean requireYearGoldenCross = false;
 
+    /** 须同时满足超短 30m 突破 */
+    @Builder.Default
+    private boolean requireUltra = true;
+
     public static LongStrategyParams defaults() {
         return LongStrategyParams.builder().build();
     }
@@ -69,6 +73,7 @@ public class LongStrategyParams {
         d.requireYearMacd = incoming.requireYearMacd;
         d.requireMonthMacd = incoming.requireMonthMacd;
         d.requireYearGoldenCross = incoming.requireYearGoldenCross;
+        d.requireUltra = incoming.requireUltra;
         return d;
     }
 }

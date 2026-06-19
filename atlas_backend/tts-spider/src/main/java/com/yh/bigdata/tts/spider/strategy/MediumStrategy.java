@@ -7,6 +7,7 @@ import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.param.MediumStrategyParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
+import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.medium.MediumEvaluator;
 import com.yh.bigdata.tts.spider.strategy.tools.medium.MediumFilterTools;
@@ -50,7 +51,7 @@ public class MediumStrategy extends AbstractStrategy {
             }
 
             MediumEvaluator.MediumEvaluation eval =
-                    MediumEvaluator.evaluate(stockBase, checkResult, params);
+                    MediumEvaluator.evaluate(stockBase, checkResult, params, resolveUltraParams(queryContextParam));
             if (!eval.isHit()) {
                 return checkResult;
             }
@@ -74,6 +75,13 @@ public class MediumStrategy extends AbstractStrategy {
             return MediumStrategyParams.defaults();
         }
         return MediumStrategyParams.merge(queryContextParam.getMedium());
+    }
+
+    private UltraShortStrategyParams resolveUltraParams(QueryContextParam queryContextParam) {
+        if (queryContextParam == null || queryContextParam.getUltraShort() == null) {
+            return UltraShortStrategyParams.defaults();
+        }
+        return UltraShortStrategyParams.merge(queryContextParam.getUltraShort());
     }
 
     private void applyFallbackSortValue(StockBase stockBase, CheckResult checkResult) {

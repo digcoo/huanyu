@@ -7,6 +7,7 @@ import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
+import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.trend.TrendV2Evaluator;
 import com.yh.bigdata.tts.spider.strategy.tools.trend.TrendV2FilterTools;
@@ -50,7 +51,7 @@ public class TrendV2Strategy extends AbstractStrategy {
             }
 
             TrendV2Evaluator.TrendV2Evaluation eval =
-                    TrendV2Evaluator.evaluate(stockBase, checkResult, params);
+                    TrendV2Evaluator.evaluate(stockBase, checkResult, params, resolveUltraParams(queryContextParam));
             if (!eval.isHit()) {
                 return checkResult;
             }
@@ -74,6 +75,13 @@ public class TrendV2Strategy extends AbstractStrategy {
             return TrendV2StrategyParams.defaults();
         }
         return TrendV2StrategyParams.merge(queryContextParam.getTrendV2());
+    }
+
+    private UltraShortStrategyParams resolveUltraParams(QueryContextParam queryContextParam) {
+        if (queryContextParam == null || queryContextParam.getUltraShort() == null) {
+            return UltraShortStrategyParams.defaults();
+        }
+        return UltraShortStrategyParams.merge(queryContextParam.getUltraShort());
     }
 
     private void applyFallbackSortValue(StockBase stockBase, CheckResult checkResult) {

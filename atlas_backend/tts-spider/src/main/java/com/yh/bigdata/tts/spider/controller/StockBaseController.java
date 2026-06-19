@@ -346,18 +346,21 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getTrRequireWeekMacd()),
                 String.valueOf(pageQuery.getTrRequireDayMacd()),
                 String.valueOf(pageQuery.getTrRequireWeekGoldenCross()),
+                String.valueOf(pageQuery.getTrRequireUltra()),
                 String.valueOf(pageQuery.getMdMinAmountWan()),
                 String.valueOf(pageQuery.getMdPrevMonths()),
                 String.valueOf(pageQuery.getMdRequireCurrentBreakout()),
                 String.valueOf(pageQuery.getMdRequireMonthMacd()),
                 String.valueOf(pageQuery.getMdRequireYearMacd()),
                 String.valueOf(pageQuery.getMdRequireMonthGoldenCross()),
+                String.valueOf(pageQuery.getMdRequireUltra()),
                 String.valueOf(pageQuery.getLgMinAmountWan()),
                 String.valueOf(pageQuery.getLgPrevYears()),
                 String.valueOf(pageQuery.getLgRequireCurrentBreakout()),
                 String.valueOf(pageQuery.getLgRequireYearMacd()),
                 String.valueOf(pageQuery.getLgRequireMonthMacd()),
-                String.valueOf(pageQuery.getLgRequireYearGoldenCross()));
+                String.valueOf(pageQuery.getLgRequireYearGoldenCross()),
+                String.valueOf(pageQuery.getLgRequireUltra()));
     }
 
     public void clearRecommendCache() {

@@ -3,7 +3,9 @@ package com.yh.bigdata.tts.spider.strategy.tools.longterm;
 import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.param.LongStrategyParams;
+import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.ultralow.UltraShortGateTools;
 import lombok.Getter;
 
 public final class LongEvaluator {
@@ -12,12 +14,21 @@ public final class LongEvaluator {
     }
 
     public static LongEvaluation evaluate(StockBase stock, CheckResult checkResult,
-                                          LongStrategyParams params) {
+                                          LongStrategyParams params,
+                                          UltraShortStrategyParams ultraParams) {
         LongStrategyParams p = params != null ? params : LongStrategyParams.defaults();
         LongBreakoutTools.Hit hit = LongBreakoutTools.findHit(stock, p);
-        boolean success = hit != null;
-        LongEvaluation eval = new LongEvaluation(hit, success);
-        if (success && checkResult != null) {
+        if (hit == null) {
+            return new LongEvaluation(null, false);
+        }
+        if (!UltraShortGateTools.passes(stock, p.isRequireUltra(), ultraParams)) {
+            return new LongEvaluation(hit, false);
+        }
+        LongEvaluation eval = new LongEvaluation(hit, true);
+        if (checkResult != null) {
+            if (p.isRequireUltra()) {
+                UltraShortGateTools.appendMessages(checkResult, stock, ultraParams);
+            }
             checkResult.addTrendPeriod(PeriodTypeEnum.MONTH, LongScoreCalculator.buildTrendMessage(eval));
             checkResult.addSignal(PeriodTypeEnum.MONTH, LongScoreCalculator.buildSignalMessage(eval));
             eval.setScore(LongScoreCalculator.computeScore(eval));

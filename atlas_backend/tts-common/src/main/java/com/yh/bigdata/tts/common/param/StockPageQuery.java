@@ -160,6 +160,8 @@ public class StockPageQuery extends PageQuery {
     private Boolean trRequireDayMacd;
     /** 短线 · 周K MACD 金叉 */
     private Boolean trRequireWeekGoldenCross;
+    /** 短线 · 须同时满足超短 30m 突破 */
+    private Boolean trRequireUltra;
 
     /** 中线 · 最低日均成交额（万） */
     private Integer mdMinAmountWan;
@@ -173,6 +175,8 @@ public class StockPageQuery extends PageQuery {
     private Boolean mdRequireYearMacd;
     /** 中线 · 月K MACD 金叉 */
     private Boolean mdRequireMonthGoldenCross;
+    /** 中线 · 须同时满足超短 30m 突破 */
+    private Boolean mdRequireUltra;
 
     /** 长线 · 最低日均成交额（万） */
     private Integer lgMinAmountWan;
@@ -186,6 +190,8 @@ public class StockPageQuery extends PageQuery {
     private Boolean lgRequireMonthMacd;
     /** 长线 · 年K MACD 金叉 */
     private Boolean lgRequireYearGoldenCross;
+    /** 长线 · 须同时满足超短 30m 突破 */
+    private Boolean lgRequireUltra;
 
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
@@ -491,6 +497,9 @@ public class StockPageQuery extends PageQuery {
         if (trRequireWeekGoldenCross != null) {
             b.requireWeekGoldenCross(trRequireWeekGoldenCross);
         }
+        if (trRequireUltra != null) {
+            b.requireUltra(trRequireUltra);
+        }
         return TrendV2StrategyParams.merge(b.build());
     }
 
@@ -514,6 +523,9 @@ public class StockPageQuery extends PageQuery {
         if (mdRequireMonthGoldenCross != null) {
             b.requireMonthGoldenCross(mdRequireMonthGoldenCross);
         }
+        if (mdRequireUltra != null) {
+            b.requireUltra(mdRequireUltra);
+        }
         return MediumStrategyParams.merge(b.build());
     }
 
@@ -536,6 +548,9 @@ public class StockPageQuery extends PageQuery {
         }
         if (lgRequireYearGoldenCross != null) {
             b.requireYearGoldenCross(lgRequireYearGoldenCross);
+        }
+        if (lgRequireUltra != null) {
+            b.requireUltra(lgRequireUltra);
         }
         return LongStrategyParams.merge(b.build());
     }

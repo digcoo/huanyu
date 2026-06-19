@@ -11,7 +11,8 @@ var TREND_DEFAULTS = {
   trRequireMonthMacd: false,
   trRequireWeekMacd: false,
   trRequireDayMacd: false,
-  trRequireWeekGoldenCross: false
+  trRequireWeekGoldenCross: false,
+  trRequireUltra: true
 };
 
 var REBOUND_DEFAULTS = {
@@ -285,6 +286,16 @@ var TREND_SCHEMA = [
     key: 'trRequireWeekGoldenCross',
     label: '周K MACD 金叉',
     type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '超短叠加'
+  },
+  {
+    key: 'trRequireUltra',
+    label: '须满足超短 30m 突破',
+    hint: '开启后须同时命中超短策略；30m 参数沿用超短 Tab 设置',
+    type: 'switch'
   }
 ];
 
@@ -478,7 +489,8 @@ var MEDIUM_DEFAULTS = {
   mdRequireCurrentBreakout: false,
   mdRequireMonthMacd: false,
   mdRequireYearMacd: false,
-  mdRequireMonthGoldenCross: false
+  mdRequireMonthGoldenCross: false,
+  mdRequireUltra: true
 };
 
 var MEDIUM_SCHEMA = [
@@ -530,6 +542,16 @@ var MEDIUM_SCHEMA = [
     key: 'mdRequireMonthGoldenCross',
     label: '月K MACD 金叉',
     type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '超短叠加'
+  },
+  {
+    key: 'mdRequireUltra',
+    label: '须满足超短 30m 突破',
+    hint: '开启后须同时命中超短策略；30m 参数沿用超短 Tab 设置',
+    type: 'switch'
   }
 ];
 
@@ -539,7 +561,8 @@ var LONG_DEFAULTS = {
   lgRequireCurrentBreakout: false,
   lgRequireYearMacd: false,
   lgRequireMonthMacd: false,
-  lgRequireYearGoldenCross: false
+  lgRequireYearGoldenCross: false,
+  lgRequireUltra: true
 };
 
 var LONG_SCHEMA = [
@@ -590,6 +613,16 @@ var LONG_SCHEMA = [
   {
     key: 'lgRequireYearGoldenCross',
     label: '年K MACD 金叉',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '超短叠加'
+  },
+  {
+    key: 'lgRequireUltra',
+    label: '须满足超短 30m 突破',
+    hint: '开启后须同时命中超短策略；30m 参数沿用超短 Tab 设置',
     type: 'switch'
   }
 ];
@@ -846,7 +879,8 @@ function formatSummary(strategyId) {
     var weekPart = (p.trPrevWeeks != null ? p.trPrevWeeks : 2) + '周基准';
     var sigPart = p.trRequireCurrentBreakout ? '当日突破' : '本周突破';
     return amountPart + ' · ' + weekPart + ' · ' + sigPart
-      + (macdParts.length ? ' · ' + macdParts.join('+') : '');
+      + (macdParts.length ? ' · ' + macdParts.join('+') : '')
+      + (p.trRequireUltra !== false ? ' · +超短' : '');
   }
   if (strategyId === 'medium') {
     var mdMacdParts = [];
@@ -857,7 +891,8 @@ function formatSummary(strategyId) {
     var monthPart = (p.mdPrevMonths != null ? p.mdPrevMonths : 2) + '月基准';
     var mdSigPart = p.mdRequireCurrentBreakout ? '当周突破' : '本月突破';
     return mdAmountPart + ' · ' + monthPart + ' · ' + mdSigPart
-      + (mdMacdParts.length ? ' · ' + mdMacdParts.join('+') : '');
+      + (mdMacdParts.length ? ' · ' + mdMacdParts.join('+') : '')
+      + (p.mdRequireUltra !== false ? ' · +超短' : '');
   }
   if (strategyId === 'long') {
     var lgMacdParts = [];
@@ -868,7 +903,8 @@ function formatSummary(strategyId) {
     var yearPart = (p.lgPrevYears != null ? p.lgPrevYears : 2) + '年基准';
     var lgSigPart = p.lgRequireCurrentBreakout ? '当月突破' : '本年突破';
     return lgAmountPart + ' · ' + yearPart + ' · ' + lgSigPart
-      + (lgMacdParts.length ? ' · ' + lgMacdParts.join('+') : '');
+      + (lgMacdParts.length ? ' · ' + lgMacdParts.join('+') : '')
+      + (p.lgRequireUltra !== false ? ' · +超短' : '');
   }
   if (strategyId === 'resonance') {
     var resModes = [];

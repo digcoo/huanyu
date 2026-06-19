@@ -44,6 +44,10 @@ public class MediumStrategyParams {
     @Builder.Default
     private boolean requireMonthGoldenCross = false;
 
+    /** 须同时满足超短 30m 突破 */
+    @Builder.Default
+    private boolean requireUltra = true;
+
     public static MediumStrategyParams defaults() {
         return MediumStrategyParams.builder().build();
     }
@@ -69,6 +73,7 @@ public class MediumStrategyParams {
         d.requireMonthMacd = incoming.requireMonthMacd;
         d.requireYearMacd = incoming.requireYearMacd;
         d.requireMonthGoldenCross = incoming.requireMonthGoldenCross;
+        d.requireUltra = incoming.requireUltra;
         return d;
     }
 }

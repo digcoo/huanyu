@@ -52,6 +52,10 @@ public class TrendV2StrategyParams {
     @Builder.Default
     private boolean requireWeekGoldenCross = false;
 
+    /** 须同时满足超短 30m 突破（参数共用 QueryContextParam.ultraShort） */
+    @Builder.Default
+    private boolean requireUltra = true;
+
     /** 前一周 K 实体阴线率上限 */
     @Builder.Default
     private double weekPrevMaxBearPct = DEFAULT_WEEK_PREV_MAX_BEAR_PCT;
@@ -86,6 +90,7 @@ public class TrendV2StrategyParams {
         d.requireWeekMacd = incoming.requireWeekMacd;
         d.requireDayMacd = incoming.requireDayMacd;
         d.requireWeekGoldenCross = incoming.requireWeekGoldenCross;
+        d.requireUltra = incoming.requireUltra;
         if (incoming.weekPrevMaxBearPct > 0) {
             d.weekPrevMaxBearPct = incoming.weekPrevMaxBearPct;
         }
