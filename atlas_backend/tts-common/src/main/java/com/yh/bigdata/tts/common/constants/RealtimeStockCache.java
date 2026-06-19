@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.yh.bigdata.tts.common.indicator.ZaoPanUtils;
+import com.yh.bigdata.tts.common.backtest.BacktestSnapshotContext;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockTarget;
 import com.yh.bigdata.tts.common.model.Trade;
@@ -36,6 +37,11 @@ public class RealtimeStockCache {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static List<Trade> getAllTrades(String code, PeriodTypeEnum monthOrWeek) {
+		List<Trade> snapshotTrades = BacktestSnapshotContext.getTrades(code, monthOrWeek);
+		if (snapshotTrades != null) {
+			return snapshotTrades;
+		}
+
 		List<Trade> trades = null;
 		switch (monthOrWeek) {
 		case YEAR:

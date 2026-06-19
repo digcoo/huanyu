@@ -23,7 +23,7 @@ import java.util.List;
  * @see docs/strategies/周期共振策略.md
  */
 @Slf4j
-@Component
+// @Component — v1 已下线
 public class PeriodResonanceStrategy extends AbstractStrategy {
 
     @Override

@@ -115,9 +115,8 @@ public final class UltraLowReboundScoreCalculator {
         Trade signal = hit.getSignalBar();
         Trade ref = hit.getReferenceBar();
         double bodyPct = signal.getShitiRate() != null ? signal.getShitiRate() * 100 : 0;
-        return String.format("%s首根突破 high%.2f>%.2f close>bodyMax%.2f,实体+%.1f%%,refDay=%s,sigDay=%s",
-                tierLabel(tier),
-                signal.getHigh(), ref.getHigh(), ref.getShitiMax(), bodyPct,
+        return String.format("%s首根突破 close>前K high且>ref low,实体+%.1f%%,refDay=%s,sigDay=%s",
+                tierLabel(tier), bodyPct,
                 ref.getDay() != null ? ref.getDay() : "",
                 signal.getDay() != null ? signal.getDay() : "");
     }

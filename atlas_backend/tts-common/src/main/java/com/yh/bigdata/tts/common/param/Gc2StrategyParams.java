@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 金叉二次突破（gc2）· 日/周/月三档
+ * 金叉二次突破（gc2）· v2.0 短/长两档
  */
 @Data
 @Builder
@@ -17,9 +17,8 @@ public class Gc2StrategyParams {
     public static final double DEFAULT_MIN_AVG_AMOUNT = 30_000_000D;
     public static final String DEFAULT_TIER_MIN = "ALL";
     public static final int DEFAULT_LOOKBACK_SHORT = 60;
-    public static final int DEFAULT_LOOKBACK_MEDIUM = 52;
-    public static final int DEFAULT_LOOKBACK_LONG = 24;
-    public static final int DEFAULT_MIN_BARS_AFTER_REF = 1;
+    public static final int DEFAULT_LOOKBACK_LONG = 52;
+    public static final int DEFAULT_MIN_BARS_AFTER_REF = 2;
 
     @Builder.Default
     private double minAvgAmount = DEFAULT_MIN_AVG_AMOUNT;
@@ -27,24 +26,30 @@ public class Gc2StrategyParams {
     @Builder.Default
     private String tierMin = DEFAULT_TIER_MIN;
 
+    /** 短线：（周 or 月 MACD&gt;0）+ 日K 金叉柱 high 二次突破 */
     @Builder.Default
     private boolean enableShort = true;
 
+    /** @deprecated v2.0 起忽略 */
     @Builder.Default
     private boolean enableMedium = false;
 
+    /** 长线：（月 or 年 MACD&gt;0）+ 周K 金叉柱 high 二次突破 */
     @Builder.Default
-    private boolean enableLong = false;
+    private boolean enableLong = true;
 
     @Builder.Default
     private int lookbackShort = DEFAULT_LOOKBACK_SHORT;
 
+    /** @deprecated v2.0 起忽略，请用 lookbackLong */
     @Builder.Default
-    private int lookbackMedium = DEFAULT_LOOKBACK_MEDIUM;
+    private int lookbackMedium = 52;
 
+    /** 周K lookback（长线档） */
     @Builder.Default
     private int lookbackLong = DEFAULT_LOOKBACK_LONG;
 
+    /** ref 与 signal 之间至少 N 根完整 K（不含 ref / signal 本身） */
     @Builder.Default
     private int minBarsAfterRef = DEFAULT_MIN_BARS_AFTER_REF;
 
@@ -69,11 +74,10 @@ public class Gc2StrategyParams {
         if (incoming.lookbackShort >= 10) {
             d.lookbackShort = incoming.lookbackShort;
         }
-        if (incoming.lookbackMedium >= 10) {
-            d.lookbackMedium = incoming.lookbackMedium;
-        }
-        if (incoming.lookbackLong >= 6) {
+        if (incoming.lookbackLong >= 10) {
             d.lookbackLong = incoming.lookbackLong;
+        } else if (incoming.lookbackMedium >= 10) {
+            d.lookbackLong = incoming.lookbackMedium;
         }
         if (incoming.minBarsAfterRef >= 1) {
             d.minBarsAfterRef = incoming.minBarsAfterRef;
@@ -84,10 +88,10 @@ public class Gc2StrategyParams {
     public static int tierRank(char tier) {
         switch (tier) {
             case 'S':
-                return 3;
-            case 'A':
                 return 2;
             case 'B':
+                return 1;
+            case 'A':
                 return 1;
             default:
                 return 0;

@@ -3,6 +3,12 @@ const adapter = require('./adapter');
 const strategyParams = require('./strategy-params');
 
 var RECOMMEND_PAGE_SIZE = 12;
+/** min30：2 前日 + 1 当日 × 8 根/日，留余量避免截断 */
+var MIN30_KLINE_LIMIT = 64;
+
+function klineLimitForPeriod(period) {
+  return period === 'min30' ? MIN30_KLINE_LIMIT : 50;
+}
 
 function encodePath(code) {
   return encodeURIComponent(adapter.normalizeCode(code));
@@ -23,8 +29,9 @@ function fetchHealth() {
 
 function resolveHasMore(data, page, itemCount) {
   if (!data) return false;
-  if (data.isMore === 1 || data.isMore === true) return true;
-  if (data.isMore === 0 || data.isMore === false) return false;
+  var isMore = data.isMore;
+  if (isMore === 1 || isMore === true || isMore === '1') return true;
+  if (isMore === 0 || isMore === false || isMore === '0') return false;
   if (data.currentPage != null && data.totalPage != null) {
     return data.currentPage < data.totalPage;
   }
@@ -54,7 +61,7 @@ function fetchRecommendations(strategyId, page, size) {
       items: items,
       page: data.currentPage || page,
       totalNum: data.totalNum != null ? data.totalNum : items.length,
-      hasMore: resolveHasMore(data, page, items.length)
+      hasMore: resolveHasMore(data, data.currentPage || page, items.length)
     };
   });
 }
@@ -85,7 +92,7 @@ function triggerStrategyRescan(strategyId) {
 function fetchKlines(code, period, limit) {
   return api.get('/stock/' + encodePath(code) + '/klines', {
     period: period || 'week',
-    limit: limit || 50
+    limit: limit || klineLimitForPeriod(period)
   }).then(function (res) {
     if (!res.ok || !res.data) return [];
     return res.data;
@@ -95,7 +102,7 @@ function fetchKlines(code, period, limit) {
 /** 雪球实时拉取 K 线（不写库） */
 function fetchKlinesRefresh(code, period, limit) {
   period = period || 'week';
-  limit = limit || 50;
+  limit = limit || klineLimitForPeriod(period);
   var qs = 'period=' + encodeURIComponent(period) + '&limit=' + encodeURIComponent(String(limit));
   return api.request({
     path: '/stock/' + encodePath(code) + '/klines/refresh?' + qs,
@@ -117,9 +124,38 @@ function fetchLadderMarkers(code, period) {
   });
 }
 
+/** 超短线 · 基准 K / 突破 K 标记 */
+function fetchUltraMarkers(code, period) {
+  var params = Object.assign({ period: period || 'min30' }, strategyParams.toApiParams('ultra'));
+  return api.get('/stock/' + encodePath(code) + '/ultra/markers', params).then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
 /** 回踩抬升 · L0/H1/L1/介入 标记 */
 function fetchRetestMarkers(code, period) {
   return api.get('/stock/' + encodePath(code) + '/retest/markers', {
+    period: period || 'day'
+  }).then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
+/** 金叉二次突破 · 金叉K / 突破K 标记 */
+function fetchGc2Markers(code, period) {
+  return api.get('/stock/' + encodePath(code) + '/gc2/markers', {
+    period: period || 'day'
+  }).then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
+/** 死叉突破 · 死叉K / 突破K 标记 */
+function fetchDc2Markers(code, period) {
+  return api.get('/stock/' + encodePath(code) + '/dc2/markers', {
     period: period || 'day'
   }).then(function (res) {
     if (!res.ok || !res.data) return null;
@@ -170,7 +206,7 @@ function attachKlinesToItems(items, period, maxItems) {
   if (!list.length) return Promise.resolve([]);
 
   return Promise.all(list.map(function (item) {
-    return fetchKlines(item.code, period, 50).then(function (bars) {
+    return fetchKlines(item.code, period, klineLimitForPeriod(period)).then(function (bars) {
       var klines = adapter.barsToKlines(bars);
       var merged = Object.assign({}, item, {
         klines: Object.assign({}, item.klines || {}, {}),
@@ -186,6 +222,8 @@ function attachKlinesToItems(items, period, maxItems) {
 
 module.exports = {
   RECOMMEND_PAGE_SIZE: RECOMMEND_PAGE_SIZE,
+  MIN30_KLINE_LIMIT: MIN30_KLINE_LIMIT,
+  klineLimitForPeriod: klineLimitForPeriod,
   buildStrategyQueryParams: buildStrategyQueryParams,
   fetchHealth: fetchHealth,
   fetchRecommendations: fetchRecommendations,
@@ -193,7 +231,10 @@ module.exports = {
   fetchKlines: fetchKlines,
   fetchKlinesRefresh: fetchKlinesRefresh,
   fetchLadderMarkers: fetchLadderMarkers,
+  fetchUltraMarkers: fetchUltraMarkers,
   fetchRetestMarkers: fetchRetestMarkers,
+  fetchGc2Markers: fetchGc2Markers,
+  fetchDc2Markers: fetchDc2Markers,
   fetchUlowMarkers: fetchLadderMarkers,
   fetchSummary: fetchSummary,
   search: search,

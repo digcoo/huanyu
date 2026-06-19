@@ -20,10 +20,45 @@
   border-bottom: 1rpx solid #2b2f36;
 }
 
+.params-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
 .params-title {
   font-size: 32rpx;
   font-weight: 600;
   color: #e8edf5;
+}
+
+.params-subtitle {
+  font-size: 22rpx;
+  color: #5c6578;
+}
+
+.section-block {
+  padding: 28rpx 0 8rpx;
+}
+
+.section-block:first-child {
+  padding-top: 12rpx;
+}
+
+.section-label {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #848e9c;
+  letter-spacing: 1rpx;
+}
+
+.section-hint {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 22rpx;
+  color: #5c6578;
+  line-height: 1.4;
 }
 
 .params-head-actions {

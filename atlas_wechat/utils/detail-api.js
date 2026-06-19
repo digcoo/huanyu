@@ -15,7 +15,7 @@ function loadDetail(id, period) {
 
   return Promise.all([
     stockApi.fetchDetail(code),
-    stockApi.fetchKlines(code, period, 50),
+    stockApi.fetchKlines(code, period, stockApi.klineLimitForPeriod(period)),
     stockApi.fetchCompass(code),
     strategy === 'ladder' ? stockApi.fetchSummary(code) : Promise.resolve(null)
   ]).then(function (results) {
@@ -82,7 +82,7 @@ function loadKlinesForPeriod(id, period) {
     return Promise.resolve(detail.klines[period] ? detail.klines[period].slice() : []);
   }
   var code = adapter.extractCode(id);
-  return stockApi.fetchKlines(code, period, 50).then(adapter.barsToKlines);
+  return stockApi.fetchKlines(code, period, stockApi.klineLimitForPeriod(period)).then(adapter.barsToKlines);
 }
 
 function refreshKlinesForPeriod(id, period) {
@@ -91,7 +91,7 @@ function refreshKlinesForPeriod(id, period) {
     return loadKlinesForPeriod(id, period);
   }
   var code = adapter.extractCode(id);
-  return stockApi.fetchKlinesRefresh(code, period, 50).then(adapter.barsToKlines);
+  return stockApi.fetchKlinesRefresh(code, period, stockApi.klineLimitForPeriod(period)).then(adapter.barsToKlines);
 }
 
 module.exports = {

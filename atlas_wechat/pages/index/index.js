@@ -1,6 +1,5 @@
 const {
   MARKET_INDICES,
-  STRATEGIES,
   buildStrategyRecommendations
 } = require('../../utils/mock');
 const { findStockByIdAsync } = require('../../utils/search');
@@ -13,6 +12,7 @@ const strategyParams = require('../../utils/strategy-params');
 const barMarkers = require('../../utils/bar-markers');
 
 const app = getApp();
+const DEFAULT_STRATEGY = 'ultra';
 
 const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
 
@@ -30,10 +30,7 @@ function mapChartKlines(list, period, strategyId) {
 }
 
 function normalizeSavedStrategy(strategyId) {
-  if (strategyId === 'ultraLow') return 'ladder';
-  if (strategyId === 'retest') return 'trend';
-  var known = STRATEGIES.some(function (s) { return s.id === strategyId; });
-  return known ? strategyId : 'trend';
+  return DEFAULT_STRATEGY;
 }
 
 function filterIgnored(items, ignored) {
@@ -60,6 +57,28 @@ function dedupeAppend(baseList, newItems) {
   };
 }
 
+function resolvePagedHasMore(hasMore, lastPage, totalNum) {
+  if (hasMore) return true;
+  if (totalNum > 0 && lastPage > 0 && lastPage * RECOMMEND_PAGE_SIZE < totalNum) {
+    return true;
+  }
+  return false;
+}
+
+function buildSeenIdMap(list) {
+  var seen = {};
+  (list || []).forEach(function (item) {
+    if (item && item.id) seen[item.id] = true;
+  });
+  return seen;
+}
+
+function filterNovelItems(items, seen) {
+  return (items || []).filter(function (item) {
+    return item && item.id && !seen[item.id];
+  });
+}
+
 /**
  * 拉取推荐列表，跳过已忽略项；单页全部被忽略时自动继续下一页
  */
@@ -82,7 +101,7 @@ function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage
           items: accumulated,
           page: lastPage,
           totalNum: totalNum,
-          hasMore: hasMore
+          hasMore: resolvePagedHasMore(hasMore, lastPage, totalNum)
         };
       }
       return fetchPage(page + 1);
@@ -95,20 +114,25 @@ function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage
 /**
  * 加载更多：严格按后端页码追加，避免与首屏重复
  */
-function fetchNextRecommendationsPage(strategyId, ignored, backendPage) {
+function fetchNextRecommendationsPage(strategyId, ignored, backendPage, baseList) {
   var nextPage = (backendPage || 1) + 1;
+  var seen = buildSeenIdMap(baseList);
 
   function fetchFrom(page) {
     return stockApi.fetchRecommendations(strategyId, page, RECOMMEND_PAGE_SIZE).then(function (result) {
       var visible = filterIgnored(result.items, ignored);
-      if (visible.length === 0 && result.hasMore) {
+      var novel = filterNovelItems(visible, seen);
+      if (novel.length === 0 && result.hasMore) {
         return fetchFrom(page + 1);
       }
+      novel.forEach(function (item) {
+        seen[item.id] = true;
+      });
       return {
-        items: visible,
+        items: novel,
         page: result.page || page,
         totalNum: result.totalNum != null ? result.totalNum : 0,
-        hasMore: !!result.hasMore
+        hasMore: resolvePagedHasMore(!!result.hasMore, result.page || page, result.totalNum)
       };
     });
   }
@@ -148,10 +172,6 @@ function applyKlinesForItems(self, items, period) {
   return attachKlinesInBackground(self, items, period);
 }
 
-function findStrategyMeta(strategyId) {
-  return STRATEGIES.find(function (s) { return s.id === strategyId; }) || STRATEGIES[0];
-}
-
 Page({
   data: {
     statusBarHeight: 20,
@@ -159,9 +179,7 @@ Page({
     navPaddingRight: 96,
 
     markets: buildMarketsForUI(),
-    strategies: STRATEGIES,
-    activeStrategy: 'trend',
-    activeStrategyMeta: STRATEGIES[0],
+    activeStrategy: DEFAULT_STRATEGY,
 
     activeMarket: 'cn',
     indices: [],
@@ -190,10 +208,7 @@ Page({
     const navPaddingRight = sys.windowWidth - menu.left + 8;
 
     const savedPeriod = wx.getStorageSync('activePeriod') || 'week';
-    let savedStrategy = normalizeSavedStrategy(wx.getStorageSync('activeStrategy') || 'trend');
-    if (savedStrategy === 'multi') {
-      savedStrategy = 'trend';
-    }
+    const savedStrategy = normalizeSavedStrategy(wx.getStorageSync('activeStrategy'));
     if (savedStrategy !== wx.getStorageSync('activeStrategy')) {
       wx.setStorageSync('activeStrategy', savedStrategy);
     }
@@ -206,7 +221,6 @@ Page({
       navPaddingRight,
       activePeriod: initialPeriod,
       activeStrategy: savedStrategy,
-      activeStrategyMeta: findStrategyMeta(savedStrategy),
       klineFlipped
     });
 
@@ -273,19 +287,7 @@ Page({
   onParamsApply(e) {
     var detail = (e && e.detail) || {};
     var strategyId = detail.strategyId || this.data.activeStrategy;
-    var shouldRescan = detail.rescan !== false;
     this.refreshParamsBadge(strategyId);
-
-    if (strategyId === 'ladder') {
-      var chartPeriod = strategyParams.chartPrimaryPeriod(
-        strategyId,
-        detail.params || strategyParams.load(strategyId)
-      );
-      if (chartPeriod && chartPeriod !== this.data.activePeriod) {
-        wx.setStorageSync('activePeriod', chartPeriod);
-        this.setData({ activePeriod: chartPeriod });
-      }
-    }
 
     if (config.useMock) {
       wx.showToast({ title: 'Mock 模式参数不生效', icon: 'none' });
@@ -293,17 +295,10 @@ Page({
       return;
     }
 
-    if (shouldRescan) {
-      var self = this;
-      this.runStrategyRescanAndReload(true).then(function () {
-        self.setData({ paramsVisible: false });
-      });
-      return;
-    }
-
-    this.setData({ paramsVisible: false });
-    this.loadMarketFromApi(this.data.activeMarket);
-    wx.showToast({ title: '参数已应用（预览）', icon: 'success' });
+    var self = this;
+    this.runStrategyRescanAndReload(true).then(function () {
+      self.setData({ paramsVisible: false });
+    });
   },
 
   onRescanStrategy() {
@@ -372,8 +367,15 @@ Page({
     this.loadMoreRecommendations();
   },
 
+  onLoadMoreTap() {
+    if (config.useMock || this.data.activeMarket !== 'cn') return;
+    if (!this.data.hasMore || this.data.loadingMore || this.data.rescanning) return;
+    this.loadMoreRecommendations();
+  },
+
   loadMoreRecommendations() {
-    if (!this.data.hasMore || this.data.loadingMore || this.data.loading) return;
+    if (!this.data.hasMore || this.data.loadingMore) return;
+    if (this.data.loading && (!this.data.recommendations || this.data.recommendations.length === 0)) return;
 
     const self = this;
     const strategyId = this.data.activeStrategy;
@@ -383,7 +385,7 @@ Page({
 
     this.setData({ loadingMore: true });
 
-    fetchNextRecommendationsPage(strategyId, ignored, backendPage).then(function (result) {
+    fetchNextRecommendationsPage(strategyId, ignored, backendPage, this._baseList).then(function (result) {
       var merged = dedupeAppend(self._baseList, result.items);
       self._backendPage = result.page;
       self._loadPage = result.page;
@@ -396,6 +398,18 @@ Page({
       });
       if (merged.appended.length) {
         applyKlinesForItems(self, merged.appended, period);
+        barMarkers.enrichItemsWithBarMarkers(merged.appended, strategyId, period).then(function (enriched) {
+          var markerById = {};
+          enriched.forEach(function (item) {
+            markerById[item.id] = item;
+          });
+          self._baseList = (self._baseList || []).map(function (item) {
+            return markerById[item.id] ? Object.assign({}, item, markerById[item.id]) : item;
+          });
+          self.setData({
+            recommendations: mapChartKlines(self._baseList, period, strategyId)
+          });
+        });
       }
     }).catch(function () {
       self.setData({ loadingMore: false });
@@ -460,17 +474,20 @@ Page({
       self._loadPage = pageResult.page;
       self._backendPage = pageResult.page;
       self._baseList = pageResult.items;
+      self.setData({
+        activeMarket: marketId,
+        indices: indices,
+        recommendations: mapChartKlines(pageResult.items, period, strategyId),
+        totalCount: pageResult.totalNum,
+        hasMore: pageResult.hasMore,
+        loading: false
+      });
+      applyKlinesForItems(self, pageResult.items, period);
       return barMarkers.enrichItemsWithBarMarkers(pageResult.items, strategyId, period).then(function (enriched) {
         self._baseList = enriched;
         self.setData({
-          activeMarket: marketId,
-          indices: indices,
-          recommendations: mapChartKlines(enriched, period, strategyId),
-          totalCount: pageResult.totalNum,
-          hasMore: pageResult.hasMore,
-          loading: false
+          recommendations: mapChartKlines(enriched, period, strategyId)
         });
-        applyKlinesForItems(self, enriched, period);
       });
     }).catch(function () {
       if (config.fallbackOnError) {
@@ -499,28 +516,6 @@ Page({
       icon: 'none',
       duration: 2000
     });
-  },
-
-  onStrategyChange(e) {
-    const strategyId = e.detail.strategyId;
-    wx.setStorageSync('activeStrategy', strategyId);
-    var period = this.data.activePeriod;
-    var chartPeriod = strategyParams.chartPrimaryPeriod(strategyId, strategyParams.load(strategyId));
-    if (chartPeriod) {
-      period = chartPeriod;
-      wx.setStorageSync('activePeriod', period);
-    }
-    this.setData({
-      activeStrategy: strategyId,
-      activeStrategyMeta: findStrategyMeta(strategyId),
-      activePeriod: period
-    });
-    this.refreshParamsBadge(strategyId);
-    if (config.useMock) {
-      this.loadMarket(this.data.activeMarket);
-    } else {
-      this.loadMarketFromApi(this.data.activeMarket);
-    }
   },
 
   onPeriodChange(e) {

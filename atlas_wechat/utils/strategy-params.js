@@ -7,7 +7,6 @@ var STORAGE_PREFIX = 'strategyParams_';
 var TREND_DEFAULTS = {
   uMinAmountWan: 5000,
   uEnableShort: true,
-  uEnableMedium: true,
   uEnableLong: true,
   uTierMin: 'ALL'
 };
@@ -18,14 +17,6 @@ var REBOUND_DEFAULTS = {
   rEnableMedium: true,
   rEnableLong: true,
   rTierMin: 'ALL'
-};
-
-var PRE_GOLDEN_DEFAULTS = {
-  pMinAmountWan: 5000,
-  pEnableShort: true,
-  pEnableMedium: true,
-  pEnableLong: true,
-  pTierMin: 'ALL'
 };
 
 var RESONANCE_DEFAULTS = {
@@ -59,13 +50,73 @@ var RETEST_DEFAULTS = {
 var GC2_DEFAULTS = {
   g2MinAmountWan: 5000,
   g2EnableShort: true,
-  g2EnableMedium: false,
-  g2EnableLong: false,
+  g2EnableLong: true,
   g2TierMin: 'ALL',
   g2LookbackShort: 60,
-  g2LookbackMedium: 52,
-  g2LookbackLong: 24
+  g2LookbackLong: 52
 };
+
+var DC2_DEFAULTS = {
+  d2MinAmountWan: 5000,
+  d2EnableShort: true,
+  d2EnableLong: true,
+  d2TierMin: 'ALL',
+  d2LookbackShort: 60,
+  d2LookbackLong: 52
+};
+
+var ULTRA_DEFAULTS = {
+  ulMinAmountWan: 5000,
+  ulRequireMonthMacd: false,
+  ulRequireWeekMacd: false,
+  ulRequireDayMacd: false,
+  ulRequireCurrentBreakout: false
+};
+
+var ULTRA_SCHEMA = [
+  {
+    key: 'ulMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 1000,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: 'MACD>0（可选）'
+  },
+  {
+    key: 'ulRequireMonthMacd',
+    label: '月 MACD>0',
+    hint: '默认关闭，开启后需满足',
+    type: 'switch'
+  },
+  {
+    key: 'ulRequireWeekMacd',
+    label: '周 MACD>0',
+    hint: '默认关闭，开启后需满足',
+    type: 'switch'
+  },
+  {
+    key: 'ulRequireDayMacd',
+    label: '日 MACD>0',
+    hint: '默认关闭，开启后需满足',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '突破K'
+  },
+  {
+    key: 'ulRequireCurrentBreakout',
+    label: '当前K须为突破K',
+    hint: '关闭则当日任一根满足突破条件即可',
+    type: 'switch'
+  }
+];
 
 var LADDER_SCHEMA = [
   {
@@ -179,6 +230,11 @@ var RETEST_SCHEMA = [
 
 var TREND_SCHEMA = [
   {
+    type: 'section',
+    label: '硬门槛',
+    hint: '不满足则不入池'
+  },
+  {
     key: 'uMinAmountWan',
     label: '最低成交额',
     hint: '近6日日均成交额（万）',
@@ -189,32 +245,35 @@ var TREND_SCHEMA = [
     unit: '万'
   },
   {
-    key: 'uEnableShort',
-    label: '短线金叉',
-    hint: '周 MACD>0 + 日 MACD 金叉',
-    type: 'switch'
+    type: 'section',
+    label: '启用档位',
+    hint: '短/长两档，可单独或同时开启'
   },
   {
-    key: 'uEnableMedium',
-    label: '中线金叉',
-    hint: '月 MACD>0 + 周 MACD 金叉',
+    key: 'uEnableShort',
+    label: '短线（S）',
+    hint: '月K 或 周K MACD > 0 · 日K 金叉',
     type: 'switch'
   },
   {
     key: 'uEnableLong',
-    label: '长线金叉',
-    hint: '年 MACD>0 + 月 MACD 金叉',
+    label: '长线（B）',
+    hint: '年K 或 月K MACD > 0 · 周K 金叉',
     type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '列表筛选'
   },
   {
     key: 'uTierMin',
     label: '最低展示档位',
+    hint: '过滤扫描结果展示的最低档位',
     type: 'picker',
     options: [
       { value: 'ALL', label: '全部档位' },
-      { value: 'B', label: 'B档及以上 (长线+)' },
-      { value: 'A', label: 'A档及以上 (中线+)' },
-      { value: 'S', label: '仅短线 (S)' }
+      { value: 'B', label: '长线及以上（含短线）' },
+      { value: 'S', label: '仅短线（S）' }
     ]
   }
 ];
@@ -250,48 +309,6 @@ var REBOUND_SCHEMA = [
   },
   {
     key: 'rTierMin',
-    label: '最低展示档位',
-    type: 'picker',
-    options: [
-      { value: 'ALL', label: '全部档位' },
-      { value: 'B', label: 'B档及以上 (长线+)' },
-      { value: 'A', label: 'A档及以上 (中线+)' },
-      { value: 'S', label: '仅短线 (S)' }
-    ]
-  }
-];
-
-var PRE_GOLDEN_SCHEMA = [
-  {
-    key: 'pMinAmountWan',
-    label: '最低成交额',
-    hint: '近6日日均成交额（万）',
-    type: 'slider',
-    min: 1000,
-    max: 10000,
-    step: 500,
-    unit: '万'
-  },
-  {
-    key: 'pEnableShort',
-    label: '短线预判',
-    hint: '周 MACD>0 + 日 MACD<0 + 日K突破',
-    type: 'switch'
-  },
-  {
-    key: 'pEnableMedium',
-    label: '中线预判',
-    hint: '月 MACD>0 + 周 MACD<0 + 周K突破',
-    type: 'switch'
-  },
-  {
-    key: 'pEnableLong',
-    label: '长线预判',
-    hint: '年 MACD>0 + 月 MACD<0 + 月K突破',
-    type: 'switch'
-  },
-  {
-    key: 'pTierMin',
     label: '最低展示档位',
     type: 'picker',
     options: [
@@ -347,6 +364,11 @@ var RESONANCE_SCHEMA = [
 
 var GC2_SCHEMA = [
   {
+    type: 'section',
+    label: '硬门槛',
+    hint: '不满足则不入池'
+  },
+  {
     key: 'g2MinAmountWan',
     label: '最低成交额',
     hint: '近6日日均成交额（万）',
@@ -357,63 +379,118 @@ var GC2_SCHEMA = [
     unit: '万'
   },
   {
-    key: 'g2EnableShort',
-    label: '短线突破',
-    hint: '日K MACD金叉 · 突破金叉高点',
-    type: 'switch'
+    type: 'section',
+    label: '启用档位',
+    hint: '短/长两档，可单独或同时开启'
   },
   {
-    key: 'g2EnableMedium',
-    label: '中线突破',
-    hint: '周K MACD金叉 · 突破金叉高点',
+    key: 'g2EnableShort',
+    label: '短线（S）',
+    hint: '月/周 MACD>0 · 日K 金叉柱 high 二次突破',
     type: 'switch'
   },
   {
     key: 'g2EnableLong',
-    label: '长线突破',
-    hint: '月K MACD金叉 · 突破金叉高点',
+    label: '长线（B）',
+    hint: '年/月 MACD>0 · 周K 金叉柱 high 二次突破',
     type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '列表筛选'
   },
   {
     key: 'g2TierMin',
     label: '最低展示档位',
+    hint: '过滤扫描结果展示的最低档位',
     type: 'picker',
     options: [
       { value: 'ALL', label: '全部档位' },
-      { value: 'B', label: 'B档及以上 (长线+)' },
-      { value: 'A', label: 'A档及以上 (中线+)' },
-      { value: 'S', label: '仅短线 (S)' }
+      { value: 'B', label: '长线及以上（含短线）' },
+      { value: 'S', label: '仅短线（S）' }
+    ]
+  }
+];
+
+var DC2_SCHEMA = [
+  {
+    type: 'section',
+    label: '硬门槛',
+    hint: '不满足则不入池'
+  },
+  {
+    key: 'd2MinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 1000,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: '启用档位',
+    hint: '短/长两档，可单独或同时开启'
+  },
+  {
+    key: 'd2EnableShort',
+    label: '短线（S）',
+    hint: '月/周 MACD>0 · 日K 死叉柱 high 突破',
+    type: 'switch'
+  },
+  {
+    key: 'd2EnableLong',
+    label: '长线（B）',
+    hint: '年/月 MACD>0 · 周K 死叉柱 high 突破',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '列表筛选'
+  },
+  {
+    key: 'd2TierMin',
+    label: '最低展示档位',
+    hint: '过滤扫描结果展示的最低档位',
+    type: 'picker',
+    options: [
+      { value: 'ALL', label: '全部档位' },
+      { value: 'B', label: '长线及以上（含短线）' },
+      { value: 'S', label: '仅短线（S）' }
     ]
   }
 ];
 
 var SCHEMA_BY_STRATEGY = {
+  ultra: ULTRA_SCHEMA,
   trend: TREND_SCHEMA,
-  preGolden: PRE_GOLDEN_SCHEMA,
   resonance: RESONANCE_SCHEMA,
   rebound: REBOUND_SCHEMA,
   ladder: LADDER_SCHEMA,
   retest: RETEST_SCHEMA,
-  gc2: GC2_SCHEMA
+  gc2: GC2_SCHEMA,
+  dc2: DC2_SCHEMA
 };
 
 var DEFAULTS_BY_STRATEGY = {
+  ultra: ULTRA_DEFAULTS,
   trend: TREND_DEFAULTS,
-  preGolden: PRE_GOLDEN_DEFAULTS,
   resonance: RESONANCE_DEFAULTS,
   rebound: REBOUND_DEFAULTS,
   ladder: LADDER_DEFAULTS,
   retest: RETEST_DEFAULTS,
-  gc2: GC2_DEFAULTS
+  gc2: GC2_DEFAULTS,
+  dc2: DC2_DEFAULTS
 };
 
 var TIER_PICKER = TREND_SCHEMA.find(function (f) { return f.key === 'uTierMin'; });
-var PRE_GOLDEN_TIER_PICKER = PRE_GOLDEN_SCHEMA.find(function (f) { return f.key === 'pTierMin'; });
 var RESONANCE_TIER_PICKER = RESONANCE_SCHEMA.find(function (f) { return f.key === 'cTierMin'; });
 var REBOUND_TIER_PICKER = REBOUND_SCHEMA.find(function (f) { return f.key === 'rTierMin'; });
 var LADDER_TIER_PICKER = LADDER_SCHEMA.find(function (f) { return f.key === 'lTierMin'; });
 var RETEST_TIER_PICKER = RETEST_SCHEMA.find(function (f) { return f.key === 'tTierMin'; });
 var GC2_TIER_PICKER = GC2_SCHEMA.find(function (f) { return f.key === 'g2TierMin'; });
+var DC2_TIER_PICKER = DC2_SCHEMA.find(function (f) { return f.key === 'd2TierMin'; });
 
 function migrateLadderTier(raw, out) {
   if (!raw || !raw.lLadderTier) return;
@@ -446,16 +523,24 @@ function retestPrimaryPeriod(params) {
 function gc2PrimaryPeriod(params) {
   var p = params || {};
   if (p.g2EnableShort) return 'day';
-  if (p.g2EnableMedium) return 'week';
-  if (p.g2EnableLong) return 'month';
+  if (p.g2EnableLong) return 'week';
+  return 'day';
+}
+
+function dc2PrimaryPeriod(params) {
+  var p = params || {};
+  if (p.d2EnableShort) return 'day';
+  if (p.d2EnableLong) return 'week';
   return 'day';
 }
 
 function chartPrimaryPeriod(strategyId, params) {
   strategyId = normalizeStrategyId(strategyId);
+  if (strategyId === 'ultra') return 'min30';
   if (strategyId === 'ladder') return ladderPrimaryPeriod(params);
   if (strategyId === 'retest') return retestPrimaryPeriod(params);
   if (strategyId === 'gc2') return gc2PrimaryPeriod(params);
+  if (strategyId === 'dc2') return dc2PrimaryPeriod(params);
   return null;
 }
 
@@ -494,11 +579,11 @@ function normalize(strategyId, raw) {
       out[field.key] = raw[field.key];
     }
   });
-  if (strategyId === 'trend' && !out.uEnableShort && !out.uEnableMedium && !out.uEnableLong) {
+  if (strategyId === 'trend' && !out.uEnableShort && !out.uEnableLong) {
     out.uEnableShort = true;
   }
-  if (strategyId === 'preGolden' && !out.pEnableShort && !out.pEnableMedium && !out.pEnableLong) {
-    out.pEnableShort = true;
+  if (strategyId === 'trend' && out.uTierMin === 'A') {
+    out.uTierMin = 'B';
   }
   if (strategyId === 'resonance' && !out.cEnableShort && !out.cEnableMedium && !out.cEnableLong) {
     out.cEnableShort = true;
@@ -523,8 +608,19 @@ function normalize(strategyId, raw) {
     }
   }
   if (strategyId === 'gc2') {
-    if (!out.g2EnableShort && !out.g2EnableMedium && !out.g2EnableLong) {
+    if (!out.g2EnableShort && !out.g2EnableLong) {
       out.g2EnableShort = true;
+    }
+    if (out.g2TierMin === 'A') {
+      out.g2TierMin = 'B';
+    }
+  }
+  if (strategyId === 'dc2') {
+    if (!out.d2EnableShort && !out.d2EnableLong) {
+      out.d2EnableShort = true;
+    }
+    if (out.d2TierMin === 'A') {
+      out.d2TierMin = 'B';
     }
   }
   return out;
@@ -610,18 +706,9 @@ function formatSummary(strategyId) {
   if (strategyId === 'trend') {
     var modes = [];
     if (p.uEnableShort) modes.push('短线');
-    if (p.uEnableMedium) modes.push('中线');
     if (p.uEnableLong) modes.push('长线');
     return (modes.length ? modes.join('+') : '未启用') + ' · '
       + tierLabelFrom(TIER_PICKER, p.uTierMin);
-  }
-  if (strategyId === 'preGolden') {
-    var preModes = [];
-    if (p.pEnableShort) preModes.push('短线');
-    if (p.pEnableMedium) preModes.push('中线');
-    if (p.pEnableLong) preModes.push('长线');
-    return (preModes.length ? preModes.join('+') : '未启用') + ' · '
-      + tierLabelFrom(PRE_GOLDEN_TIER_PICKER, p.pTierMin);
   }
   if (strategyId === 'resonance') {
     var resModes = [];
@@ -656,10 +743,25 @@ function formatSummary(strategyId) {
   if (strategyId === 'gc2') {
     var g2Modes = [];
     if (p.g2EnableShort) g2Modes.push('短线');
-    if (p.g2EnableMedium) g2Modes.push('中线');
     if (p.g2EnableLong) g2Modes.push('长线');
     return (g2Modes.length ? g2Modes.join('+') : '未启用') + ' · '
       + tierLabelFrom(GC2_TIER_PICKER, p.g2TierMin);
+  }
+  if (strategyId === 'dc2') {
+    var d2Modes = [];
+    if (p.d2EnableShort) d2Modes.push('短线');
+    if (p.d2EnableLong) d2Modes.push('长线');
+    return (d2Modes.length ? d2Modes.join('+') : '未启用') + ' · '
+      + tierLabelFrom(DC2_TIER_PICKER, p.d2TierMin);
+  }
+  if (strategyId === 'ultra') {
+    var macdParts = [];
+    if (p.ulRequireMonthMacd) macdParts.push('月MACD');
+    if (p.ulRequireWeekMacd) macdParts.push('周MACD');
+    if (p.ulRequireDayMacd) macdParts.push('日MACD');
+    var amountPart = (p.ulMinAmountWan != null ? p.ulMinAmountWan : 5000) + '万';
+    var sigPart = p.ulRequireCurrentBreakout ? '当前K突破' : '当日有突破';
+    return amountPart + ' · ' + sigPart + (macdParts.length ? ' · ' + macdParts.join('+') : '');
   }
   return '';
 }
@@ -678,6 +780,7 @@ module.exports = {
   ladderPrimaryPeriod: ladderPrimaryPeriod,
   retestPrimaryPeriod: retestPrimaryPeriod,
   gc2PrimaryPeriod: gc2PrimaryPeriod,
+  dc2PrimaryPeriod: dc2PrimaryPeriod,
   chartPrimaryPeriod: chartPrimaryPeriod
 };
 

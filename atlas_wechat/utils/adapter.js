@@ -5,13 +5,7 @@ const { MARKETS } = require('./mock');
 const { formatDataUpdatedLabel } = require('./time');
 
 const STRATEGY_API = {
-  trend: { strategy: 'qsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
-  preGolden: { strategy: 'preqsn', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
-  resonance: { strategy: 'reson', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
-  rebound: { strategy: 'default', trendPeriodTypes: 'year,month,week,day', opPeriodType: 'day' },
-  ladder: { strategy: 'ladder', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' },
-  retest: { strategy: 'retest', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
-  gc2: { strategy: 'gc2', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' }
+  ultra: { strategy: 'ultra', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' }
 };
 
 function normalizeStrategyId(strategyId) {
@@ -52,8 +46,8 @@ function extractCode(idOrCode) {
 }
 
 function extractStrategy(id) {
-  if (!id || id.indexOf('-') < 0) return 'trend';
-  return normalizeStrategyId(id.split('-')[0] || 'trend');
+  if (!id || id.indexOf('-') < 0) return 'ultra';
+  return normalizeStrategyId(id.split('-')[0] || 'ultra');
 }
 
 function findMarketLabel(marketId) {
@@ -75,7 +69,7 @@ function barsToKlines(bars) {
 }
 
 function mapSearchItem(item, strategy) {
-  strategy = strategy || 'trend';
+  strategy = strategy || 'ultra';
   var code = normalizeCode(item.code);
   return {
     id: makeStockId(strategy, item.market || 'cn', code),
@@ -110,7 +104,6 @@ function buildUnilateralTags(item) {
   var tier = parseUnilateralTier(item.trendMessage);
   var label = parseUnilateralTrendLabel(item.trendMessage);
   if (tier === 'S') tags.push('短线金叉');
-  else if (tier === 'A') tags.push('中线金叉');
   else if (tier === 'B') tags.push('长线金叉');
   if (item.signalMessage && item.signalMessage.indexOf('日K MACD金叉') >= 0) {
     tags.push('日K金叉');
@@ -118,36 +111,11 @@ function buildUnilateralTags(item) {
   if (item.signalMessage && item.signalMessage.indexOf('周K MACD金叉') >= 0) {
     tags.push('周K金叉');
   }
-  if (item.signalMessage && item.signalMessage.indexOf('月K MACD金叉') >= 0) {
-    tags.push('月K金叉');
+  if (item.trendMessage && /月\/周MACD>0|月MACD>0/.test(item.trendMessage)) {
+    tags.push('月/周多头');
   }
-  if (item.trendMessage && item.trendMessage.indexOf('年MACD>0') >= 0) {
-    tags.push('年K多头');
-  }
-  if (label && tags.indexOf(label) < 0 && label.length <= 12) {
-    tags.push(label);
-  }
-  return tags;
-}
-
-function buildPreGoldenTags(item) {
-  var tags = [];
-  var tier = parseUnilateralTier(item.trendMessage);
-  var label = parseUnilateralTrendLabel(item.trendMessage);
-  if (tier === 'S') tags.push('短线预判');
-  else if (tier === 'A') tags.push('中线预判');
-  else if (tier === 'B') tags.push('长线预判');
-  if (item.trendMessage && item.trendMessage.indexOf('MACD<0') >= 0) {
-    tags.push('待金叉');
-  }
-  if (item.signalMessage && item.signalMessage.indexOf('日K突破') >= 0) {
-    tags.push('日K突破');
-  }
-  if (item.signalMessage && item.signalMessage.indexOf('周K突破') >= 0) {
-    tags.push('周K突破');
-  }
-  if (item.signalMessage && item.signalMessage.indexOf('月K突破') >= 0) {
-    tags.push('月K突破');
+  if (item.trendMessage && /年\/月MACD>0|年MACD>0/.test(item.trendMessage)) {
+    tags.push('年/月多头');
   }
   if (label && tags.indexOf(label) < 0 && label.length <= 12) {
     tags.push(label);
@@ -241,16 +209,48 @@ function buildGc2Tags(item) {
   var tags = [];
   var tier = parseUnilateralTier(item.trendMessage);
   var label = parseUnilateralTrendLabel(item.trendMessage);
-  if (tier === 'S') tags.push('日线金叉突破');
-  else if (tier === 'A') tags.push('周线金叉突破');
-  else if (tier === 'B') tags.push('月线金叉突破');
+  if (tier === 'S') tags.push('日K二次突破');
+  else if (tier === 'B') tags.push('周K二次突破');
   if (item.signalMessage && item.signalMessage.indexOf('refDay=') >= 0) {
     tags.push('突破金叉高点');
+  }
+  if (item.trendMessage && /月\/周MACD>0|月MACD>0/.test(item.trendMessage)) {
+    tags.push('月/周多头');
+  }
+  if (item.trendMessage && /年\/月MACD>0|年MACD>0/.test(item.trendMessage)) {
+    tags.push('年/月多头');
   }
   if (label && tags.indexOf(label) < 0 && label.length <= 14) {
     tags.push(label);
   }
   return tags;
+}
+
+function buildDc2Tags(item) {
+  var tags = [];
+  var tier = parseUnilateralTier(item.trendMessage);
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (tier === 'S') tags.push('日K死叉突破');
+  else if (tier === 'B') tags.push('周K死叉突破');
+  if (item.signalMessage && item.signalMessage.indexOf('refDay=') >= 0) {
+    tags.push('突破死叉高点');
+  }
+  if (item.trendMessage && /月\/周MACD>0|月MACD>0/.test(item.trendMessage)) {
+    tags.push('月/周多头');
+  }
+  if (item.trendMessage && /年\/月MACD>0|年MACD>0/.test(item.trendMessage)) {
+    tags.push('年/月多头');
+  }
+  if (label && tags.indexOf(label) < 0 && label.length <= 14) {
+    tags.push(label);
+  }
+  return tags;
+}
+
+function buildDc2Summary(item) {
+  var signal = item.signalMessage || '';
+  if (signal) return signal.split(',')[0];
+  return parseUnilateralTrendLabel(item.trendMessage) || '';
 }
 
 function buildGc2Summary(item) {
@@ -290,15 +290,13 @@ function buildRetestSummary(item) {
 }
 
 function mapRecommendation(item, strategyId) {
-  strategyId = normalizeStrategyId(strategyId || 'trend');
+  strategyId = normalizeStrategyId(strategyId || 'ultra');
   var code = normalizeCode(item.code);
   var changePct = normalizeChangePct(item);
   var tags = [];
   if (item.newFlag) tags.push('今日新推');
   if (strategyId === 'trend') {
     tags = tags.concat(buildUnilateralTags(item));
-  } else if (strategyId === 'preGolden') {
-    tags = tags.concat(buildPreGoldenTags(item));
   } else if (strategyId === 'resonance') {
     tags = tags.concat(buildResonanceTags(item));
   } else if (strategyId === 'rebound') {
@@ -309,6 +307,8 @@ function mapRecommendation(item, strategyId) {
     tags = tags.concat(buildRetestTags(item));
   } else if (strategyId === 'gc2') {
     tags = tags.concat(buildGc2Tags(item));
+  } else if (strategyId === 'dc2') {
+    tags = tags.concat(buildDc2Tags(item));
   } else {
     if (item.signalMessage) tags.push('信号');
     else if (item.trendMessage) tags.push('趋势');
@@ -323,6 +323,8 @@ function mapRecommendation(item, strategyId) {
     ? [buildRetestSummary(item), item.mainBusiness, item.summary]
     : strategyId === 'gc2'
     ? [buildGc2Summary(item), item.mainBusiness, item.summary]
+    : strategyId === 'dc2'
+    ? [buildDc2Summary(item), item.mainBusiness, item.summary]
     : [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
   ).filter(function (s) { return s && String(s).trim(); });
   return {
@@ -451,7 +453,7 @@ function mapMarketIndices(list, period) {
 }
 
 function getStrategyApiParams(strategyId) {
-  return STRATEGY_API[normalizeStrategyId(strategyId)] || STRATEGY_API.trend;
+  return STRATEGY_API[normalizeStrategyId(strategyId)] || STRATEGY_API.ultra;
 }
 
 module.exports = {

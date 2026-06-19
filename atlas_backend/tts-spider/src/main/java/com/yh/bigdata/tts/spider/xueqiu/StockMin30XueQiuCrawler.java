@@ -1,7 +1,9 @@
 package com.yh.bigdata.tts.spider.xueqiu;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +23,9 @@ import com.yh.bigdata.tts.common.dao.StockMin30Mapper;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockMin30;
 import com.yh.bigdata.tts.common.param.StockPageQuery;
+import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
+import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
+import com.yh.bigdata.tts.common.param.TradeConvertHelper;
 import com.yh.bigdata.tts.spider.utils.XueQiuHttpUtils;
 
 @Component
@@ -128,6 +133,19 @@ public class StockMin30XueQiuCrawler {
 				}
 				log.error("StockMin30 upsert failed, code={}, day={}", bar.getCode(), bar.getDay(), e);
 			}
+		}
+		refreshMin30Cache(stockBase.getCode());
+	}
+
+	private void refreshMin30Cache(String code) {
+		List<StockMin30> rows = stockMin30Mapper.selectAll(Collections.singletonList(code));
+		if (CollectionUtils.isEmpty(rows)) {
+			return;
+		}
+		Map<String, List> map = TradeConvertHelper.parseSortMapList(rows, PeriodTypeEnum.MIN30);
+		List cached = map.get(code);
+		if (cached != null) {
+			RealtimeStockCache.min30Map.put(code, cached);
 		}
 	}
 }

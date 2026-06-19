@@ -18,12 +18,16 @@ import com.yh.bigdata.tts.spider.service.AtlasDetailComputeService;
 import com.yh.bigdata.tts.spider.service.AtlasIndustryChainService;
 import com.yh.bigdata.tts.spider.service.AtlasStockApiService;
 import com.yh.bigdata.tts.spider.service.StockService;
+import com.yh.bigdata.tts.common.param.Dc2StrategyParams;
 import com.yh.bigdata.tts.common.param.Gc2StrategyParams;
 import com.yh.bigdata.tts.common.param.RetestStrategyParams;
 import com.yh.bigdata.tts.common.param.UltraLowReboundStrategyParams;
+import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
+import com.yh.bigdata.tts.spider.strategy.tools.dc2.Dc2MarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.gc2.Gc2MarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.retest.RetestMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.LadderMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.ultralow.UltraShortMarkersTools;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient.IndexDef;
 import com.yh.bigdata.tts.spider.utils.SinaIndexClient.Quote;
@@ -95,9 +99,14 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
             periodType = PeriodTypeEnum.WEEK;
         }
         int safeLimit = Math.min(Math.max(limit, 1), 200);
-        List<Trade> trades = RealtimeStockCache.getLastTrades(stock, periodType, safeLimit);
-        if ((trades == null || trades.isEmpty()) && periodType == PeriodTypeEnum.MIN30) {
+        List<Trade> trades;
+        if (periodType == PeriodTypeEnum.MIN30) {
             trades = loadMin30FromDb(stock.getCode(), safeLimit);
+            if (trades == null || trades.isEmpty()) {
+                trades = RealtimeStockCache.getLastTrades(stock, periodType, safeLimit);
+            }
+        } else {
+            trades = RealtimeStockCache.getLastTrades(stock, periodType, safeLimit);
         }
         return trades.stream().map(this::toKlineBar).collect(Collectors.toList());
     }
@@ -151,6 +160,17 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
     }
 
     @Override
+    public AtlasUlowMin30MarkersVo getUltraMarkers(String code, String period, UltraShortStrategyParams params) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.MIN30;
+        }
+        UltraShortStrategyParams p = params != null ? params : UltraShortStrategyParams.defaults();
+        return UltraShortMarkersTools.resolve(stock, periodType, p);
+    }
+
+    @Override
     public AtlasRetestMarkersVo getRetestMarkers(String code, String period) {
         StockBase stock = requireStock(code);
         PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
@@ -168,6 +188,16 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
             periodType = PeriodTypeEnum.DAY;
         }
         return Gc2MarkersTools.resolve(stock, periodType, Gc2StrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasDc2MarkersVo getDc2Markers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return Dc2MarkersTools.resolve(stock, periodType, Dc2StrategyParams.defaults());
     }
 
     @Override
@@ -425,12 +455,12 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
     }
 
     private List<Trade> loadMin30FromDb(String code, int limit) {
-        List<StockMin30> rows = stockMin30Mapper.selectAll(Collections.singletonList(code));
+        List<StockMin30> rows = stockMin30Mapper.selectRecentByCode(code, limit);
         if (rows == null || rows.isEmpty()) {
             return Collections.emptyList();
         }
-        int from = Math.max(0, rows.size() - limit);
-        return new ArrayList<>(rows.subList(from, rows.size()));
+        Collections.reverse(rows);
+        return new ArrayList<>(rows);
     }
 
     private AtlasCompassModuleVo module(String title, String color, String insight, List<AtlasChartVo> charts) {

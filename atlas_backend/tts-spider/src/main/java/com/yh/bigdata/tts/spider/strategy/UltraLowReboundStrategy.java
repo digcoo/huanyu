@@ -20,7 +20,7 @@ import java.util.List;
  * 梯子突破（ladder）· 超短/短/中/长 四档突破阶梯
  */
 @Slf4j
-@Component
+// @Component — v1 已下线
 public class UltraLowReboundStrategy extends AbstractStrategy {
 
     @Override

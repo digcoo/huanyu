@@ -50,8 +50,6 @@ public final class Gc2MarkersTools {
             case DAY:
                 return Gc2BreakoutTools.findShortHit(stock, p);
             case WEEK:
-                return Gc2BreakoutTools.findMediumHit(stock, p);
-            case MONTH:
                 return Gc2BreakoutTools.findLongHit(stock, p);
             default:
                 return null;

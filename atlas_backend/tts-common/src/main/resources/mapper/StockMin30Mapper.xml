@@ -103,4 +103,12 @@
     </where>
     order by s.code, s.day
   </select>
+
+  <select id="selectRecentByCode" resultMap="BaseResultMap">
+    select code, day, name, open, high, low, `close`, prev_close, percent, volume, amount
+    from min30k
+    where code = #{code}
+    order by day desc
+    limit #{limit}
+  </select>
 </mapper>

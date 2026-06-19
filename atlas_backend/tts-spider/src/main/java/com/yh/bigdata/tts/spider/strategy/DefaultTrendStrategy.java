@@ -22,7 +22,7 @@ import java.util.List;
  * @see docs/strategies/单边趋势策略.md
  */
 @Slf4j
-@Component
+// @Component — v1 已下线，见 docs/strategies/_archive
 public class DefaultTrendStrategy extends AbstractStrategy {
 
     @Override

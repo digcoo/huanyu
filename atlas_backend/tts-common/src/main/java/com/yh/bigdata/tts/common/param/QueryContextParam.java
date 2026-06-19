@@ -39,6 +39,12 @@ public class QueryContextParam extends PageQuery {
     /** 金叉二次突破策略自定义参数 */
     private Gc2StrategyParams gc2;
 
+    /** 死叉突破策略自定义参数 */
+    private Dc2StrategyParams dc2;
+
+    /** 超短线策略自定义参数 */
+    private UltraShortStrategyParams ultraShort;
+
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
@@ -49,6 +55,8 @@ public class QueryContextParam extends PageQuery {
                 .ultraLow(UltraLowReboundStrategyParams.defaults())
                 .retest(RetestStrategyParams.defaults())
                 .gc2(Gc2StrategyParams.defaults())
+                .dc2(Dc2StrategyParams.defaults())
+                .ultraShort(UltraShortStrategyParams.defaults())
                 .build();
     }
 	

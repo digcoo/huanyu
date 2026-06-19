@@ -5,7 +5,10 @@ const adapter = require('../../utils/adapter');
 const stockApi = require('../../utils/stock-api');
 const ladderMarkers = require('../../utils/ladder-markers');
 const retestMarkers = require('../../utils/retest-markers');
+const gc2Markers = require('../../utils/gc2-markers');
+const dc2Markers = require('../../utils/dc2-markers');
 const strategyParams = require('../../utils/strategy-params');
+const ultraMarkers = require('../../utils/ultra-markers');
 
 function mapChartKlines(detail, period) {
   if (!detail || !detail.klines) return [];
@@ -96,10 +99,133 @@ function syncRetestMarkers(page, detail, period, klines) {
   });
 }
 
+function syncGc2Markers(page, detail, period, klines) {
+  if (!detail || !gc2Markers.isGc2Strategy(adapter.extractStrategy(detail.id))
+      || !gc2Markers.shouldShowGc2Markers(adapter.extractStrategy(detail.id), period)) {
+    return Promise.resolve(clearBarMarkers(page));
+  }
+  if (config.useMock) {
+    return Promise.resolve(applyBarMarkers(page, gc2Markers.buildMockGc2Markers(klines || page.data.chartKlines)));
+  }
+
+  function applyMarkerVo(m) {
+    return applyBarMarkers(page, gc2Markers.markersVoToBarMarkers(m));
+  }
+
+  var cached = gc2Markers.parseMarkersFromSignal(detail);
+  if (cached && (cached.referenceDay || cached.signalDay)) {
+    return Promise.resolve(applyMarkerVo(cached));
+  }
+
+  return stockApi.fetchGc2Markers(detail.code, period).then(function (m) {
+    if (m && (m.referenceDay || m.signalDay)) {
+      return applyMarkerVo(m);
+    }
+    return stockApi.fetchSummary(detail.code).then(function (item) {
+      if (item && item.signalMessage) {
+        detail.signalMessage = item.signalMessage;
+      }
+      var parsed = gc2Markers.parseMarkersFromSignal(detail);
+      if (parsed && (parsed.referenceDay || parsed.signalDay)) {
+        return applyMarkerVo(parsed);
+      }
+      return clearBarMarkers(page);
+    });
+  }).catch(function () {
+    return clearBarMarkers(page);
+  });
+}
+
+function syncDc2Markers(page, detail, period, klines) {
+  if (!detail || !dc2Markers.isDc2Strategy(adapter.extractStrategy(detail.id))
+      || !dc2Markers.shouldShowDc2Markers(adapter.extractStrategy(detail.id), period)) {
+    return Promise.resolve(clearBarMarkers(page));
+  }
+  if (config.useMock) {
+    return Promise.resolve(applyBarMarkers(page, dc2Markers.buildMockDc2Markers(klines || page.data.chartKlines)));
+  }
+
+  function applyMarkerVo(m) {
+    return applyBarMarkers(page, dc2Markers.markersVoToBarMarkers(m));
+  }
+
+  var cached = dc2Markers.parseMarkersFromSignal(detail);
+  if (cached && (cached.referenceDay || cached.signalDay)) {
+    return Promise.resolve(applyMarkerVo(cached));
+  }
+
+  return stockApi.fetchDc2Markers(detail.code, period).then(function (m) {
+    if (m && (m.referenceDay || m.signalDay)) {
+      return applyMarkerVo(m);
+    }
+    return stockApi.fetchSummary(detail.code).then(function (item) {
+      if (item && item.signalMessage) {
+        detail.signalMessage = item.signalMessage;
+      }
+      var parsed = dc2Markers.parseMarkersFromSignal(detail);
+      if (parsed && (parsed.referenceDay || parsed.signalDay)) {
+        return applyMarkerVo(parsed);
+      }
+      return clearBarMarkers(page);
+    });
+  }).catch(function () {
+    return clearBarMarkers(page);
+  });
+}
+
+function syncUltraMarkers(page, detail, period, klines) {
+  if (!detail || !ultraMarkers.isUltraStrategy(adapter.extractStrategy(detail.id))
+      || !ultraMarkers.shouldShowUltraMarkers(adapter.extractStrategy(detail.id), period)) {
+    return Promise.resolve(clearBarMarkers(page));
+  }
+  if (config.useMock) {
+    return Promise.resolve(applyBarMarkers(page, ultraMarkers.buildMockUltraMarkers(klines || page.data.chartKlines)));
+  }
+
+  function applyMarkerVo(m) {
+    return applyBarMarkers(page, ultraMarkers.markersVoToBarMarkers(m));
+  }
+
+  var cached = ultraMarkers.parseMarkersFromSignal(detail);
+  if (cached && (cached.referenceDay || cached.signalDay)) {
+    return Promise.resolve(applyMarkerVo(cached));
+  }
+
+  return stockApi.fetchUltraMarkers(detail.code, period).then(function (m) {
+    if (m && (m.referenceDay || m.signalDay)) {
+      return applyMarkerVo(m);
+    }
+    return stockApi.fetchSummary(detail.code).then(function (item) {
+      if (item && item.signalMessage) {
+        detail.signalMessage = item.signalMessage;
+      }
+      if (item && item.trendMessage) {
+        detail.trendMessage = item.trendMessage;
+      }
+      var parsed = ultraMarkers.parseMarkersFromSignal(detail);
+      if (parsed && (parsed.referenceDay || parsed.signalDay)) {
+        return applyMarkerVo(parsed);
+      }
+      return clearBarMarkers(page);
+    });
+  }).catch(function () {
+    return clearBarMarkers(page);
+  });
+}
+
 function syncBarMarkers(page, detail, period, klines) {
   var strategyId = adapter.extractStrategy(detail && detail.id);
+  if (ultraMarkers.shouldShowUltraMarkers(strategyId, period)) {
+    return syncUltraMarkers(page, detail, period, klines);
+  }
   if (ladderMarkers.shouldShowLadderMarkers(strategyId, period)) {
     return syncLadderMarkers(page, detail, period, klines);
+  }
+  if (gc2Markers.shouldShowGc2Markers(strategyId, period)) {
+    return syncGc2Markers(page, detail, period, klines);
+  }
+  if (dc2Markers.shouldShowDc2Markers(strategyId, period)) {
+    return syncDc2Markers(page, detail, period, klines);
   }
   if (retestMarkers.shouldShowRetestMarkers(strategyId, period)) {
     return syncRetestMarkers(page, detail, period, klines);

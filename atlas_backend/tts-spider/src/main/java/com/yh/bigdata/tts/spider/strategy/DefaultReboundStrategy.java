@@ -23,7 +23,7 @@ import java.util.List;
  * @see docs/strategies/深坑反弹策略.md
  */
 @Slf4j
-@Component
+// @Component — v1 已下线
 public class DefaultReboundStrategy extends AbstractStrategy {
 
     @Override

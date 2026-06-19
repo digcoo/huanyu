@@ -27,4 +27,14 @@ public final class PreGoldenBreakoutTools {
         double prevBodyTop = Math.max(prev.getOpen(), prev.getClose());
         return current.getHigh() > prev.getHigh() && current.getClose() > prevBodyTop;
     }
+
+    /** close &gt; 前1根 high（预判金叉 v2.0 信号条件） */
+    public static boolean checkCloseAbovePrevHigh(StockBase stock, PeriodTypeEnum period) {
+        Trade current = RealtimeStockCache.getLastTrade(stock, period, 0);
+        Trade prev = RealtimeStockCache.getLastTrade(stock, period, 1);
+        if (current == null || prev == null || current.getClose() == null || prev.getHigh() == null) {
+            return false;
+        }
+        return current.getClose() > prev.getHigh();
+    }
 }

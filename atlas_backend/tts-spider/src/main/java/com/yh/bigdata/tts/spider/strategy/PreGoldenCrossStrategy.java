@@ -13,17 +13,16 @@ import com.yh.bigdata.tts.spider.strategy.tools.pregolden.PreGoldenEvaluator;
 import com.yh.bigdata.tts.spider.strategy.tools.pregolden.PreGoldenScoreCalculator;
 import com.yh.bigdata.tts.spider.strategy.tools.unilateral.UnilateralGateTools;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * 预判金叉（preqsn）· v1.0：Gate + 短/中/长 预判 MACD + K 线突破
+ * 预判金叉（preqsn）· v2.0：Gate + 短/长 两档预判 MACD + close 突破前高
  * @see docs/strategies/预判金叉策略.md
  */
 @Slf4j
-@Component
+// @Component — 预判金叉 Tab 已下线，保留类供 PreGoldenBreakoutTools 等复用参考
 public class PreGoldenCrossStrategy extends AbstractStrategy {
 
     @Override

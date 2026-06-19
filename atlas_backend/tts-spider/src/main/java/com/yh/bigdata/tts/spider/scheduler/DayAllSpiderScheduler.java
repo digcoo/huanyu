@@ -62,12 +62,12 @@ public class DayAllSpiderScheduler {
 //			}
             String code = null;
 			stockBaseCrawler.run();
-			stockDayCrawler.run(code, 100);
-			stockMin30Crawler.run(code, 16);
-			stockWeekCrawler.run(code, 100);
-			stockMonthCrawler.run(code, 100);
-			stockQuarterCrawler.run(code, 100);
-			stockYearCrawler.run(code, 100);
+			stockDayCrawler.run(code, 2);
+			stockMin30Crawler.run(code, min30DefaultCount);
+			stockWeekCrawler.run(code, 2);
+			stockMonthCrawler.run(code, 2);
+			stockQuarterCrawler.run(code, 2);
+			stockYearCrawler.run(code, 2);
 		} catch (Exception e) {
 			logger.error("DayAllSpiderScheduler exception..... ", e);
 		}

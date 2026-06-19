@@ -2,7 +2,7 @@ const config = require('./config');
 const stockApi = require('./stock-api');
 const adapter = require('./adapter');
 
-var GC2_MARKER_PERIODS = ['day', 'week', 'month'];
+var GC2_MARKER_PERIODS = ['day', 'week'];
 
 function parseMarkersFromSignal(item) {
   if (!item) return null;

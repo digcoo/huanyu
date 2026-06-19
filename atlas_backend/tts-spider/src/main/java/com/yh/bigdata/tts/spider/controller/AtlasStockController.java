@@ -3,10 +3,14 @@ package com.yh.bigdata.tts.spider.controller;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasCompassModuleVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasKlineBarVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasMarketIndexVo;
+import com.yh.bigdata.tts.common.dto.atlas.AtlasDc2MarkersVo;
+import com.yh.bigdata.tts.common.dto.atlas.AtlasGc2MarkersVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasRetestMarkersVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasUlowMin30MarkersVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockDetailVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockSummaryVo;
+import com.yh.bigdata.tts.common.param.StockPageQuery;
+import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.common.param.base.Response;
 import com.yh.bigdata.tts.common.param.base.ResponseUtil;
 import com.yh.bigdata.tts.spider.service.AtlasStockApiService;
@@ -102,6 +106,25 @@ public class AtlasStockController {
         }
     }
 
+    @GetMapping("/{code}/ultra/markers")
+    public Response<AtlasUlowMin30MarkersVo> getUltraMin30Markers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "min30") String period,
+            StockPageQuery query) {
+        try {
+            UltraShortStrategyParams params = query != null
+                    ? query.toUltraShortParams()
+                    : UltraShortStrategyParams.defaults();
+            AtlasUlowMin30MarkersVo markers = atlasStockApiService.getUltraMarkers(code, period, params);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
     @GetMapping("/{code}/retest/markers")
     public Response<AtlasRetestMarkersVo> getRetestMarkers(
             @PathVariable("code") String code,
@@ -123,6 +146,21 @@ public class AtlasStockController {
             @RequestParam(value = "period", defaultValue = "day") String period) {
         try {
             AtlasGc2MarkersVo markers = atlasStockApiService.getGc2Markers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/dc2/markers")
+    public Response<AtlasDc2MarkersVo> getDc2Markers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasDc2MarkersVo markers = atlasStockApiService.getDc2Markers(code, period);
             if (markers == null) {
                 return ResponseUtil.fail(ResponseUtil.NO_DATA);
             }

@@ -20,7 +20,7 @@ import java.util.List;
  * 回踩抬升（retest）· 强弹 → 回踩 → 再升
  */
 @Slf4j
-@Component
+// @Component — v1 已下线
 public class RetestStrategy extends AbstractStrategy {
 
     @Override

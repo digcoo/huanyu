@@ -2,13 +2,13 @@ package com.yh.bigdata.tts.spider.strategy.tools.gc2;
 
 import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
-import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.param.Gc2StrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.unilateral.UnilateralMacdTools;
 import lombok.Getter;
 
 /**
- * 金叉二次突破 · 合判
+ * 金叉二次突破 v2.0 · 合判
  */
 public final class Gc2Evaluator {
 
@@ -18,12 +18,17 @@ public final class Gc2Evaluator {
     public static Gc2Evaluation evaluate(StockBase stock, CheckResult checkResult, Gc2StrategyParams params) {
         Gc2StrategyParams p = params != null ? params : Gc2StrategyParams.defaults();
 
+        boolean yearMacdPositive = UnilateralMacdTools.isMacdPositive(stock, PeriodTypeEnum.YEAR);
+        boolean weekMacdPositive = UnilateralMacdTools.isMacdPositive(stock, PeriodTypeEnum.WEEK);
+        boolean monthMacdPositive = UnilateralMacdTools.isMacdPositive(stock, PeriodTypeEnum.MONTH);
+
         Gc2BreakoutTools.TierHit shortHit = Gc2TierTools.findShortHit(stock, p);
-        Gc2BreakoutTools.TierHit mediumHit = Gc2TierTools.findMediumHit(stock, p);
         Gc2BreakoutTools.TierHit longHit = Gc2TierTools.findLongHit(stock, p);
 
-        boolean hit = shortHit != null || mediumHit != null || longHit != null;
-        Gc2Evaluation eval = new Gc2Evaluation(shortHit, mediumHit, longHit, hit);
+        boolean hit = shortHit != null || longHit != null;
+        Gc2Evaluation eval = new Gc2Evaluation(
+                yearMacdPositive, weekMacdPositive, monthMacdPositive,
+                shortHit, longHit, hit);
 
         if (hit && checkResult != null) {
             fillMessages(checkResult, eval, p);
@@ -51,17 +56,22 @@ public final class Gc2Evaluator {
 
     @Getter
     public static final class Gc2Evaluation {
+        private final boolean yearMacdPositive;
+        private final boolean weekMacdPositive;
+        private final boolean monthMacdPositive;
         private final Gc2BreakoutTools.TierHit shortHit;
-        private final Gc2BreakoutTools.TierHit mediumHit;
         private final Gc2BreakoutTools.TierHit longHit;
         private boolean hit;
         private int score;
         private char tier;
 
-        public Gc2Evaluation(Gc2BreakoutTools.TierHit shortHit, Gc2BreakoutTools.TierHit mediumHit,
-                             Gc2BreakoutTools.TierHit longHit, boolean hit) {
+        public Gc2Evaluation(boolean yearMacdPositive, boolean weekMacdPositive, boolean monthMacdPositive,
+                             Gc2BreakoutTools.TierHit shortHit, Gc2BreakoutTools.TierHit longHit,
+                             boolean hit) {
+            this.yearMacdPositive = yearMacdPositive;
+            this.weekMacdPositive = weekMacdPositive;
+            this.monthMacdPositive = monthMacdPositive;
             this.shortHit = shortHit;
-            this.mediumHit = mediumHit;
             this.longHit = longHit;
             this.hit = hit;
         }
@@ -82,8 +92,6 @@ public final class Gc2Evaluator {
             switch (tier) {
                 case 'S':
                     return shortHit;
-                case 'A':
-                    return mediumHit;
                 case 'B':
                     return longHit;
                 default:
@@ -94,9 +102,6 @@ public final class Gc2Evaluator {
         public Gc2BreakoutTools.TierHit primaryHit() {
             if (shortHit != null) {
                 return shortHit;
-            }
-            if (mediumHit != null) {
-                return mediumHit;
             }
             return longHit;
         }

@@ -10,6 +10,10 @@ Component({
       type: String,
       value: 'trend'
     },
+    strategyTitle: {
+      type: String,
+      value: ''
+    },
     statusBarHeight: {
       type: Number,
       value: 20
@@ -44,10 +48,7 @@ Component({
       var schema = strategyParams.getSchema(strategyId);
       var form = strategyParams.load(strategyId);
       var tierField = schema.find(function (f) {
-        return f.type === 'picker' && (
-          f.key === 'uTierMin' || f.key === 'rTierMin' || f.key === 'pTierMin'
-            || f.key === 'cTierMin' || f.key === 'lTierMin'
-        );
+        return f.type === 'picker' && /TierMin$/.test(f.key);
       });
       var tierIndex = 0;
       var tierLabels = [];

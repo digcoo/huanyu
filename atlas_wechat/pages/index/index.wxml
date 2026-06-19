@@ -76,16 +76,6 @@
 
       </view>
 
-      <strategy-tabs
-
-        strategies="{{strategies}}"
-
-        activeStrategy="{{activeStrategy}}"
-
-        bind:change="onStrategyChange"
-
-      />
-
     </view>
 
   </view>
@@ -98,7 +88,7 @@
 
       <view class="list-header-main">
         <view class="list-title-row">
-          <text class="list-subtitle">{{activeStrategyMeta.desc}}</text>
+          <text class="list-subtitle">Atlas 推荐</text>
           <text wx:if="{{!loading}}" class="list-total">共 {{totalCount}} 条{{recommendations.length > 0 && recommendations.length < totalCount ? ' · 已显示 ' + recommendations.length : ''}}</text>
         </view>
         <text wx:if="{{paramsSummary}}" class="list-params">{{paramsSummary}}</text>
@@ -132,9 +122,9 @@
 
       <text class="empty-icon">📭</text>
 
-      <text class="empty-text">{{totalCount > 0 ? '当前可见列表为空' : '该策略暂无推荐'}}</text>
+      <text class="empty-text">{{totalCount > 0 ? '当前可见列表为空' : '暂无推荐'}}</text>
 
-      <text class="empty-hint">{{totalCount > 0 ? '可能已全部忽略，可切换策略或清除忽略记录' : '切换市场或其他策略查看更多标的'}}</text>
+      <text class="empty-hint">{{totalCount > 0 ? '可能已全部忽略，可清除忽略记录' : '切换市场查看更多标的'}}</text>
 
     </view>
 
@@ -162,11 +152,14 @@
 
 
 
-    <view class="list-footer">
+    <view
+      class="list-footer {{hasMore && !loadingMore && !rescanning ? 'list-footer-tap' : ''}}"
+      bindtap="onLoadMoreTap"
+    >
 
-      <text wx:if="{{rescanning}}">策略重跑中…</text>
+      <text wx:if="{{rescanning}}">重跑中…</text>
       <text wx:elif="{{loadingMore}}">加载中…</text>
-      <text wx:elif="{{hasMore}}">上拉加载更多（{{recommendations.length}}/{{totalCount}}）</text>
+      <text wx:elif="{{hasMore}}">上拉或点击加载更多（{{recommendations.length}}/{{totalCount}}）</text>
       <text wx:else>— 左滑忽略 · 右滑自选 · 点击查看详情 —</text>
 
     </view>
@@ -200,6 +193,7 @@
     id="strategyParamsPanel"
     visible="{{paramsVisible}}"
     strategyId="{{activeStrategy}}"
+    strategyTitle="超短线策略"
     statusBarHeight="{{statusBarHeight}}"
     bind:close="onParamsClose"
     bind:apply="onParamsApply"

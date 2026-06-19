@@ -17,10 +17,10 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 金叉二次突破（gc2）· MACD 金叉 K 高点再突破
+ * 金叉二次突破（gc2）· v2.0：大周期 MACD>0 + 金叉柱 high 二次突破
  */
 @Slf4j
-@Component
+// @Component — v1 已下线
 public class Gc2BreakoutStrategy extends AbstractStrategy {
 
     @Override

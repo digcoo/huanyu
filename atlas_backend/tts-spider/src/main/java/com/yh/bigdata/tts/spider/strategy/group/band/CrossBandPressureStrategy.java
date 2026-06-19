@@ -18,7 +18,7 @@ import java.util.List;
  *
  */
 @Slf4j
-@Component
+// @Component — v1 已下线
 public class CrossBandPressureStrategy extends AbstractStrategy {
 
     @Override

@@ -1,7 +1,10 @@
 <view wx:if="{{visible}}" class="params-mask" bindtap="onMaskTap" catchtouchmove="onPanelTap">
   <view class="params-panel" catchtap="onPanelTap" style="padding-top: {{statusBarHeight}}px">
     <view class="params-head">
-      <text class="params-title">策略参数</text>
+      <view class="params-title-wrap">
+        <text class="params-title">{{strategyTitle || '策略参数'}}</text>
+        <text wx:if="{{strategyTitle}}" class="params-subtitle">参数设置</text>
+      </view>
       <view class="params-head-actions">
         <text class="params-reset" bindtap="onReset">恢复默认</text>
         <text class="params-close" bindtap="onClose">×</text>
@@ -9,8 +12,13 @@
     </view>
 
     <scroll-view class="params-body" scroll-y enhanced show-scrollbar="{{false}}">
-      <block wx:for="{{schema}}" wx:key="key">
-        <view wx:if="{{item.type === 'slider'}}" class="field-block">
+      <block wx:for="{{schema}}" wx:for-index="idx" wx:key="idx">
+        <view wx:if="{{item.type === 'section'}}" class="section-block">
+          <text class="section-label">{{item.label}}</text>
+          <text wx:if="{{item.hint}}" class="section-hint">{{item.hint}}</text>
+        </view>
+
+        <view wx:elif="{{item.type === 'slider'}}" class="field-block">
           <view class="field-row">
             <text class="field-label">{{item.label}}</text>
             <text class="field-value">{{form[item.key]}}{{item.unit || ''}}</text>

@@ -13,6 +13,7 @@ import java.util.function.Function;
 
 /**
  * 突破阶梯 · 通用「基准K + 首根突破K」引擎（30m / 日 / 周 / 月）
+ * 突破K：信号桶内首根强K，且 close &gt; 前一根 K 的 high，且 close &gt; 基准K的 low
  */
 public final class BreakoutLadderTools {
 
@@ -117,7 +118,7 @@ public final class BreakoutLadderTools {
             return null;
         }
 
-        Trade signalBar = findFirstSignalBar(signalBars, refBar, bodyPct);
+        Trade signalBar = findFirstSignalBar(allBars, signalBars, refBar, bodyPct);
         if (signalBar == null) {
             return null;
         }
@@ -160,23 +161,44 @@ public final class BreakoutLadderTools {
         return ref;
     }
 
-    static Trade findFirstSignalBar(List<Trade> signalBars, Trade refBar, double minPct) {
-        Double refHigh = refBar.getHigh();
-        Double refBodyMax = refBar.getShitiMax();
-        if (refHigh == null || refBodyMax == null) {
+    static Trade findFirstSignalBar(List<Trade> allBars, List<Trade> signalBars, Trade refBar,
+                                      double minPct) {
+        if (CollectionUtils.isEmpty(allBars) || CollectionUtils.isEmpty(signalBars)
+                || refBar == null || refBar.getLow() == null) {
             return null;
         }
+        double refLow = refBar.getLow();
         for (Trade bar : signalBars) {
             if (!BreakoutBarTools.isStrongBar(bar, minPct)) {
                 continue;
             }
-            if (bar.getHigh() == null || bar.getClose() == null) {
+            if (bar.getClose() == null) {
                 continue;
             }
-            if (bar.getHigh() > refHigh && bar.getClose() > refBodyMax) {
+            if (bar.getClose() <= refLow + HIGH_EPS) {
+                continue;
+            }
+            Trade prev = previousBar(allBars, bar);
+            if (prev == null || prev.getHigh() == null) {
+                continue;
+            }
+            if (bar.getClose() > prev.getHigh() + HIGH_EPS) {
                 return bar;
             }
         }
         return null;
+    }
+
+    private static Trade previousBar(List<Trade> allBars, Trade bar) {
+        for (int i = 1; i < allBars.size(); i++) {
+            if (sameBar(allBars.get(i), bar)) {
+                return allBars.get(i - 1);
+            }
+        }
+        return null;
+    }
+
+    private static boolean sameBar(Trade a, Trade b) {
+        return a != null && b != null && a.getDay() != null && a.getDay().equals(b.getDay());
     }
 }

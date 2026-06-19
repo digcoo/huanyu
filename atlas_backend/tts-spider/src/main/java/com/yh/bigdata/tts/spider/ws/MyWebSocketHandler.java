@@ -33,7 +33,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         log.info("客户端连接: {}", session.getId());
         sendMessage(session, "Welcome! Your ID: " + session.getId());
 
-        List<StockTarget> stockTargetList = strategyService.getAndUpdateTriggerStockTargets(StrategyTypeEnum.TREND_NEW);
+        List<StockTarget> stockTargetList = strategyService.getAndUpdateTriggerStockTargets(StrategyTypeEnum.ULTRA_SHORT);
         if(CollectionUtils.isEmpty(stockTargetList)) {
             return;
         }

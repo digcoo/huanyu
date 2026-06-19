@@ -102,6 +102,9 @@ public class StockTargetScheduler {
             if (contextParam.getGc2() == null) {
                 contextParam.setGc2(com.yh.bigdata.tts.common.param.Gc2StrategyParams.defaults());
             }
+            if (contextParam.getUltraShort() == null) {
+                contextParam.setUltraShort(com.yh.bigdata.tts.common.param.UltraShortStrategyParams.defaults());
+            }
             int saved = 0;
             String lastDay = stockTargetMapper.selectLatestDay();
             Set<String> oldStockTargetList = new HashSet<>();
@@ -119,7 +122,7 @@ public class StockTargetScheduler {
                     if (type != onlyStrategy) {
                         continue;
                     }
-                } else if (type != StrategyTypeEnum.TREND_NEW && type != StrategyTypeEnum.DEFAUL) {
+                } else if (!type.isActive()) {
                     continue;
                 }
 

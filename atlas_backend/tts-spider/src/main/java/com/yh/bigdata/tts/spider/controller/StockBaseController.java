@@ -250,22 +250,17 @@ public class StockBaseController {
         if (!strategyRescanEnabled) {
             return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
         }
-        if (pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.TREND_NEW
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.PRE_GOLD_CROSS
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.PERIOD_RESONANCE
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.DEFAUL
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.LADDER_BREAKOUT
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.RETEST
-                && pageQuery.getStrategyTypeEnum() != StrategyTypeEnum.GC2_BREAKOUT) {
+        StrategyTypeEnum type = pageQuery.getStrategyTypeEnum();
+        if (type == null || !type.isActive()) {
             log.warn("rescan unsupported strategy: {}", pageQuery.getStrategy());
             return ResponseUtil.fail(ResponseUtil.OPERATE_FAILED);
         }
         QueryContextParam contextParam = buildQueryContextParam(pageQuery);
         int saved = stockTargetScheduler.recommendSaveInternal(
-                contextParam, true, pageQuery.getStrategyTypeEnum());
+                contextParam, true, type);
         clearRecommendCache();
         Map<String, Object> data = new HashMap<>();
-        data.put("strategy", pageQuery.getStrategyTypeEnum().getCode());
+        data.put("strategy", type.getCode());
         data.put("saved", saved);
         log.info("strategy rescan done, strategy={}, saved={}", pageQuery.getStrategy(), saved);
         return ResponseUtil.success(data);
@@ -332,7 +327,17 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getG2EnableLong()),
                 String.valueOf(pageQuery.getG2LookbackShort()),
                 String.valueOf(pageQuery.getG2LookbackMedium()),
-                String.valueOf(pageQuery.getG2LookbackLong()));
+                String.valueOf(pageQuery.getG2LookbackLong()),
+                String.valueOf(pageQuery.getD2MinAmountWan()),
+                String.valueOf(pageQuery.getD2TierMin()),
+                String.valueOf(pageQuery.getD2EnableShort()),
+                String.valueOf(pageQuery.getD2EnableLong()),
+                String.valueOf(pageQuery.getD2LookbackShort()),
+                String.valueOf(pageQuery.getD2LookbackLong()),
+                String.valueOf(pageQuery.getUlMinAmountWan()),
+                String.valueOf(pageQuery.getUlRequireMonthMacd()),
+                String.valueOf(pageQuery.getUlRequireWeekMacd()),
+                String.valueOf(pageQuery.getUlRequireDayMacd()));
     }
 
     public void clearRecommendCache() {
@@ -366,6 +371,8 @@ public class StockBaseController {
                 .ultraLow(stockPageQuery.toUltraLowParams())
                 .retest(stockPageQuery.toRetestParams())
                 .gc2(stockPageQuery.toGc2Params())
+                .dc2(stockPageQuery.toDc2Params())
+                .ultraShort(stockPageQuery.toUltraShortParams())
                 .build();
 
     }

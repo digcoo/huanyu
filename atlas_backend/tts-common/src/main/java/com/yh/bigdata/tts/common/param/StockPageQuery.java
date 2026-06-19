@@ -127,6 +127,25 @@ public class StockPageQuery extends PageQuery {
     private Integer g2LookbackMedium;
     private Integer g2LookbackLong;
 
+    /** 死叉突破 · 最低日均成交额（万） */
+    private Integer d2MinAmountWan;
+    private String d2TierMin;
+    private Boolean d2EnableShort;
+    private Boolean d2EnableLong;
+    private Integer d2LookbackShort;
+    private Integer d2LookbackLong;
+
+    /** 超短线 · 最低日均成交额（万） */
+    private Integer ulMinAmountWan;
+    /** 超短线 · 月 MACD&gt;0 */
+    private Boolean ulRequireMonthMacd;
+    /** 超短线 · 周 MACD&gt;0 */
+    private Boolean ulRequireWeekMacd;
+    /** 超短线 · 日 MACD&gt;0 */
+    private Boolean ulRequireDayMacd;
+    /** 超短线 · 须当前K为突破K（1=是 0=当日有突破K即可） */
+    private Boolean ulRequireCurrentBreakout;
+
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
 	}
@@ -152,7 +171,7 @@ public class StockPageQuery extends PageQuery {
 
     public StrategyTypeEnum getStrategyTypeEnum() {
         if (strategy == null || strategy.isEmpty()) {
-            return StrategyTypeEnum.DEFAUL;
+            return StrategyTypeEnum.ULTRA_SHORT;
         }
         if ("multi".equalsIgnoreCase(strategy)) {
             return null;
@@ -364,5 +383,48 @@ public class StockPageQuery extends PageQuery {
         }
         return Gc2StrategyParams.merge(b.build());
     }
-	
+
+    public Dc2StrategyParams toDc2Params() {
+        Dc2StrategyParams.Dc2StrategyParamsBuilder b = Dc2StrategyParams.builder();
+        if (d2MinAmountWan != null) {
+            b.minAvgAmount(d2MinAmountWan * 10_000D);
+        }
+        if (d2TierMin != null && !d2TierMin.isEmpty()) {
+            b.tierMin(d2TierMin);
+        }
+        if (d2EnableShort != null) {
+            b.enableShort(d2EnableShort);
+        }
+        if (d2EnableLong != null) {
+            b.enableLong(d2EnableLong);
+        }
+        if (d2LookbackShort != null && d2LookbackShort >= 10) {
+            b.lookbackShort(d2LookbackShort);
+        }
+        if (d2LookbackLong != null && d2LookbackLong >= 10) {
+            b.lookbackLong(d2LookbackLong);
+        }
+        return Dc2StrategyParams.merge(b.build());
+    }
+
+    public UltraShortStrategyParams toUltraShortParams() {
+        UltraShortStrategyParams.UltraShortStrategyParamsBuilder b = UltraShortStrategyParams.builder();
+        if (ulMinAmountWan != null) {
+            b.minAvgAmount(ulMinAmountWan * 10_000D);
+        }
+        if (ulRequireMonthMacd != null) {
+            b.requireMonthMacd(ulRequireMonthMacd);
+        }
+        if (ulRequireWeekMacd != null) {
+            b.requireWeekMacd(ulRequireWeekMacd);
+        }
+        if (ulRequireDayMacd != null) {
+            b.requireDayMacd(ulRequireDayMacd);
+        }
+        if (ulRequireCurrentBreakout != null) {
+            b.requireCurrentBreakout(ulRequireCurrentBreakout);
+        }
+        return UltraShortStrategyParams.merge(b.build());
+    }
+
 }

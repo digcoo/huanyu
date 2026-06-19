@@ -440,7 +440,7 @@ module.exports = {
     month: 50,
     week: 50,
     day: 50,
-    min30: 50
+    min30: 64
   },
   calcPriceRange,
   calcCloseMASeries,

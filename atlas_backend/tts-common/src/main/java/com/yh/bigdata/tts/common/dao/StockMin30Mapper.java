@@ -17,4 +17,6 @@ public interface StockMin30Mapper {
 	int updateByPrimaryKey(StockMin30 record);
 
 	List<StockMin30> selectAll(@Param("codes") List<String> codes);
+
+	List<StockMin30> selectRecentByCode(@Param("code") String code, @Param("limit") int limit);
 }

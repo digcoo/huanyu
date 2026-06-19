@@ -8,7 +8,7 @@ import com.yh.bigdata.tts.spider.strategy.tools.unilateral.UnilateralMacdTools;
 import lombok.Getter;
 
 /**
- * 预判金叉 v1.0 · 大周期 MACD&gt;0 + 小周期 MACD&lt;0 + K 线突破
+ * 预判金叉 v2.0 · 短线 / 长线两档
  */
 public final class PreGoldenEvaluator {
 
@@ -22,21 +22,24 @@ public final class PreGoldenEvaluator {
         boolean yearMacdPositive = UnilateralMacdTools.isMacdPositive(stock, PeriodTypeEnum.YEAR);
         boolean monthMacdPositive = UnilateralMacdTools.isMacdPositive(stock, PeriodTypeEnum.MONTH);
         boolean weekMacdPositive = UnilateralMacdTools.isMacdPositive(stock, PeriodTypeEnum.WEEK);
-        boolean monthMacdNegative = UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.MONTH);
         boolean weekMacdNegative = UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.WEEK);
         boolean dayMacdNegative = UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.DAY);
 
-        boolean dayBreakout = PreGoldenBreakoutTools.checkBreakout(stock, PeriodTypeEnum.DAY);
-        boolean weekBreakout = PreGoldenBreakoutTools.checkBreakout(stock, PeriodTypeEnum.WEEK);
-        boolean monthBreakout = PreGoldenBreakoutTools.checkBreakout(stock, PeriodTypeEnum.MONTH);
+        boolean dayCloseAbovePrevHigh = PreGoldenBreakoutTools.checkCloseAbovePrevHigh(stock, PeriodTypeEnum.DAY);
+        boolean weekCloseAbovePrevHigh = PreGoldenBreakoutTools.checkCloseAbovePrevHigh(stock, PeriodTypeEnum.WEEK);
 
-        boolean shortHit = p.isEnableShort() && weekMacdPositive && dayMacdNegative && dayBreakout;
-        boolean mediumHit = p.isEnableMedium() && monthMacdPositive && weekMacdNegative && weekBreakout;
-        boolean longHit = p.isEnableLong() && yearMacdPositive && monthMacdNegative && monthBreakout;
-        boolean hit = shortHit || mediumHit || longHit;
+        boolean shortMacroOk = weekMacdPositive || monthMacdPositive;
+        boolean longMacroOk = monthMacdPositive || yearMacdPositive;
+
+        boolean shortHit = p.isEnableShort() && shortMacroOk && dayMacdNegative && dayCloseAbovePrevHigh;
+        boolean longHit = p.isEnableLong() && longMacroOk && weekMacdNegative && weekCloseAbovePrevHigh;
+        boolean hit = shortHit || longHit;
 
         PreGoldenEvaluation eval = new PreGoldenEvaluation(
-                shortHit, mediumHit, longHit, dayBreakout, weekBreakout, monthBreakout, hit);
+                yearMacdPositive, weekMacdPositive, monthMacdPositive,
+                dayMacdNegative, weekMacdNegative,
+                dayCloseAbovePrevHigh, weekCloseAbovePrevHigh,
+                shortHit, longHit, hit);
         if (hit && checkResult != null) {
             fillMessages(checkResult, eval, p);
         }
@@ -65,25 +68,33 @@ public final class PreGoldenEvaluator {
 
     @Getter
     public static final class PreGoldenEvaluation {
+        private final boolean yearMacdPositive;
+        private final boolean weekMacdPositive;
+        private final boolean monthMacdPositive;
+        private final boolean dayMacdNegative;
+        private final boolean weekMacdNegative;
+        private final boolean dayCloseAbovePrevHigh;
+        private final boolean weekCloseAbovePrevHigh;
         private final boolean shortHit;
-        private final boolean mediumHit;
         private final boolean longHit;
-        private final boolean dayBreakout;
-        private final boolean weekBreakout;
-        private final boolean monthBreakout;
         private boolean hit;
         private int score;
         private char tier;
 
-        public PreGoldenEvaluation(boolean shortHit, boolean mediumHit, boolean longHit,
-                                   boolean dayBreakout, boolean weekBreakout, boolean monthBreakout,
-                                   boolean hit) {
+        public PreGoldenEvaluation(boolean yearMacdPositive, boolean weekMacdPositive,
+                                   boolean monthMacdPositive,
+                                   boolean dayMacdNegative, boolean weekMacdNegative,
+                                   boolean dayCloseAbovePrevHigh, boolean weekCloseAbovePrevHigh,
+                                   boolean shortHit, boolean longHit, boolean hit) {
+            this.yearMacdPositive = yearMacdPositive;
+            this.weekMacdPositive = weekMacdPositive;
+            this.monthMacdPositive = monthMacdPositive;
+            this.dayMacdNegative = dayMacdNegative;
+            this.weekMacdNegative = weekMacdNegative;
+            this.dayCloseAbovePrevHigh = dayCloseAbovePrevHigh;
+            this.weekCloseAbovePrevHigh = weekCloseAbovePrevHigh;
             this.shortHit = shortHit;
-            this.mediumHit = mediumHit;
             this.longHit = longHit;
-            this.dayBreakout = dayBreakout;
-            this.weekBreakout = weekBreakout;
-            this.monthBreakout = monthBreakout;
             this.hit = hit;
         }
 
