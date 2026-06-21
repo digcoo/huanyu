@@ -94,6 +94,30 @@ public class UltraShortStrategyParams {
 
 
 
+    /** 可选：日 MACD &lt; 0 */
+
+    @Builder.Default
+
+    private boolean requireDayMacdNegative = false;
+
+
+
+    /** 可选：周 MACD &lt; 0（大周期仍处零轴下） */
+
+    @Builder.Default
+
+    private boolean requireWeekMacdNegative = false;
+
+
+
+    /** 可选：月 MACD &lt; 0 */
+
+    @Builder.Default
+
+    private boolean requireMonthMacdNegative = false;
+
+
+
     /** 突破K：true=须当前（最新）30m K 满足突破条件；false=当日任一根满足即可（多根取最后一根） */
 
     @Builder.Default
@@ -149,6 +173,12 @@ public class UltraShortStrategyParams {
         d.requireWeekMacd = incoming.requireWeekMacd;
 
         d.requireDayMacd = incoming.requireDayMacd;
+
+        d.requireDayMacdNegative = incoming.requireDayMacdNegative;
+
+        d.requireWeekMacdNegative = incoming.requireWeekMacdNegative;
+
+        d.requireMonthMacdNegative = incoming.requireMonthMacdNegative;
 
         d.requireCurrentBreakout = incoming.requireCurrentBreakout;
 

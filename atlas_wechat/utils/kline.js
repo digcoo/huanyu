@@ -56,6 +56,139 @@ function calcMA(klines, period) {
   return calcCloseMASeries(klines, period);
 }
 
+/** EMA，与后端 MACDIndicatorUtils 一致 */
+function calcEMA(previousEMA, currentPrice, period) {
+  const multiplier = 2 / (period + 1);
+  return (currentPrice - previousEMA) * multiplier + previousEMA;
+}
+
+/** MACD(12,26,9)：DIF / DEA / 柱(2×(DIF-DEA)) */
+function calcMACDSeries(klines, fastPeriod, slowPeriod, signalPeriod) {
+  fastPeriod = fastPeriod == null ? 12 : fastPeriod;
+  slowPeriod = slowPeriod == null ? 26 : slowPeriod;
+  signalPeriod = signalPeriod == null ? 9 : signalPeriod;
+  if (!klines || !klines.length) {
+    return { dif: [], dea: [], hist: [] };
+  }
+
+  const n = klines.length;
+  const dif = new Array(n);
+  const dea = new Array(n);
+  const hist = new Array(n);
+  let emaFast = Number(klines[0].close) || 0;
+  let emaSlow = emaFast;
+  let deaVal = 0;
+
+  for (let i = 0; i < n; i++) {
+    const price = Number(klines[i].close) || 0;
+    if (i === 0) {
+      emaFast = price;
+      emaSlow = price;
+    } else {
+      emaFast = calcEMA(emaFast, price, fastPeriod);
+      emaSlow = calcEMA(emaSlow, price, slowPeriod);
+    }
+    const difVal = emaFast - emaSlow;
+    deaVal = calcEMA(deaVal, difVal, signalPeriod);
+    dif[i] = difVal;
+    dea[i] = deaVal;
+    hist[i] = 2 * (difVal - deaVal);
+  }
+  return { dif: dif, dea: dea, hist: hist };
+}
+
+/** MACD 副图纵轴（含 0 轴留白） */
+function calcMacdRange(series, marginRatio) {
+  marginRatio = marginRatio == null ? 0.1 : marginRatio;
+  const values = [];
+  if (series && series.dif) {
+    series.dif.forEach(function (v) { if (v != null) values.push(v); });
+    series.dea.forEach(function (v) { if (v != null) values.push(v); });
+    series.hist.forEach(function (v) { if (v != null) values.push(v); });
+  }
+  if (!values.length) {
+    return { min: -1, max: 1, span: 2, zeroPct: 50 };
+  }
+  let min = Math.min.apply(null, values.concat([0]));
+  let max = Math.max.apply(null, values.concat([0]));
+  const span = max - min || 1;
+  const margin = span * marginRatio;
+  const rMin = min - margin;
+  const rMax = max + margin;
+  const rSpan = rMax - rMin;
+  return {
+    min: rMin,
+    max: rMax,
+    span: rSpan,
+    zeroPct: ((rMax - 0) / rSpan) * 100
+  };
+}
+
+function buildMacdLineSegments(values, range, width, height, color, idPrefix) {
+  if (!values || !values.length || !width || !height) return [];
+  const count = values.length;
+  const slotW = width / count;
+  const segments = [];
+  const points = [];
+
+  values.forEach(function (v, i) {
+    if (v == null) return;
+    points.push({
+      x: i * slotW + slotW / 2,
+      y: ((range.max - v) / range.span) * height
+    });
+  });
+
+  for (let i = 1; i < points.length; i++) {
+    const p0 = points[i - 1];
+    const p1 = points[i];
+    const dx = p1.x - p0.x;
+    const dy = p1.y - p0.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 0.5) continue;
+    segments.push({
+      id: idPrefix + '-' + i,
+      left: p0.x.toFixed(2),
+      top: p0.y.toFixed(2),
+      width: len.toFixed(2),
+      angle: (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(2),
+      color: color
+    });
+  }
+  return segments;
+}
+
+function buildMacdSegments(series, range, width, height) {
+  if (!series || !width || !height) return [];
+  return buildMacdLineSegments(series.dif, range, width, height, '#f0b90b', 'dif').concat(
+    buildMacdLineSegments(series.dea, range, width, height, '#e040fb', 'dea')
+  );
+}
+
+/** 百分比坐标 MACD 柱（与 K 线槽位对齐） */
+function buildMacdHistBars(hist, range, count) {
+  if (!hist || !hist.length || !count) return [];
+  const slotW = 100 / count;
+  const zeroPct = range.zeroPct;
+  const bars = [];
+
+  hist.forEach(function (v, i) {
+    if (v == null) return;
+    const valPct = ((range.max - v) / range.span) * 100;
+    const top = Math.min(valPct, zeroPct);
+    const bottom = Math.max(valPct, zeroPct);
+    const h = bottom - top;
+    bars.push({
+      left: (i * slotW + slotW * 0.18).toFixed(2),
+      width: (slotW * 0.64).toFixed(2),
+      top: top.toFixed(2),
+      height: Math.max(h, v === 0 ? 0 : 1.2).toFixed(2),
+      dirClass: v >= 0 ? 'bull' : 'bear'
+    });
+  });
+  return bars;
+}
+
 const MA_LINE_CONFIGS = [
   { period: 5, color: '#f0b90b', lineWidth: 0.75 },
   { period: 10, color: '#e040fb', lineWidth: 0.75 },
@@ -445,6 +578,11 @@ module.exports = {
   calcPriceRange,
   calcCloseMASeries,
   calcMA,
+  calcEMA,
+  calcMACDSeries,
+  calcMacdRange,
+  buildMacdSegments,
+  buildMacdHistBars,
   MA_LINE_CONFIGS,
   buildCloseMaSegments,
   findBarIndexByTimestamp,

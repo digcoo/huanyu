@@ -1,6 +1,7 @@
 const config = require('./utils/config');
 const auth = require('./utils/auth');
 const watchlistApi = require('./utils/watchlist-api');
+const listMemory = require('./utils/list-memory');
 
 App({
   globalData: {
@@ -17,7 +18,10 @@ App({
     auth.sanitizeStoredSession();
     this.globalData.watchlist = loadWatchlistLocal();
     this.globalData.history = loadHistoryLocal();
-    this.globalData.ignoredIds = wx.getStorageSync('ignoredIds') || [];
+    this.globalData.ignoredIds = listMemory.capIgnoredIds(wx.getStorageSync('ignoredIds') || []);
+    if (this.globalData.ignoredIds.length) {
+      wx.setStorageSync('ignoredIds', this.globalData.ignoredIds);
+    }
     this.globalData.loggedIn = auth.isLoggedIn();
 
     if (typeof console !== 'undefined' && console.info) {
@@ -183,6 +187,7 @@ App({
   ignoreItem(id) {
     if (!this.globalData.ignoredIds.includes(id)) {
       this.globalData.ignoredIds.push(id);
+      this.globalData.ignoredIds = listMemory.capIgnoredIds(this.globalData.ignoredIds);
       wx.setStorageSync('ignoredIds', this.globalData.ignoredIds);
     }
   }

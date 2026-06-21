@@ -7,7 +7,8 @@ const state = {
   cacheReady: false,
   running: false,
   result: null,
-  error: null
+  error: null,
+  initError: null
 };
 
 async function api(path, options) {
@@ -26,9 +27,11 @@ function el(tag, attrs, children) {
   const node = document.createElement(tag);
   if (attrs) {
     Object.entries(attrs).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
       if (k === 'className') node.className = v;
       else if (k === 'text') node.textContent = v;
       else if (k.startsWith('on')) node.addEventListener(k.slice(2).toLowerCase(), v);
+      else if (k === 'disabled') node.disabled = !!v;
       else node.setAttribute(k, v);
     });
   }
@@ -192,7 +195,7 @@ function renderForm() {
       className: 'btn-primary',
       type: 'submit',
       text: state.running ? '回测中…' : '开始回测',
-      disabled: state.running || !state.cacheReady ? '' : undefined
+      disabled: state.running || !state.cacheReady
     })
   );
 
@@ -210,7 +213,9 @@ function render() {
   root.innerHTML = '';
 
   const statusDotClass = state.cacheReady ? 'status-dot ok' : 'status-dot bad';
-  const statusText = state.cacheReady ? '后端缓存就绪' : '后端缓存未就绪';
+  const statusText = state.cacheReady
+    ? '后端缓存就绪'
+    : (state.initError || '后端缓存未就绪');
 
   root.appendChild(
     el('header', {}, [
@@ -234,14 +239,18 @@ function render() {
 async function init() {
   render();
   try {
-    const [health, strategies] = await Promise.all([
-      api('/backtest/health'),
-      api('/backtest/strategies')
-    ]);
+    const health = await api('/backtest/health');
     state.cacheReady = !!health.cacheReady;
-    state.strategies = strategies || [];
-  } catch {
+    state.error = null;
+  } catch (err) {
     state.cacheReady = false;
+    state.error = null;
+    state.initError = err.message || '无法连接后端，请确认 9010 已启动';
+  }
+  try {
+    state.strategies = await api('/backtest/strategies') || [];
+  } catch {
+    state.strategies = [{ code: 'ultra', name: '超短线策略' }];
   }
   render();
 }

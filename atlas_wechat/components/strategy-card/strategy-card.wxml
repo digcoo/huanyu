@@ -48,7 +48,7 @@
       klines="{{item.chartKlines}}"
       label="{{c.periodLabel(activePeriod)}}"
       size="card"
-      maxBars="{{c.maxBars(activePeriod)}}"
+      maxBars="{{c.cardMaxBars(activePeriod)}}"
       flipped="{{flipped}}"
       resonance="{{item.resonance}}"
       activePeriod="{{activePeriod}}"

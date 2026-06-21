@@ -1,5 +1,5 @@
-<view class="mini-kline {{resonance}} size-{{size}} {{flipped ? 'is-flipped' : ''}}">
-  <view class="label-row" wx:if="{{label || markerLabel || hasMarkerLegend || maLegend || updatedLabel}}">
+<view class="mini-kline {{resonance}} size-{{size}} {{flipped ? 'is-flipped' : ''}} {{showMacd ? 'has-macd' : ''}}">
+  <view class="label-row" wx:if="{{label || markerLabel || hasMarkerLegend || maLegend || macdLegend || updatedLabel}}">
     <view class="label-left">
       <text class="label" wx:if="{{label}}">{{label}}</text>
       <view class="ma-legend" wx:if="{{maLegend}}">
@@ -9,6 +9,11 @@
           class="ma"
           style="color: {{item.color}};"
         >{{item.label}}</text>
+      </view>
+      <view class="macd-legend" wx:if="{{macdLegend}}">
+        <text class="ma" style="color: #f0b90b;">DIF</text>
+        <text class="ma" style="color: #e040fb;">DEA</text>
+        <text class="ma" style="color: #848e9c;">MACD</text>
       </view>
     </view>
     <view class="label-right">
@@ -73,6 +78,25 @@
       >
         <view class="add-marker-line"></view>
         <view class="add-marker-dot"></view>
+      </view>
+    </view>
+    <view wx:if="{{showMacd && macdBars.length}}" class="macd-wrap">
+      <view class="macd-zero-line" style="top: {{macdZeroPct}}%;"></view>
+      <view class="macd-hist">
+        <view
+          wx:for="{{macdBars}}"
+          wx:key="index"
+          class="macd-bar {{item.dirClass}}"
+          style="left: {{item.left}}%; width: {{item.width}}%; top: {{item.top}}%; height: {{item.height}}%;"
+        ></view>
+      </view>
+      <view wx:if="{{macdSegments.length}}" class="macd-line-layer">
+        <view
+          wx:for="{{macdSegments}}"
+          wx:key="id"
+          class="ma-seg"
+          style="left: {{item.left}}px; top: {{item.top}}px; width: {{item.width}}px; transform: rotate({{item.angle}}deg); background-color: {{item.color}};"
+        ></view>
       </view>
     </view>
   </view>

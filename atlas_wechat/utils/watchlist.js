@@ -49,7 +49,7 @@ function rehydrateItemAsync(item, period) {
   if (item.klines && item.klines[period]) {
     return Promise.resolve(item);
   }
-  return stockApi.fetchKlines(item.code, period).then(function (bars) {
+  return stockApi.fetchKlines(item.code, period, stockApi.klineLimitForList(period)).then(function (bars) {
     var klines = adapter.barsToKlines(bars);
     var merged = Object.assign({}, item, {
       klines: Object.assign({}, item.klines || {})

@@ -143,6 +143,12 @@ public class StockPageQuery extends PageQuery {
     private Boolean ulRequireWeekMacd;
     /** 超短线 · 日 MACD&gt;0 */
     private Boolean ulRequireDayMacd;
+    /** 超短线 · 日 MACD&lt;0 */
+    private Boolean ulRequireDayMacdNegative;
+    /** 超短线 · 周 MACD&lt;0 */
+    private Boolean ulRequireWeekMacdNegative;
+    /** 超短线 · 月 MACD&lt;0 */
+    private Boolean ulRequireMonthMacdNegative;
     /** 超短线 · 须当前K为突破K（1=是 0=当日有突破K即可） */
     private Boolean ulRequireCurrentBreakout;
 
@@ -467,6 +473,15 @@ public class StockPageQuery extends PageQuery {
         }
         if (ulRequireDayMacd != null) {
             b.requireDayMacd(ulRequireDayMacd);
+        }
+        if (ulRequireDayMacdNegative != null) {
+            b.requireDayMacdNegative(ulRequireDayMacdNegative);
+        }
+        if (ulRequireWeekMacdNegative != null) {
+            b.requireWeekMacdNegative(ulRequireWeekMacdNegative);
+        }
+        if (ulRequireMonthMacdNegative != null) {
+            b.requireMonthMacdNegative(ulRequireMonthMacdNegative);
         }
         if (ulRequireCurrentBreakout != null) {
             b.requireCurrentBreakout(ulRequireCurrentBreakout);

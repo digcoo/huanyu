@@ -31,7 +31,7 @@
     markerAt="{{item.addedAt}}"
     activePeriod="{{activePeriod}}"
     size="card"
-    maxBars="{{c.maxBars(activePeriod)}}"
+    maxBars="{{c.cardMaxBars(activePeriod)}}"
     flipped="{{flipped}}"
     resonance="{{item.resonance}}"
   />

@@ -7,7 +7,9 @@ import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.BreakoutBarTools;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.BreakoutBucketTools;
+import com.yh.bigdata.tts.spider.strategy.tools.ultralow.BreakoutPositionContextTools;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.BreakoutScanWindowTools;
+import com.yh.bigdata.tts.spider.strategy.tools.ultralow.BreakoutSignalTools;
 import lombok.Getter;
 import org.springframework.util.CollectionUtils;
 
@@ -62,7 +64,7 @@ public final class TrendBreakoutTools {
             return null;
         }
 
-        Trade signalBar = findSignalBar(allBars, signalBars, refBar, p.getMinStrongPct(), p.isRequireCurrentBreakout());
+        Trade signalBar = findSignalBar(stock, allBars, signalBars, refBar, p.getMinStrongPct(), p.isRequireCurrentBreakout());
         if (signalBar == null) {
             return null;
         }
@@ -115,7 +117,7 @@ public final class TrendBreakoutTools {
         return null;
     }
 
-    static Trade findSignalBar(List<Trade> allBars, List<Trade> signalBars, Trade refBar,
+    static Trade findSignalBar(StockBase stock, List<Trade> allBars, List<Trade> signalBars, Trade refBar,
                                double minStrongPct, boolean requireCurrentBreakout) {
         if (CollectionUtils.isEmpty(allBars) || CollectionUtils.isEmpty(signalBars)
                 || refBar == null || refBar.getLow() == null || refBar.getHigh() == null) {
@@ -125,51 +127,16 @@ public final class TrendBreakoutTools {
         double refHigh = refBar.getHigh();
         if (requireCurrentBreakout) {
             Trade currentBar = allBars.get(allBars.size() - 1);
-            return isSignalCandidate(currentBar, allBars, refLow, refHigh, minStrongPct) ? currentBar : null;
+            return BreakoutSignalTools.isSignalCandidate(stock, currentBar, allBars, refLow, refHigh,
+                    minStrongPct, BreakoutPositionContextTools.MacroTier.SHORT) ? currentBar : null;
         }
         Trade lastMatch = null;
         for (Trade bar : signalBars) {
-            if (isSignalCandidate(bar, allBars, refLow, refHigh, minStrongPct)) {
+            if (BreakoutSignalTools.isSignalCandidate(stock, bar, allBars, refLow, refHigh, minStrongPct,
+                    BreakoutPositionContextTools.MacroTier.SHORT)) {
                 lastMatch = bar;
             }
         }
         return lastMatch;
-    }
-
-    private static boolean isSignalCandidate(Trade bar, List<Trade> allBars,
-                                             double refLow, double refHigh, double minStrongPct) {
-        if (!BreakoutBarTools.isStrongBar(bar, minStrongPct)) {
-            return false;
-        }
-        if (bar.getClose() == null || bar.getClose() <= refLow + HIGH_EPS) {
-            return false;
-        }
-        Trade prev = previousBar(allBars, bar);
-        if (prev == null || prev.getHigh() == null) {
-            return false;
-        }
-        if (bar.getClose() <= prev.getHigh() + HIGH_EPS) {
-            return false;
-        }
-        return belowRefHigh(bar, prev, refHigh);
-    }
-
-    private static boolean belowRefHigh(Trade signalBar, Trade prevBar, double refHigh) {
-        boolean signalLowBelow = signalBar.getLow() != null && signalBar.getLow() < refHigh - HIGH_EPS;
-        boolean prevCloseBelow = prevBar.getClose() != null && prevBar.getClose() < refHigh - HIGH_EPS;
-        return signalLowBelow || prevCloseBelow;
-    }
-
-    private static Trade previousBar(List<Trade> allBars, Trade bar) {
-        for (int i = 1; i < allBars.size(); i++) {
-            if (sameBar(allBars.get(i), bar)) {
-                return allBars.get(i - 1);
-            }
-        }
-        return null;
-    }
-
-    private static boolean sameBar(Trade a, Trade b) {
-        return a != null && b != null && a.getDay() != null && a.getDay().equals(b.getDay());
     }
 }

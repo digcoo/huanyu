@@ -76,6 +76,7 @@
           size="card"
           maxBars="{{c.maxBars(activePeriod)}}"
           flipped="{{klineFlipped}}"
+          showMacd="{{true}}"
           resonance="{{detail.resonance}}"
           activePeriod="{{activePeriod}}"
           barMarkers="{{ladderBarMarkers}}"

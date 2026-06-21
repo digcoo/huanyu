@@ -1,4 +1,14 @@
-const { calcPriceRange, buildCloseMaSegments, MA_LINE_CONFIGS, findBarIndexByTimestamp, findBarIndexByDay } = require('../../utils/kline');
+const {
+  calcPriceRange,
+  buildCloseMaSegments,
+  calcMACDSeries,
+  calcMacdRange,
+  buildMacdSegments,
+  buildMacdHistBars,
+  MA_LINE_CONFIGS,
+  findBarIndexByTimestamp,
+  findBarIndexByDay
+} = require('../../utils/kline');
 
 const MA_LEGEND = MA_LINE_CONFIGS.map(function (cfg) {
   return {
@@ -65,6 +75,11 @@ Component({
     markerEpoch: {
       type: Number,
       value: 0
+    },
+    /** 详情主图：K 线下方 MACD 副图 */
+    showMacd: {
+      type: Boolean,
+      value: false
     }
   },
 
@@ -73,6 +88,10 @@ Component({
     maLines: [],
     maSegments: [],
     maLegend: false,
+    macdLegend: false,
+    macdBars: [],
+    macdSegments: [],
+    macdZeroPct: 50,
     markerLeft: null,
     markerPositions: [],
     markerLegend: [],
@@ -103,6 +122,9 @@ Component({
     },
     markerEpoch() {
       this.render(this.properties.klines);
+    },
+    showMacd() {
+      this.render(this.properties.klines);
     }
   },
 
@@ -122,11 +144,16 @@ Component({
 
       if (!klines || !klines.length) {
         this._maBuild = null;
+        this._macdBuild = null;
         this.setData({
           bars: [],
           maLines: [],
           maSegments: [],
           maLegend: false,
+          macdLegend: false,
+          macdBars: [],
+          macdSegments: [],
+          macdZeroPct: 50,
           markerLeft: null,
           markerPositions: [],
           markerLegend: [],
@@ -232,7 +259,19 @@ Component({
         : null;
 
       const showMA = isCard && count >= 5;
+      const showMacd = isCard && this.properties.showMacd && count >= 10;
       this._maBuild = showMA ? { sliced: sliced, range: range } : null;
+
+      var macdBars = [];
+      var macdZeroPct = 50;
+      this._macdBuild = null;
+      if (showMacd) {
+        const macdSeries = calcMACDSeries(sliced);
+        const macdRange = calcMacdRange(macdSeries);
+        macdBars = buildMacdHistBars(macdSeries.hist, macdRange, count);
+        macdZeroPct = macdRange.zeroPct.toFixed(2);
+        this._macdBuild = { series: macdSeries, range: macdRange };
+      }
 
       this.setData({
         bars: bars,
@@ -241,11 +280,18 @@ Component({
         markerLegend: markerLegend,
         hasMarkerLegend: markerLegend.length > 0,
         maLegend: showMA,
+        macdLegend: showMacd,
+        macdBars: macdBars,
+        macdSegments: [],
+        macdZeroPct: macdZeroPct,
         maLines: showMA ? buildMaLegend(count) : [],
         maSegments: []
       }, () => {
         if (showMA) {
           wx.nextTick(() => this.paintMaSegments());
+        }
+        if (showMacd) {
+          wx.nextTick(() => this.paintMacdSegments());
         }
       });
     },
@@ -265,6 +311,23 @@ Component({
           MA_LINE_CONFIGS
         );
         this.setData({ maSegments: segments });
+      }).exec();
+    },
+
+    paintMacdSegments() {
+      const payload = this._macdBuild;
+      if (!payload) return;
+
+      const query = this.createSelectorQuery();
+      query.select('.macd-wrap').boundingClientRect((rect) => {
+        if (!rect || !rect.width || !rect.height) return;
+        const segments = buildMacdSegments(
+          payload.series,
+          payload.range,
+          rect.width,
+          rect.height
+        );
+        this.setData({ macdSegments: segments });
       }).exec();
     }
   }

@@ -9,6 +9,11 @@ function maxBars(period) {
   return MAX[period] || 50;
 }
 
+function cardMaxBars(period) {
+  var CARD = { year: 24, month: 24, week: 24, day: 24, min30: 32 };
+  return CARD[period] || 24;
+}
+
 function displayCode(code) {
   if (!code) return '';
   var c = String(code).toLowerCase();
@@ -20,5 +25,6 @@ function displayCode(code) {
 module.exports = {
   periodLabel: periodLabel,
   maxBars: maxBars,
+  cardMaxBars: cardMaxBars,
   displayCode: displayCode
 };

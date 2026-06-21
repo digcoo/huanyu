@@ -74,6 +74,9 @@ var ULTRA_DEFAULTS = {
   ulRequireMonthMacd: false,
   ulRequireWeekMacd: false,
   ulRequireDayMacd: false,
+  ulRequireDayMacdNegative: false,
+  ulRequireWeekMacdNegative: false,
+  ulRequireMonthMacdNegative: false,
   ulRequireCurrentBreakout: false
 };
 
@@ -107,6 +110,28 @@ var ULTRA_SCHEMA = [
   {
     key: 'ulRequireDayMacd',
     label: '日 MACD>0',
+    hint: '默认关闭，开启后需满足',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: 'MACD<0（可选）'
+  },
+  {
+    key: 'ulRequireDayMacdNegative',
+    label: '日 MACD<0',
+    hint: '与「日MACD>0」勿同时开启',
+    type: 'switch'
+  },
+  {
+    key: 'ulRequireWeekMacdNegative',
+    label: '周 MACD<0',
+    hint: '大周期仍处零轴下，常与「日MACD>0」联测',
+    type: 'switch'
+  },
+  {
+    key: 'ulRequireMonthMacdNegative',
+    label: '月 MACD<0',
     hint: '默认关闭，开启后需满足',
     type: 'switch'
   },
@@ -952,9 +977,10 @@ function formatSummary(strategyId) {
   }
   if (strategyId === 'ultra') {
     var macdParts = [];
-    if (p.ulRequireMonthMacd) macdParts.push('月MACD');
-    if (p.ulRequireWeekMacd) macdParts.push('周MACD');
-    if (p.ulRequireDayMacd) macdParts.push('日MACD');
+    if (p.ulRequireDayMacd) macdParts.push('日MACD>0');
+    if (p.ulRequireDayMacdNegative) macdParts.push('日MACD<0');
+    if (p.ulRequireWeekMacdNegative) macdParts.push('周MACD<0');
+    if (p.ulRequireMonthMacdNegative) macdParts.push('月MACD<0');
     var amountPart = (p.ulMinAmountWan != null ? p.ulMinAmountWan : 5000) + '万';
     var sigPart = p.ulRequireCurrentBreakout ? '当前K突破' : '当日有突破';
     return amountPart + ' · ' + sigPart + (macdParts.length ? ' · ' + macdParts.join('+') : '');

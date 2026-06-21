@@ -511,5 +511,14 @@ Page({
         self.setData({ inWatchlist: true });
       }
     });
+  },
+
+  onUnload() {
+    this.setData({
+      detail: null,
+      chartKlines: [],
+      ladderBarMarkers: [],
+      ladderMarkerEpoch: 0
+    });
   }
 });

@@ -1,6 +1,7 @@
 const api = require('./api');
 const adapter = require('./adapter');
 const strategyParams = require('./strategy-params');
+const listMemory = require('./list-memory');
 
 var RECOMMEND_PAGE_SIZE = 12;
 /** min30：2 前日 + 1 当日 × 8 根/日，留余量避免截断 */
@@ -8,6 +9,10 @@ var MIN30_KLINE_LIMIT = 64;
 
 function klineLimitForPeriod(period) {
   return period === 'min30' ? MIN30_KLINE_LIMIT : 50;
+}
+
+function klineLimitForList(period) {
+  return listMemory.klineLimitForList(period);
 }
 
 function encodePath(code) {
@@ -235,24 +240,26 @@ function fetchMarketIndices(market, period, limit) {
   });
 }
 
-function attachKlinesToItems(items, period, maxItems) {
+function attachKlinesToItems(items, period, maxItems, forListCard) {
   var list = items || [];
   if (maxItems != null && maxItems > 0) {
     list = list.slice(0, maxItems);
   }
   if (!list.length) return Promise.resolve([]);
 
+  var limit = forListCard ? klineLimitForList(period) : klineLimitForPeriod(period);
+
   return Promise.all(list.map(function (item) {
-    return fetchKlines(item.code, period, klineLimitForPeriod(period)).then(function (bars) {
+    return fetchKlines(item.code, period, limit).then(function (bars) {
       var klines = adapter.barsToKlines(bars);
       var merged = Object.assign({}, item, {
-        klines: Object.assign({}, item.klines || {}, {}),
+        klines: {},
         chartKlines: klines
       });
       merged.klines[period] = klines;
       return merged;
     }).catch(function () {
-      return Object.assign({}, item, { chartKlines: [] });
+      return Object.assign({}, item, { chartKlines: [], klines: {} });
     });
   }));
 }
@@ -261,6 +268,7 @@ module.exports = {
   RECOMMEND_PAGE_SIZE: RECOMMEND_PAGE_SIZE,
   MIN30_KLINE_LIMIT: MIN30_KLINE_LIMIT,
   klineLimitForPeriod: klineLimitForPeriod,
+  klineLimitForList: klineLimitForList,
   buildStrategyQueryParams: buildStrategyQueryParams,
   fetchHealth: fetchHealth,
   fetchRecommendations: fetchRecommendations,

@@ -56,6 +56,30 @@ public final class UltraShortFilterTools {
                 checkResult.addTrendPeriod(PeriodTypeEnum.DAY, "MACD>0");
             }
         }
+        if (p.isRequireDayMacdNegative()) {
+            if (!UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.DAY)) {
+                return false;
+            }
+            if (checkResult != null) {
+                checkResult.addTrendPeriod(PeriodTypeEnum.DAY, "MACD<0");
+            }
+        }
+        if (p.isRequireWeekMacdNegative()) {
+            if (!UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.WEEK)) {
+                return false;
+            }
+            if (checkResult != null) {
+                checkResult.addTrendPeriod(PeriodTypeEnum.WEEK, "MACD<0");
+            }
+        }
+        if (p.isRequireMonthMacdNegative()) {
+            if (!UnilateralMacdTools.isMacdNegative(stock, PeriodTypeEnum.MONTH)) {
+                return false;
+            }
+            if (checkResult != null) {
+                checkResult.addTrendPeriod(PeriodTypeEnum.MONTH, "MACD<0");
+            }
+        }
         return true;
     }
 

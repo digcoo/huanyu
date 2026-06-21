@@ -10,6 +10,7 @@ const stockApi = require('../../utils/stock-api');
 const adapter = require('../../utils/adapter');
 const strategyParams = require('../../utils/strategy-params');
 const barMarkers = require('../../utils/bar-markers');
+const listMemory = require('../../utils/list-memory');
 
 const app = getApp();
 const DEFAULT_STRATEGY = 'ultra';
@@ -32,15 +33,29 @@ const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
 
 function mapChartKlines(list, period, strategyId) {
   return list.map(function (item) {
-    var fromStore = item.klines && item.klines[period] ? item.klines[period].slice() : null;
-    var klines = fromStore || (item.chartKlines ? item.chartKlines.slice() : []);
+    var klines = item.klines && item.klines[period] ? item.klines[period] : (item.chartKlines || []);
     var markers = barMarkers.shouldShowBarMarkers(strategyId, period)
       ? (item.barMarkers && item.barMarkers.length
-        ? item.barMarkers.slice()
+        ? item.barMarkers
         : barMarkers.resolveBarMarkersForItem(item, strategyId, period, klines))
       : [];
     return Object.assign({}, item, { chartKlines: klines, barMarkers: markers });
   });
+}
+
+function applyHeldList(self, list, period, strategyId, extra) {
+  var trimmed = listMemory.trimHeldList(list);
+  var slimmed = listMemory.slimListKlines(trimmed, period);
+  self._baseList = slimmed;
+  var patch = Object.assign({
+    recommendations: mapChartKlines(slimmed, period, strategyId)
+  }, extra || {});
+  if (trimmed.length < (list || []).length) {
+    patch.listTrimmedHint = '已释放较早条目以节省内存';
+  } else {
+    patch.listTrimmedHint = '';
+  }
+  self.setData(patch);
 }
 
 function normalizeSavedStrategy(strategyId) {
@@ -134,9 +149,9 @@ function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage
 /**
  * 加载更多：严格按后端页码追加，避免与首屏重复
  */
-function fetchNextRecommendationsPage(strategyId, ignored, backendPage, baseList) {
+function fetchNextRecommendationsPage(strategyId, ignored, backendPage, seenIds) {
   var nextPage = (backendPage || 1) + 1;
-  var seen = buildSeenIdMap(baseList);
+  var seen = seenIds || {};
 
   function fetchFrom(page) {
     return stockApi.fetchRecommendations(strategyId, page, RECOMMEND_PAGE_SIZE).then(function (result) {
@@ -145,14 +160,13 @@ function fetchNextRecommendationsPage(strategyId, ignored, backendPage, baseList
       if (novel.length === 0 && result.hasMore) {
         return fetchFrom(page + 1);
       }
-      novel.forEach(function (item) {
-        seen[item.id] = true;
-      });
+      seen = listMemory.rememberSeenIds(seen, novel);
       return {
         items: novel,
         page: result.page || page,
         totalNum: result.totalNum != null ? result.totalNum : 0,
-        hasMore: resolvePagedHasMore(!!result.hasMore, result.page || page, result.totalNum)
+        hasMore: resolvePagedHasMore(!!result.hasMore, result.page || page, result.totalNum),
+        seenIds: seen
       };
     });
   }
@@ -162,23 +176,27 @@ function fetchNextRecommendationsPage(strategyId, ignored, backendPage, baseList
 
 function attachKlinesInBackground(self, items, period) {
   if (!items || !items.length) return Promise.resolve([]);
-  return stockApi.attachKlinesToItems(items, period).then(function (withKlines) {
+  return stockApi.attachKlinesToItems(items, period, null, true).then(function (withKlines) {
     var klineById = {};
     withKlines.forEach(function (item) {
-      klineById[item.id] = item;
+      klineById[item.id] = listMemory.slimItemKlines(item, period);
     });
     if (self._baseList && self._baseList.length) {
       var strategyId = self.data.activeStrategy;
       var activePeriod = period || self.data.activePeriod;
-      self._baseList = self._baseList.map(function (item) {
+      var merged = self._baseList.map(function (item) {
         return klineById[item.id] ? Object.assign({}, item, klineById[item.id]) : item;
       });
-      return barMarkers.enrichItemsWithBarMarkers(self._baseList, strategyId, activePeriod).then(function (enriched) {
-        self._baseList = enriched;
-        self.setData({
-          recommendations: mapChartKlines(enriched, activePeriod, strategyId)
+      return barMarkers.enrichItemsWithBarMarkers(withKlines, strategyId, activePeriod).then(function (enriched) {
+        var markerById = {};
+        enriched.forEach(function (item) {
+          markerById[item.id] = item;
         });
-        return enriched;
+        merged = merged.map(function (item) {
+          return markerById[item.id] ? Object.assign({}, item, markerById[item.id]) : item;
+        });
+        applyHeldList(self, merged, activePeriod, strategyId);
+        return merged;
       });
     }
     return withKlines;
@@ -408,31 +426,22 @@ Page({
 
     this.setData({ loadingMore: true });
 
-    fetchNextRecommendationsPage(strategyId, ignored, backendPage, this._baseList).then(function (result) {
+    fetchNextRecommendationsPage(strategyId, ignored, backendPage, this._seenRecommendationIds).then(function (result) {
+      if (result.seenIds) {
+        self._seenRecommendationIds = result.seenIds;
+      }
       var merged = dedupeAppend(self._baseList, result.items);
       self._backendPage = result.page;
       self._loadPage = result.page;
-      self._baseList = merged.list;
-      self.setData({
-        recommendations: mapChartKlines(merged.list, period, strategyId),
+      applyHeldList(self, merged.list, period, strategyId, {
         totalCount: result.totalNum,
         hasMore: result.hasMore,
         loadingMore: false
       });
       if (merged.appended.length) {
         applyKlinesForItems(self, merged.appended, period);
-        barMarkers.enrichItemsWithBarMarkers(merged.appended, strategyId, period).then(function (enriched) {
-          var markerById = {};
-          enriched.forEach(function (item) {
-            markerById[item.id] = item;
-          });
-          self._baseList = (self._baseList || []).map(function (item) {
-            return markerById[item.id] ? Object.assign({}, item, markerById[item.id]) : item;
-          });
-          self.setData({
-            recommendations: mapChartKlines(self._baseList, period, strategyId)
-          });
-        });
+      } else if (result.hasMore) {
+        wx.showToast({ title: '暂无新条目，请再试', icon: 'none' });
       }
     }).catch(function () {
       self.setData({ loadingMore: false });
@@ -481,6 +490,7 @@ Page({
     this.setData({ loading: true, hasMore: false, loadingMore: false, totalCount: 0 });
     this._loadPage = 1;
     this._backendPage = 1;
+    this._seenRecommendationIds = {};
 
     return this._fetchRecommendPage(strategyId, period, 1, ignored).then(function (result) {
       return Promise.all([
@@ -496,22 +506,15 @@ Page({
       var indices = results[1];
       self._loadPage = pageResult.page;
       self._backendPage = pageResult.page;
-      self._baseList = pageResult.items;
-      self.setData({
+      self._seenRecommendationIds = listMemory.initSeenIds(pageResult.items);
+      applyHeldList(self, pageResult.items, period, strategyId, {
         activeMarket: marketId,
         indices: indices,
-        recommendations: mapChartKlines(pageResult.items, period, strategyId),
         totalCount: pageResult.totalNum,
         hasMore: pageResult.hasMore,
         loading: false
       });
       applyKlinesForItems(self, pageResult.items, period);
-      return barMarkers.enrichItemsWithBarMarkers(pageResult.items, strategyId, period).then(function (enriched) {
-        self._baseList = enriched;
-        self.setData({
-          recommendations: mapChartKlines(enriched, period, strategyId)
-        });
-      });
     }).catch(function () {
       if (config.fallbackOnError) {
         self._allRecommendations = buildStrategyRecommendations();
@@ -577,7 +580,8 @@ Page({
       return;
     }
     const self = this;
-    const baseList = this._baseList || [];
+    const baseList = listMemory.slimListKlines(this._baseList || [], period);
+    this._baseList = baseList;
     this.setData({
       activePeriod: period,
       recommendations: mapChartKlines(baseList, period, strategyId)
