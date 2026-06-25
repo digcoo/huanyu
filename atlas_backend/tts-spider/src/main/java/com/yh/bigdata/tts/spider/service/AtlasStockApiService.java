@@ -42,6 +42,10 @@ public interface AtlasStockApiService {
 
     AtlasGc2MarkersVo getGc2Markers(String code, String period);
 
+    AtlasGc2MarkersVo getBogoMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getTrendmMarkers(String code, String period);
+
     AtlasDc2MarkersVo getDc2Markers(String code, String period);
 
     AtlasStockDetailVo getDetail(String code);

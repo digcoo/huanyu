@@ -363,7 +363,17 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getLgRequireYearMacd()),
                 String.valueOf(pageQuery.getLgRequireMonthMacd()),
                 String.valueOf(pageQuery.getLgRequireYearGoldenCross()),
-                String.valueOf(pageQuery.getLgRequireUltra()));
+                String.valueOf(pageQuery.getLgRequireUltra()),
+                String.valueOf(pageQuery.getNrfActiveTier()),
+                String.valueOf(pageQuery.getBoEnableDay()),
+                String.valueOf(pageQuery.getBoEnableWeek()),
+                String.valueOf(pageQuery.getBoEnableMonth()),
+                String.valueOf(pageQuery.getBoLookbackDay()),
+                String.valueOf(pageQuery.getBoLookbackWeek()),
+                String.valueOf(pageQuery.getBoLookbackMonth()),
+                String.valueOf(pageQuery.getTmLookbackDay()),
+                String.valueOf(pageQuery.getTmLookbackWeek()),
+                String.valueOf(pageQuery.getTmLookbackMonth()));
     }
 
     public void clearRecommendCache() {
@@ -402,6 +412,9 @@ public class StockBaseController {
                 .trendV2(stockPageQuery.toTrendV2Params())
                 .medium(stockPageQuery.toMediumParams())
                 .longTerm(stockPageQuery.toLongParams())
+                .frictionlessLadder(stockPageQuery.toFrictionlessParams())
+                .bogo(stockPageQuery.toBogoParams())
+                .trendm(stockPageQuery.toTrendmParams())
                 .build();
 
     }

@@ -12,6 +12,18 @@
     </view>
 
     <scroll-view class="params-body" scroll-y enhanced show-scrollbar="{{false}}">
+      <view wx:if="{{tierMode}}" class="ladder-tier-bar">
+        <view
+          wx:for="{{ladderTiers}}"
+          wx:key="id"
+          class="ladder-tier-item {{ladderTier === item.id ? 'active' : ''}}"
+          data-tier="{{item.id}}"
+          bindtap="onLadderTierTabChange"
+        >
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+
       <block wx:for="{{schema}}" wx:for-index="idx" wx:key="idx">
         <view wx:if="{{item.type === 'section'}}" class="section-block">
           <text class="section-label">{{item.label}}</text>

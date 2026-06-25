@@ -18,7 +18,9 @@ import com.yh.bigdata.tts.spider.service.AtlasDetailComputeService;
 import com.yh.bigdata.tts.spider.service.AtlasIndustryChainService;
 import com.yh.bigdata.tts.spider.service.AtlasStockApiService;
 import com.yh.bigdata.tts.spider.service.StockService;
+import com.yh.bigdata.tts.common.param.BogoStrategyParams;
 import com.yh.bigdata.tts.common.param.Dc2StrategyParams;
+import com.yh.bigdata.tts.common.param.TrendmStrategyParams;
 import com.yh.bigdata.tts.common.param.Gc2StrategyParams;
 import com.yh.bigdata.tts.common.param.RetestStrategyParams;
 import com.yh.bigdata.tts.common.param.UltraLowReboundStrategyParams;
@@ -26,7 +28,9 @@ import com.yh.bigdata.tts.common.param.LongStrategyParams;
 import com.yh.bigdata.tts.common.param.MediumStrategyParams;
 import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
+import com.yh.bigdata.tts.spider.strategy.tools.bogo.BogoMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.dc2.Dc2MarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.trendm.TrendmMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.gc2.Gc2MarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.retest.RetestMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.LadderMarkersTools;
@@ -227,6 +231,26 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
             periodType = PeriodTypeEnum.DAY;
         }
         return Gc2MarkersTools.resolve(stock, periodType, Gc2StrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getBogoMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return BogoMarkersTools.resolve(stock, periodType, BogoStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getTrendmMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return TrendmMarkersTools.resolve(stock, periodType, TrendmStrategyParams.defaults());
     }
 
     @Override

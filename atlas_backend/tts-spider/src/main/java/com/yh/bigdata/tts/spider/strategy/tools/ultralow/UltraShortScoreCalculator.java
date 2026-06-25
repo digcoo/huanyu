@@ -1,6 +1,7 @@
 package com.yh.bigdata.tts.spider.strategy.tools.ultralow;
 
 import com.yh.bigdata.tts.common.model.Trade;
+import com.yh.bigdata.tts.spider.strategy.tools.frictionless.StrategyGlobalGateTools;
 
 public final class UltraShortScoreCalculator {
 
@@ -19,12 +20,13 @@ public final class UltraShortScoreCalculator {
     }
 
     public static String buildTrendMessage(UltraShortEvaluator.UltraShortEvaluation eval) {
+        String prefix = "[ULTRA]超短线|" + StrategyGlobalGateTools.FULL_GATE_LABEL;
         if (eval.getHit() == null || eval.getHit().getReferenceBar() == null) {
-            return "[ULTRA]超短线·前两日局部新高/最近强K基准";
+            return prefix + "|前两日局部新高/最近强K基准";
         }
         Trade ref = eval.getHit().getReferenceBar();
         double bodyPct = ref.getShitiRate() != null ? ref.getShitiRate() * 100 : 0;
-        return String.format("[ULTRA]超短线·局部新高/最近强K基准|refDay=%s,refHigh=%.2f,实体+%.1f%%,窗口%d根",
+        return String.format(prefix + "|局部新高/最近强K基准|refDay=%s,refHigh=%.2f,实体+%.1f%%,窗口%d根",
                 safeDay(ref),
                 ref.getHigh() != null ? ref.getHigh() : 0,
                 bodyPct,

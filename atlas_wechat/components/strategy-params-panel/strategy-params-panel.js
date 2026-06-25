@@ -26,7 +26,10 @@ Component({
     tierIndex: 0,
     tierLabels: [],
     tierKey: 'uTierMin',
-    applying: false
+    applying: false,
+    tierMode: false,
+    ladderTier: 'short',
+    ladderTiers: strategyParams.NRF_TIERS
   },
 
   observers: {
@@ -43,12 +46,9 @@ Component({
   },
 
   methods: {
-    initForm: function () {
-      var strategyId = this.properties.strategyId || 'trend';
-      var schema = strategyParams.getSchema(strategyId);
-      var form = strategyParams.load(strategyId);
-      var tierField = schema.find(function (f) {
-        return f.type === 'picker' && /TierMin$/.test(f.key);
+    resolvePickerState: function (schema, form) {
+      var tierField = (schema || []).find(function (f) {
+        return f.type === 'picker' && f.options && f.options.length;
       });
       var tierIndex = 0;
       var tierLabels = [];
@@ -59,7 +59,49 @@ Component({
           if (o.value === form[tierKey]) tierIndex = idx;
         });
       }
-      this.setData({ schema: schema, form: form, tierIndex: tierIndex, tierLabels: tierLabels, tierKey: tierKey });
+      return { tierIndex: tierIndex, tierLabels: tierLabels, tierKey: tierKey };
+    },
+
+    initForm: function () {
+      var strategyId = this.properties.strategyId || 'trend';
+      var tierMode = strategyId === 'nrf';
+      var tierList = strategyParams.getTierListFor(strategyId);
+      var ladderTier = tierMode
+        ? (strategyParams.load(strategyId).activeTier || 'short')
+        : 'short';
+      var schema = tierMode
+        ? strategyParams.getPanelSchema(strategyId, ladderTier)
+        : strategyParams.getSchema(strategyId);
+      var form = tierMode
+        ? strategyParams.loadTierFormFor(strategyId, ladderTier)
+        : strategyParams.load(strategyId);
+      var pickerState = this.resolvePickerState(schema, form);
+
+      this.setData(Object.assign({
+        schema: schema,
+        form: form,
+        tierMode: tierMode,
+        ladderTier: ladderTier,
+        ladderTiers: tierList
+      }, pickerState));
+    },
+
+    onLadderTierTabChange: function (e) {
+      var tier = e.currentTarget.dataset.tier;
+      if (!tier || tier === this.data.ladderTier) return;
+
+      var strategyId = this.properties.strategyId || 'trend';
+      strategyParams.saveTierFormFor(strategyId, this.data.ladderTier, this.data.form, false);
+
+      var schema = strategyParams.getPanelSchema(strategyId, tier);
+      var form = strategyParams.loadTierFormFor(strategyId, tier);
+      var pickerState = this.resolvePickerState(schema, form);
+
+      this.setData(Object.assign({
+        ladderTier: tier,
+        schema: schema,
+        form: form
+      }, pickerState));
     },
 
     onMaskTap: function () {
@@ -103,23 +145,37 @@ Component({
 
     onReset: function () {
       var strategyId = this.properties.strategyId || 'trend';
-      var form = strategyParams.reset(strategyId);
+      if (strategyId === 'nrf') {
+        strategyParams.resetTierFor(strategyId, this.data.ladderTier);
+        this.initForm();
+        wx.showToast({ title: '已恢复当前档位默认', icon: 'none' });
+        return;
+      }
+      strategyParams.reset(strategyId);
       this.initForm();
-      this.setData({ form: form });
       wx.showToast({ title: '已恢复默认', icon: 'none' });
     },
 
     onApply: function () {
-      var self = this;
       var strategyId = this.properties.strategyId || 'trend';
-      var saved = strategyParams.save(strategyId, this.data.form);
+      var saved;
+      if (strategyId === 'nrf') {
+        saved = strategyParams.saveTierFormFor(strategyId, this.data.ladderTier, this.data.form, true);
+      } else {
+        saved = strategyParams.save(strategyId, this.data.form);
+      }
       this.setData({ applying: true });
       this.triggerEvent('apply', { strategyId: strategyId, params: saved, rescan: true });
     },
 
     onPreviewOnly: function () {
       var strategyId = this.properties.strategyId || 'trend';
-      var saved = strategyParams.save(strategyId, this.data.form);
+      var saved;
+      if (strategyId === 'nrf') {
+        saved = strategyParams.saveTierFormFor(strategyId, this.data.ladderTier, this.data.form, true);
+      } else {
+        saved = strategyParams.save(strategyId, this.data.form);
+      }
       this.triggerEvent('apply', { strategyId: strategyId, params: saved, rescan: false });
       this.triggerEvent('close');
     },

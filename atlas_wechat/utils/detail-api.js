@@ -17,7 +17,8 @@ function loadDetail(id, period) {
     stockApi.fetchDetail(code),
     stockApi.fetchKlines(code, period, stockApi.klineLimitForPeriod(period)),
     stockApi.fetchCompass(code),
-    strategy === 'ladder' ? stockApi.fetchSummary(code) : Promise.resolve(null)
+    strategy === 'nrf' || strategy === 'bogo' || strategy === 'trendm'
+      ? stockApi.fetchSummary(code) : Promise.resolve(null)
   ]).then(function (results) {
     var detailRes = results[0];
     var bars = results[1];

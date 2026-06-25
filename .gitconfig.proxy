@@ -1,0 +1,9 @@
+# 仓库级 Git 代理（Clash / V2Ray 等系统代理，默认 8890）
+# 启用：.\scripts\setup-git-proxy.ps1
+
+[http]
+	proxy = http://127.0.0.1:8890
+[https]
+	proxy = http://127.0.0.1:8890
+[http "https://github.com"]
+	proxy = http://127.0.0.1:8890

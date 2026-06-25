@@ -1,6 +1,6 @@
 const config = require('./config');
 const stockApi = require('./stock-api');
-const adapter = require('./adapter');
+const strategyParams = require('./strategy-params');
 
 var LONG_MARKER_PERIODS = ['month'];
 
@@ -43,7 +43,7 @@ function buildMockLongMarkers(klines) {
 }
 
 function isLongStrategy(strategyId) {
-  return adapter.normalizeStrategyId(strategyId) === 'long';
+  return strategyParams.resolveApiStrategyId(strategyId) === 'long';
 }
 
 function shouldShowLongMarkers(strategyId, period) {
@@ -58,10 +58,10 @@ function resolveBarMarkersForItem(item, strategyId, period, klines) {
   return barMarkersFromItem(item);
 }
 
-function fetchBarMarkersForItem(item, period) {
+function fetchBarMarkersForItem(item, uiStrategyId, period) {
   var cached = barMarkersFromItem(item);
   if (cached.length) return Promise.resolve(cached);
-  return stockApi.fetchLongMarkers(item.code, period).then(function (m) {
+  return stockApi.fetchLongMarkers(item.code, period, uiStrategyId).then(function (m) {
     if (m && (m.referenceDay || m.signalDay)) {
       return markersVoToBarMarkers(m);
     }
@@ -88,7 +88,7 @@ function enrichItemsWithLongMarkers(items, strategyId, period) {
     }));
   }
   return Promise.all(items.map(function (item) {
-    return fetchBarMarkersForItem(item, period).then(function (markers) {
+    return fetchBarMarkersForItem(item, strategyId, period).then(function (markers) {
       return Object.assign({}, item, { barMarkers: markers });
     });
   }));

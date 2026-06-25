@@ -1,0 +1,25 @@
+---
+description: Git/GitHub 操作必须走本地代理（8890）
+alwaysApply: true
+---
+
+# Git / GitHub 代理
+
+本机访问 GitHub 需经系统代理 `http://127.0.0.1:8890`（Clash/V2Ray 等）。浏览器会自动走代理，Git / gh / Cursor Agent 终端默认不会。
+
+## 执行任何 GitHub 网络操作前
+
+1. 确认仓库已启用本地代理配置（只需一次）：
+   ```powershell
+   .\scripts\setup-git-proxy.ps1
+   ```
+2. 在**同一条 shell 命令**里为 `git push` / `git pull` / `git fetch` / `gh` 设置环境变量：
+   ```powershell
+   $env:HTTP_PROXY='http://127.0.0.1:8890'; $env:HTTPS_PROXY='http://127.0.0.1:8890'; git push ...
+   ```
+
+## 说明
+
+- 仓库根目录 `.gitconfig.proxy` 通过 `include.path` 注入到 `.git/config`，Agent 沙箱不依赖全局 `~/.gitconfig`。
+- `gh` CLI 只认 `HTTP_PROXY` / `HTTPS_PROXY`，不认 Git 的 `http.proxy`。
+- 代理软件需保持运行；若端口不是 8890，改 `.gitconfig.proxy` 后重新执行 setup 脚本。

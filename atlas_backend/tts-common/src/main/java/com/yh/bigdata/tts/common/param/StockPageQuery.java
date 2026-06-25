@@ -199,6 +199,29 @@ public class StockPageQuery extends PageQuery {
     /** 长线 · 须同时满足超短 30m 突破 */
     private Boolean lgRequireUltra;
 
+    /** 无阻力梯子 · 档位 short/medium/long（同梯子策略） */
+    private String nrfActiveTier;
+
+    /** 底部机会 · 启用日 K */
+    private Boolean boEnableDay;
+    /** 底部机会 · 启用周 K */
+    private Boolean boEnableWeek;
+    /** 底部机会 · 启用月 K */
+    private Boolean boEnableMonth;
+    /** 底部机会 · 日 K lookback */
+    private Integer boLookbackDay;
+    /** 底部机会 · 周 K lookback */
+    private Integer boLookbackWeek;
+    /** 底部机会 · 月 K lookback */
+    private Integer boLookbackMonth;
+
+    /** 趋势策略 · 日 K lookback */
+    private Integer tmLookbackDay;
+    /** 趋势策略 · 周 K lookback */
+    private Integer tmLookbackWeek;
+    /** 趋势策略 · 月 K lookback */
+    private Integer tmLookbackMonth;
+
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
 	}
@@ -568,6 +591,51 @@ public class StockPageQuery extends PageQuery {
             b.requireUltra(lgRequireUltra);
         }
         return LongStrategyParams.merge(b.build());
+    }
+
+    public FrictionlessLadderStrategyParams toFrictionlessParams() {
+        FrictionlessLadderStrategyParams incoming = new FrictionlessLadderStrategyParams();
+        if (nrfActiveTier != null && !nrfActiveTier.isEmpty()) {
+            incoming.setActiveTier(FrictionlessLadderStrategyParams.parseActiveTier(nrfActiveTier));
+        }
+        return FrictionlessLadderStrategyParams.merge(incoming);
+    }
+
+    public BogoStrategyParams toBogoParams() {
+        BogoStrategyParams.BogoStrategyParamsBuilder b = BogoStrategyParams.builder();
+        if (boEnableDay != null) {
+            b.enableDay(boEnableDay);
+        }
+        if (boEnableWeek != null) {
+            b.enableWeek(boEnableWeek);
+        }
+        if (boEnableMonth != null) {
+            b.enableMonth(boEnableMonth);
+        }
+        if (boLookbackDay != null && boLookbackDay >= 10) {
+            b.lookbackDay(boLookbackDay);
+        }
+        if (boLookbackWeek != null && boLookbackWeek >= 10) {
+            b.lookbackWeek(boLookbackWeek);
+        }
+        if (boLookbackMonth != null && boLookbackMonth >= 6) {
+            b.lookbackMonth(boLookbackMonth);
+        }
+        return BogoStrategyParams.merge(b.build());
+    }
+
+    public TrendmStrategyParams toTrendmParams() {
+        TrendmStrategyParams.TrendmStrategyParamsBuilder b = TrendmStrategyParams.builder();
+        if (tmLookbackDay != null && tmLookbackDay >= 10) {
+            b.lookbackDay(tmLookbackDay);
+        }
+        if (tmLookbackWeek != null && tmLookbackWeek >= 10) {
+            b.lookbackWeek(tmLookbackWeek);
+        }
+        if (tmLookbackMonth != null && tmLookbackMonth >= 6) {
+            b.lookbackMonth(tmLookbackMonth);
+        }
+        return TrendmStrategyParams.merge(b.build());
     }
 
 }

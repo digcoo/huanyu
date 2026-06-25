@@ -1,6 +1,6 @@
 const config = require('./config');
 const stockApi = require('./stock-api');
-const adapter = require('./adapter');
+const strategyParams = require('./strategy-params');
 
 var MEDIUM_MARKER_PERIODS = ['week'];
 
@@ -43,7 +43,7 @@ function buildMockMediumMarkers(klines) {
 }
 
 function isMediumStrategy(strategyId) {
-  return adapter.normalizeStrategyId(strategyId) === 'medium';
+  return strategyParams.resolveApiStrategyId(strategyId) === 'medium';
 }
 
 function shouldShowMediumMarkers(strategyId, period) {
@@ -58,10 +58,10 @@ function resolveBarMarkersForItem(item, strategyId, period, klines) {
   return barMarkersFromItem(item);
 }
 
-function fetchBarMarkersForItem(item, period) {
+function fetchBarMarkersForItem(item, uiStrategyId, period) {
   var cached = barMarkersFromItem(item);
   if (cached.length) return Promise.resolve(cached);
-  return stockApi.fetchMediumMarkers(item.code, period).then(function (m) {
+  return stockApi.fetchMediumMarkers(item.code, period, uiStrategyId).then(function (m) {
     if (m && (m.referenceDay || m.signalDay)) {
       return markersVoToBarMarkers(m);
     }
@@ -88,7 +88,7 @@ function enrichItemsWithMediumMarkers(items, strategyId, period) {
     }));
   }
   return Promise.all(items.map(function (item) {
-    return fetchBarMarkersForItem(item, period).then(function (markers) {
+    return fetchBarMarkersForItem(item, strategyId, period).then(function (markers) {
       return Object.assign({}, item, { barMarkers: markers });
     });
   }));

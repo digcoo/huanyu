@@ -21,19 +21,15 @@ function encodePath(code) {
 
 /** 策略 API 查询参数（findMy / rescan 共用） */
 function buildStrategyQueryParams(strategyId) {
+  var apiStrategyId = strategyParams.resolveApiStrategyId(strategyId);
+  var apiConfigId = strategyId === 'nrf' ? 'nrf' : apiStrategyId;
   var params = Object.assign(
     {},
-    adapter.getStrategyApiParams(strategyId),
+    adapter.getStrategyApiParams(apiConfigId),
     strategyParams.toApiParams(strategyId)
   );
-  if (strategyId === 'trend' || strategyId === 'medium' || strategyId === 'long') {
-    var own = strategyParams.load(strategyId);
-    var requireUltra = strategyId === 'trend' ? own.trRequireUltra !== false
-      : strategyId === 'medium' ? own.mdRequireUltra !== false
-      : own.lgRequireUltra !== false;
-    if (requireUltra) {
-      Object.assign(params, strategyParams.toApiParams('ultra'));
-    }
+  if (strategyId === 'nrf' || strategyId === 'trendm') {
+    Object.assign(params, strategyParams.toApiParams('ultra'));
   }
   return params;
 }
@@ -42,24 +38,31 @@ function fetchHealth() {
   return api.get('/stock/health');
 }
 
+function toPageNum(v) {
+  var n = Number(v);
+  return n > 0 ? n : 1;
+}
+
 function resolveHasMore(data, page, itemCount) {
   if (!data) return false;
+  page = toPageNum(page);
   var isMore = data.isMore;
   if (isMore === 1 || isMore === true || isMore === '1') return true;
-  if (isMore === 0 || isMore === false || isMore === '0') return false;
   if (data.currentPage != null && data.totalPage != null) {
-    return data.currentPage < data.totalPage;
+    return toPageNum(data.currentPage) < toPageNum(data.totalPage);
   }
+  if (isMore === 0 || isMore === false || isMore === '0') return false;
   if (data.totalNum != null && itemCount > 0) {
-    var size = data.pageSize || RECOMMEND_PAGE_SIZE;
-    return page * size < data.totalNum;
+    var size = Number(data.pageSize) || RECOMMEND_PAGE_SIZE;
+    return page * size < Number(data.totalNum);
   }
   return itemCount >= RECOMMEND_PAGE_SIZE;
 }
 
 function fetchRecommendations(strategyId, page, size) {
-  page = page || 1;
+  page = toPageNum(page);
   size = size || RECOMMEND_PAGE_SIZE;
+  var apiStrategyId = strategyParams.resolveApiStrategyId(strategyId);
   return api.get('/stock/findMy', Object.assign({}, buildStrategyQueryParams(strategyId), {
     all: true,
     page: page,
@@ -69,14 +72,16 @@ function fetchRecommendations(strategyId, page, size) {
       return { items: [], page: page, totalNum: 0, hasMore: false };
     }
     var data = res.data;
+    var currentPage = toPageNum(data.currentPage || page);
     var items = (data.items || []).map(function (item) {
-      return adapter.mapRecommendation(item, strategyId);
+      var mapId = strategyId === 'nrf' ? 'nrf' : apiStrategyId;
+      return adapter.mapRecommendation(item, mapId);
     });
     return {
       items: items,
-      page: data.currentPage || page,
-      totalNum: data.totalNum != null ? data.totalNum : items.length,
-      hasMore: resolveHasMore(data, data.currentPage || page, items.length)
+      page: currentPage,
+      totalNum: data.totalNum != null ? Number(data.totalNum) : items.length,
+      hasMore: resolveHasMore(data, currentPage, items.length)
     };
   });
 }
@@ -139,9 +144,22 @@ function fetchLadderMarkers(code, period) {
   });
 }
 
+function markerQueryParams(uiStrategyId, apiStrategyId) {
+  if (uiStrategyId === 'nrf') {
+    return strategyParams.toApiParams('nrf');
+  }
+  if (uiStrategyId === 'trendm') {
+    return strategyParams.toApiParams('ultra');
+  }
+  return strategyParams.toApiParams(apiStrategyId);
+}
+
 /** 超短线 · 基准 K / 突破 K 标记 */
-function fetchUltraMarkers(code, period) {
-  var params = Object.assign({ period: period || 'min30' }, strategyParams.toApiParams('ultra'));
+function fetchUltraMarkers(code, period, uiStrategyId) {
+  var params = Object.assign(
+    { period: period || 'min30' },
+    markerQueryParams(uiStrategyId || 'ultra', 'ultra')
+  );
   return api.get('/stock/' + encodePath(code) + '/ultra/markers', params).then(function (res) {
     if (!res.ok || !res.data) return null;
     return res.data;
@@ -149,8 +167,11 @@ function fetchUltraMarkers(code, period) {
 }
 
 /** 短线 · 基准 K / 突破 K 标记 */
-function fetchTrendMarkers(code, period) {
-  var params = Object.assign({ period: period || 'day' }, strategyParams.toApiParams('trend'));
+function fetchTrendMarkers(code, period, uiStrategyId) {
+  var params = Object.assign(
+    { period: period || 'day' },
+    markerQueryParams(uiStrategyId, 'trend')
+  );
   return api.get('/stock/' + encodePath(code) + '/trend/markers', params).then(function (res) {
     if (!res.ok || !res.data) return null;
     return res.data;
@@ -158,8 +179,11 @@ function fetchTrendMarkers(code, period) {
 }
 
 /** 中线 · 基准 K / 突破 K 标记 */
-function fetchMediumMarkers(code, period) {
-  var params = Object.assign({ period: period || 'week' }, strategyParams.toApiParams('medium'));
+function fetchMediumMarkers(code, period, uiStrategyId) {
+  var params = Object.assign(
+    { period: period || 'week' },
+    markerQueryParams(uiStrategyId, 'medium')
+  );
   return api.get('/stock/' + encodePath(code) + '/medium/markers', params).then(function (res) {
     if (!res.ok || !res.data) return null;
     return res.data;
@@ -167,8 +191,11 @@ function fetchMediumMarkers(code, period) {
 }
 
 /** 长线 · 基准 K / 突破 K 标记 */
-function fetchLongMarkers(code, period) {
-  var params = Object.assign({ period: period || 'month' }, strategyParams.toApiParams('long'));
+function fetchLongMarkers(code, period, uiStrategyId) {
+  var params = Object.assign(
+    { period: period || 'month' },
+    markerQueryParams(uiStrategyId, 'long')
+  );
   return api.get('/stock/' + encodePath(code) + '/long/markers', params).then(function (res) {
     if (!res.ok || !res.data) return null;
     return res.data;
@@ -188,6 +215,26 @@ function fetchRetestMarkers(code, period) {
 /** 金叉二次突破 · 金叉K / 突破K 标记 */
 function fetchGc2Markers(code, period) {
   return api.get('/stock/' + encodePath(code) + '/gc2/markers', {
+    period: period || 'day'
+  }).then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
+/** 底部机会 · 基准 K / 突破 K 标记 */
+function fetchBogoMarkers(code, period) {
+  return api.get('/stock/' + encodePath(code) + '/bogo/markers', {
+    period: period || 'day'
+  }).then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
+/** 趋势策略 · 基准 K / 突破 K 标记 */
+function fetchTrendmMarkers(code, period) {
+  return api.get('/stock/' + encodePath(code) + '/trendm/markers', {
     period: period || 'day'
   }).then(function (res) {
     if (!res.ok || !res.data) return null;
@@ -282,6 +329,8 @@ module.exports = {
   fetchLongMarkers: fetchLongMarkers,
   fetchRetestMarkers: fetchRetestMarkers,
   fetchGc2Markers: fetchGc2Markers,
+  fetchBogoMarkers: fetchBogoMarkers,
+  fetchTrendmMarkers: fetchTrendmMarkers,
   fetchDc2Markers: fetchDc2Markers,
   fetchUlowMarkers: fetchLadderMarkers,
   fetchSummary: fetchSummary,

@@ -97,7 +97,6 @@
           <text class="list-subtitle">Atlas 推荐</text>
           <text wx:if="{{!loading}}" class="list-total">共 {{totalCount}} 条{{recommendations.length > 0 && recommendations.length < totalCount ? ' · 已显示 ' + recommendations.length : ''}}</text>
         </view>
-        <text wx:if="{{paramsSummary}}" class="list-params">{{paramsSummary}}</text>
       </view>
 
       <view wx:if="{{showStrategyParams}}" class="list-header-actions">

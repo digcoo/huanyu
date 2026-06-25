@@ -17,19 +17,24 @@ const DEFAULT_STRATEGY = 'ultra';
 
 const ACTIVE_STRATEGIES = [
   { id: 'ultra', name: '超短线', icon: '⚡' },
-  { id: 'trend', name: '短线', icon: '📈' },
-  { id: 'medium', name: '中线', icon: '📊' },
-  { id: 'long', name: '长线', icon: '📉' }
+  { id: 'nrf', name: '无阻力梯子', icon: '🛤' },
+  { id: 'bogo', name: '底部机会', icon: '📈' },
+  { id: 'trendm', name: '趋势', icon: '📊' }
 ];
 
 const STRATEGY_TITLES = {
   ultra: '超短线策略',
-  trend: '短线策略',
-  medium: '中线策略',
-  long: '长线策略'
+  nrf: '无阻力梯子',
+  bogo: '底部机会',
+  trendm: '趋势策略'
 };
 
 const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
+
+function toPageNum(v) {
+  var n = Number(v);
+  return n > 0 ? n : 1;
+}
 
 function mapChartKlines(list, period, strategyId) {
   return list.map(function (item) {
@@ -58,13 +63,28 @@ function applyHeldList(self, list, period, strategyId, extra) {
   self.setData(patch);
 }
 
-function normalizeSavedStrategy(strategyId) {
+function migrateSavedStrategy(strategyId) {
   var id = strategyId || DEFAULT_STRATEGY;
+  if (id === 'ladder' || id === 'ultraLow') {
+    var fromLadder = strategyParams.load('nrf');
+    return { strategy: 'nrf', tier: fromLadder.activeTier || 'short' };
+  }
+  if (id === 'trend') return { strategy: 'nrf', tier: 'short' };
+  if (id === 'medium') return { strategy: 'nrf', tier: 'medium' };
+  if (id === 'long') return { strategy: 'nrf', tier: 'long' };
   var ok = ACTIVE_STRATEGIES.some(function (s) { return s.id === id; });
-  return ok ? id : DEFAULT_STRATEGY;
+  var nrfBundle = strategyParams.load('nrf');
+  return {
+    strategy: ok ? id : DEFAULT_STRATEGY,
+    tier: nrfBundle.activeTier || 'short'
+  };
 }
 
-function strategyTitleFor(strategyId) {
+function strategyTitleFor(strategyId, tier) {
+  if (strategyId === 'nrf') {
+    var nrfTier = tier || strategyParams.load('nrf').activeTier || 'short';
+    return '无阻力梯子 · ' + strategyParams.nrfTierTitle(nrfTier);
+  }
   return STRATEGY_TITLES[strategyId] || '策略';
 }
 
@@ -94,7 +114,9 @@ function dedupeAppend(baseList, newItems) {
 
 function resolvePagedHasMore(hasMore, lastPage, totalNum) {
   if (hasMore) return true;
-  if (totalNum > 0 && lastPage > 0 && lastPage * RECOMMEND_PAGE_SIZE < totalNum) {
+  var page = toPageNum(lastPage);
+  var total = Number(totalNum) || 0;
+  if (total > 0 && page * RECOMMEND_PAGE_SIZE < total) {
     return true;
   }
   return false;
@@ -119,17 +141,18 @@ function filterNovelItems(items, seen) {
  */
 function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage) {
   targetCount = targetCount || RECOMMEND_PAGE_SIZE;
-  startPage = startPage || 1;
+  startPage = toPageNum(startPage);
   var accumulated = [];
   var totalNum = 0;
   var lastPage = startPage - 1;
   var hasMore = false;
 
   function fetchPage(page) {
+    page = toPageNum(page);
     return stockApi.fetchRecommendations(strategyId, page, RECOMMEND_PAGE_SIZE).then(function (result) {
       totalNum = result.totalNum != null ? result.totalNum : 0;
       hasMore = !!result.hasMore;
-      lastPage = result.page || page;
+      lastPage = toPageNum(result.page || page);
       accumulated = accumulated.concat(filterIgnored(result.items, ignored));
       if (accumulated.length >= targetCount || !hasMore) {
         return {
@@ -139,7 +162,7 @@ function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage
           hasMore: resolvePagedHasMore(hasMore, lastPage, totalNum)
         };
       }
-      return fetchPage(page + 1);
+      return fetchPage(lastPage + 1);
     });
   }
 
@@ -150,56 +173,54 @@ function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage
  * 加载更多：严格按后端页码追加，避免与首屏重复
  */
 function fetchNextRecommendationsPage(strategyId, ignored, backendPage, seenIds) {
-  var nextPage = (backendPage || 1) + 1;
   var seen = seenIds || {};
+  var startPage = toPageNum(backendPage) + 1;
 
   function fetchFrom(page) {
+    page = toPageNum(page);
     return stockApi.fetchRecommendations(strategyId, page, RECOMMEND_PAGE_SIZE).then(function (result) {
+      var pageNum = toPageNum(result.page || page);
+      var totalNum = result.totalNum != null ? Number(result.totalNum) : 0;
+      var more = resolvePagedHasMore(!!result.hasMore, pageNum, totalNum);
       var visible = filterIgnored(result.items, ignored);
       var novel = filterNovelItems(visible, seen);
-      if (novel.length === 0 && result.hasMore) {
-        return fetchFrom(page + 1);
+      if (novel.length === 0 && more) {
+        seen = listMemory.rememberSeenIds(seen, visible);
+        return fetchFrom(pageNum + 1);
       }
       seen = listMemory.rememberSeenIds(seen, novel);
       return {
         items: novel,
-        page: result.page || page,
-        totalNum: result.totalNum != null ? result.totalNum : 0,
-        hasMore: resolvePagedHasMore(!!result.hasMore, result.page || page, result.totalNum),
+        page: pageNum,
+        totalNum: totalNum,
+        hasMore: more,
         seenIds: seen
       };
     });
   }
 
-  return fetchFrom(nextPage);
+  return fetchFrom(startPage);
 }
 
 function attachKlinesInBackground(self, items, period) {
   if (!items || !items.length) return Promise.resolve([]);
   return stockApi.attachKlinesToItems(items, period, null, true).then(function (withKlines) {
+    var strategyId = self.data.activeStrategy;
+    var activePeriod = period || self.data.activePeriod;
     var klineById = {};
     withKlines.forEach(function (item) {
       klineById[item.id] = listMemory.slimItemKlines(item, period);
     });
-    if (self._baseList && self._baseList.length) {
-      var strategyId = self.data.activeStrategy;
-      var activePeriod = period || self.data.activePeriod;
-      var merged = self._baseList.map(function (item) {
-        return klineById[item.id] ? Object.assign({}, item, klineById[item.id]) : item;
-      });
-      return barMarkers.enrichItemsWithBarMarkers(withKlines, strategyId, activePeriod).then(function (enriched) {
-        var markerById = {};
-        enriched.forEach(function (item) {
-          markerById[item.id] = item;
-        });
-        merged = merged.map(function (item) {
-          return markerById[item.id] ? Object.assign({}, item, markerById[item.id]) : item;
-        });
-        applyHeldList(self, merged, activePeriod, strategyId);
-        return merged;
-      });
-    }
-    return withKlines;
+    var merged = (self._baseList && self._baseList.length ? self._baseList : items).map(function (item) {
+      return klineById[item.id] ? Object.assign({}, item, klineById[item.id]) : item;
+    });
+    applyHeldList(self, merged, activePeriod, strategyId);
+    return barMarkers.enrichItemsWithBarMarkers(merged, strategyId, activePeriod).then(function (enriched) {
+      applyHeldList(self, enriched, activePeriod, strategyId);
+      return enriched;
+    }).catch(function () {
+      return merged;
+    });
   }).catch(function () {
     return items;
   });
@@ -219,6 +240,7 @@ Page({
     markets: buildMarketsForUI(),
     strategies: ACTIVE_STRATEGIES,
     activeStrategy: DEFAULT_STRATEGY,
+    activeLadderTier: 'short',
     strategyTitle: strategyTitleFor(DEFAULT_STRATEGY),
 
     activeMarket: 'cn',
@@ -235,7 +257,6 @@ Page({
     hasMore: false,
     paramsVisible: false,
     showStrategyParams: false,
-    paramsSummary: '',
     paramsCustomized: false,
     rescanning: false,
     showBackTop: false
@@ -248,10 +269,20 @@ Page({
     const navPaddingRight = sys.windowWidth - menu.left + 8;
 
     const savedPeriod = wx.getStorageSync('activePeriod') || 'week';
-    const savedStrategy = normalizeSavedStrategy(wx.getStorageSync('activeStrategy'));
-    if (savedStrategy !== wx.getStorageSync('activeStrategy')) {
-      wx.setStorageSync('activeStrategy', savedStrategy);
+    const migrated = migrateSavedStrategy(wx.getStorageSync('activeStrategy'));
+    if (migrated.strategy === 'nrf' && migrated.tier) {
+      strategyParams.saveTierFormFor(
+        'nrf',
+        migrated.tier,
+        strategyParams.loadTierFormFor('nrf', migrated.tier),
+        true
+      );
     }
+    if (migrated.strategy !== wx.getStorageSync('activeStrategy')) {
+      wx.setStorageSync('activeStrategy', migrated.strategy);
+    }
+    const savedStrategy = migrated.strategy;
+    const savedTier = migrated.tier || 'short';
     const initialPeriod = strategyParams.chartPrimaryPeriod(savedStrategy, strategyParams.load(savedStrategy))
       || savedPeriod;
     const klineFlipped = !!wx.getStorageSync('klineFlipped');
@@ -261,7 +292,8 @@ Page({
       navPaddingRight,
       activePeriod: initialPeriod,
       activeStrategy: savedStrategy,
-      strategyTitle: strategyTitleFor(savedStrategy),
+      activeLadderTier: savedTier,
+      strategyTitle: strategyTitleFor(savedStrategy, savedTier),
       klineFlipped
     });
 
@@ -312,7 +344,6 @@ Page({
     var show = !config.useMock && strategyParams.hasCustomParams(strategyId);
     this.setData({
       showStrategyParams: show,
-      paramsSummary: show ? strategyParams.formatSummary(strategyId) : '',
       paramsCustomized: show && strategyParams.isCustomized(strategyId)
     });
   },
@@ -328,6 +359,21 @@ Page({
   onParamsApply(e) {
     var detail = (e && e.detail) || {};
     var strategyId = detail.strategyId || this.data.activeStrategy;
+    var patch = {};
+    if (strategyId === 'nrf') {
+      var nrfBundle = strategyParams.load('nrf');
+      var nrfTier = nrfBundle.activeTier || 'short';
+      patch.activeLadderTier = nrfTier;
+      patch.strategyTitle = strategyTitleFor('nrf', nrfTier);
+      var nrfPeriod = strategyParams.chartPrimaryPeriod('nrf', nrfBundle);
+      if (nrfPeriod) {
+        patch.activePeriod = nrfPeriod;
+        wx.setStorageSync('activePeriod', nrfPeriod);
+      }
+    }
+    if (Object.keys(patch).length) {
+      this.setData(patch);
+    }
     this.refreshParamsBadge(strategyId);
 
     if (config.useMock) {
@@ -337,8 +383,18 @@ Page({
     }
 
     var self = this;
-    this.runStrategyRescanAndReload(true).then(function () {
-      self.setData({ paramsVisible: false });
+    var shouldRescan = detail.rescan !== false;
+
+    if (shouldRescan) {
+      this.runStrategyRescanAndReload(true).then(function () {
+        self.setData({ paramsVisible: false });
+      });
+      return;
+    }
+
+    this.setData({ paramsVisible: false });
+    this.loadMarketFromApi(this.data.activeMarket).then(function () {
+      wx.showToast({ title: '已按新参数预览', icon: 'none' });
     });
   },
 
@@ -431,8 +487,8 @@ Page({
         self._seenRecommendationIds = result.seenIds;
       }
       var merged = dedupeAppend(self._baseList, result.items);
-      self._backendPage = result.page;
-      self._loadPage = result.page;
+      self._backendPage = toPageNum(result.page);
+      self._loadPage = toPageNum(result.page);
       applyHeldList(self, merged.list, period, strategyId, {
         totalCount: result.totalNum,
         hasMore: result.hasMore,
@@ -504,8 +560,8 @@ Page({
     }).then(function (results) {
       var pageResult = results[0];
       var indices = results[1];
-      self._loadPage = pageResult.page;
-      self._backendPage = pageResult.page;
+      self._loadPage = toPageNum(pageResult.page);
+      self._backendPage = toPageNum(pageResult.page);
       self._seenRecommendationIds = listMemory.initSeenIds(pageResult.items);
       applyHeldList(self, pageResult.items, period, strategyId, {
         activeMarket: marketId,
@@ -547,17 +603,22 @@ Page({
   onStrategyChange(e) {
     var strategyId = e.detail && e.detail.strategyId;
     if (!strategyId || strategyId === this.data.activeStrategy) return;
-    if (!normalizeSavedStrategy(strategyId)) return;
+    var migrated = migrateSavedStrategy(strategyId);
+    if (migrated.strategy !== strategyId) return;
 
     wx.setStorageSync('activeStrategy', strategyId);
+    var ladderTier = strategyId === 'nrf'
+      ? (strategyParams.load('nrf').activeTier || 'short')
+      : this.data.activeLadderTier;
     var period = strategyParams.chartPrimaryPeriod(strategyId, strategyParams.load(strategyId))
       || this.data.activePeriod;
     wx.setStorageSync('activePeriod', period);
 
     this.setData({
       activeStrategy: strategyId,
+      activeLadderTier: ladderTier,
       activePeriod: period,
-      strategyTitle: strategyTitleFor(strategyId)
+      strategyTitle: strategyTitleFor(strategyId, ladderTier)
     });
     this.refreshParamsBadge(strategyId);
 

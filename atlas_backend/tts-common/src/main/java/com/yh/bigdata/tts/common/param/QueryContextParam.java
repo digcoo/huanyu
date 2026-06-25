@@ -54,6 +54,15 @@ public class QueryContextParam extends PageQuery {
     /** 长线策略自定义参数 */
     private LongStrategyParams longTerm;
 
+    /** 无阻力梯子策略自定义参数 */
+    private FrictionlessLadderStrategyParams frictionlessLadder;
+
+    /** 底部机会策略自定义参数 */
+    private BogoStrategyParams bogo;
+
+    /** 趋势策略（trendm）自定义参数 */
+    private TrendmStrategyParams trendm;
+
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
@@ -69,6 +78,9 @@ public class QueryContextParam extends PageQuery {
                 .trendV2(TrendV2StrategyParams.defaults())
                 .medium(MediumStrategyParams.defaults())
                 .longTerm(LongStrategyParams.defaults())
+                .frictionlessLadder(FrictionlessLadderStrategyParams.defaults())
+                .bogo(BogoStrategyParams.defaults())
+                .trendm(TrendmStrategyParams.defaults())
                 .build();
     }
 	

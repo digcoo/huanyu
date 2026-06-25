@@ -185,3 +185,40 @@
 .preview-btn::after {
   border: none;
 }
+
+.ladder-tier-bar {
+  display: flex;
+  gap: 12rpx;
+  padding: 8rpx 0 20rpx;
+  margin-bottom: 8rpx;
+  border-bottom: 1rpx solid #2b2f36;
+}
+
+.scan-mode-section {
+  padding-top: 4rpx;
+}
+
+.param-tier-label {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #848e9c;
+  padding: 4rpx 0 12rpx;
+}
+
+.ladder-tier-item {
+  flex: 1;
+  text-align: center;
+  padding: 14rpx 0;
+  font-size: 26rpx;
+  color: #848e9c;
+  background: #1e2026;
+  border: 1rpx solid #2b2f36;
+  border-radius: 10rpx;
+}
+
+.ladder-tier-item.active {
+  color: #f0b90b;
+  border-color: rgba(240, 185, 11, 0.45);
+  background: rgba(240, 185, 11, 0.08);
+}

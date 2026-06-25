@@ -36,7 +36,7 @@ public class DayAllSpiderScheduler {
 	@Autowired
 	StockMin30XueQiuCrawler stockMin30Crawler;
 
-	@Value("${spider.min30.default-count:50}")
+	@Value("${spider.min30.default-count:16}")
 	private int min30DefaultCount;
 
 	@Autowired
@@ -60,14 +60,14 @@ public class DayAllSpiderScheduler {
 //			if (!SinaHttpUtils.isTradeOfCurrentDay()) {
 //				return;
 //			}
-            String code = "sz301580";
+            String code = null;
 			stockBaseCrawler.run();
-			stockDayCrawler.run(code, 100);
-			stockMin30Crawler.run(code, min30DefaultCount);
-			stockWeekCrawler.run(code, 100);
-			stockMonthCrawler.run(code, 100);
-			stockQuarterCrawler.run(code, 100);
-			stockYearCrawler.run(code, 100);
+			stockDayCrawler.run(code, 2);
+			stockMin30Crawler.run(code, 16);
+			stockWeekCrawler.run(code, 2);
+			stockMonthCrawler.run(code, 2);
+			stockQuarterCrawler.run(code, 2);
+			stockYearCrawler.run(code, 2);
 		} catch (Exception e) {
 			logger.error("DayAllSpiderScheduler exception..... ", e);
 		}

@@ -2,7 +2,7 @@ const config = require('./config');
 const stockApi = require('./stock-api');
 const adapter = require('./adapter');
 
-var ULTRA_MARKER_PERIODS = ['min30'];
+var BOGO_MARKER_PERIODS = ['day', 'week', 'month'];
 
 function parseMarkersFromSignal(item) {
   if (!item) return null;
@@ -19,10 +19,18 @@ function parseMarkersFromSignal(item) {
   };
 }
 
-function markersVoToBarMarkers(m) {
+function refLabelFromSignal(item) {
+  var text = [item.signalMessage, item.trendMessage].join('|');
+  if (/crossType=GC/.test(text)) return '金叉K';
+  if (/crossType=DC/.test(text)) return '死叉K';
+  return '基准K';
+}
+
+function markersVoToBarMarkers(m, item) {
   var markers = [];
+  var refLabel = item ? refLabelFromSignal(item) : '基准K';
   if (m && m.referenceDay) {
-    markers.push({ day: m.referenceDay, label: '基准K', type: 'ref' });
+    markers.push({ day: m.referenceDay, label: refLabel, type: 'ref' });
   }
   if (m && m.signalDay) {
     markers.push({ day: m.signalDay, label: '突破K', type: 'signal' });
@@ -31,10 +39,10 @@ function markersVoToBarMarkers(m) {
 }
 
 function barMarkersFromItem(item) {
-  return markersVoToBarMarkers(parseMarkersFromSignal(item));
+  return markersVoToBarMarkers(parseMarkersFromSignal(item), item);
 }
 
-function buildMockUltraMarkers(klines) {
+function buildMockBogoMarkers(klines) {
   if (!klines || klines.length < 10) return [];
   return [
     { day: klines[klines.length - 8].day, label: '基准K', type: 'ref' },
@@ -42,30 +50,28 @@ function buildMockUltraMarkers(klines) {
   ];
 }
 
-function isUltraStrategy(strategyId) {
-  return adapter.normalizeStrategyId(strategyId) === 'ultra';
+function isBogoStrategy(strategyId) {
+  return adapter.normalizeStrategyId(strategyId) === 'bogo';
 }
 
-function shouldShowUltraMarkers(strategyId, period) {
-  strategyId = adapter.normalizeStrategyId(strategyId);
-  if (ULTRA_MARKER_PERIODS.indexOf(period) < 0) return false;
-  return strategyId === 'ultra' || strategyId === 'nrf' || strategyId === 'trendm';
+function shouldShowBogoMarkers(strategyId, period) {
+  return isBogoStrategy(strategyId) && BOGO_MARKER_PERIODS.indexOf(period) >= 0;
 }
 
 function resolveBarMarkersForItem(item, strategyId, period, klines) {
-  if (!shouldShowUltraMarkers(strategyId, period)) return [];
+  if (!shouldShowBogoMarkers(strategyId, period)) return [];
   if (config.useMock) {
-    return buildMockUltraMarkers(klines);
+    return buildMockBogoMarkers(klines);
   }
   return barMarkersFromItem(item);
 }
 
-function fetchBarMarkersForItem(item, uiStrategyId, period) {
+function fetchBarMarkersForItem(item, period) {
   var cached = barMarkersFromItem(item);
   if (cached.length) return Promise.resolve(cached);
-  return stockApi.fetchUltraMarkers(item.code, period, uiStrategyId).then(function (m) {
+  return stockApi.fetchBogoMarkers(item.code, period).then(function (m) {
     if (m && (m.referenceDay || m.signalDay)) {
-      return markersVoToBarMarkers(m);
+      return markersVoToBarMarkers(m, item);
     }
     return stockApi.fetchSummary(item.code).then(function (summary) {
       var merged = Object.assign({}, item, {
@@ -79,8 +85,8 @@ function fetchBarMarkersForItem(item, uiStrategyId, period) {
   });
 }
 
-function enrichItemsWithUltraMarkers(items, strategyId, period) {
-  if (!items || !items.length || !shouldShowUltraMarkers(strategyId, period)) {
+function enrichItemsWithBogoMarkers(items, strategyId, period) {
+  if (!items || !items.length || !shouldShowBogoMarkers(strategyId, period)) {
     return Promise.resolve(items || []);
   }
   if (config.useMock) {
@@ -88,7 +94,7 @@ function enrichItemsWithUltraMarkers(items, strategyId, period) {
       var klines = item.chartKlines
         || (item.klines && item.klines[period] ? item.klines[period] : []);
       return Object.assign({}, item, {
-        barMarkers: buildMockUltraMarkers(klines),
+        barMarkers: buildMockBogoMarkers(klines),
         markerEpoch: Date.now()
       });
     }));
@@ -101,7 +107,7 @@ function enrichItemsWithUltraMarkers(items, strategyId, period) {
         markerEpoch: Date.now()
       }));
     }
-    return fetchBarMarkersForItem(item, strategyId, period).then(function (markers) {
+    return fetchBarMarkersForItem(item, period).then(function (markers) {
       return Object.assign({}, item, {
         barMarkers: markers,
         markerEpoch: Date.now()
@@ -114,10 +120,10 @@ module.exports = {
   parseMarkersFromSignal: parseMarkersFromSignal,
   markersVoToBarMarkers: markersVoToBarMarkers,
   barMarkersFromItem: barMarkersFromItem,
-  buildMockUltraMarkers: buildMockUltraMarkers,
-  isUltraStrategy: isUltraStrategy,
-  shouldShowUltraMarkers: shouldShowUltraMarkers,
+  buildMockBogoMarkers: buildMockBogoMarkers,
+  isBogoStrategy: isBogoStrategy,
+  shouldShowBogoMarkers: shouldShowBogoMarkers,
   resolveBarMarkersForItem: resolveBarMarkersForItem,
   fetchBarMarkersForItem: fetchBarMarkersForItem,
-  enrichItemsWithUltraMarkers: enrichItemsWithUltraMarkers
+  enrichItemsWithBogoMarkers: enrichItemsWithBogoMarkers
 };

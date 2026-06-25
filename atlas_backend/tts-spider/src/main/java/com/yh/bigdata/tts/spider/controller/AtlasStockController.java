@@ -215,6 +215,36 @@ public class AtlasStockController {
         }
     }
 
+    @GetMapping("/{code}/bogo/markers")
+    public Response<AtlasGc2MarkersVo> getBogoMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getBogoMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/trendm/markers")
+    public Response<AtlasGc2MarkersVo> getTrendmMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getTrendmMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
     @GetMapping("/{code}/dc2/markers")
     public Response<AtlasDc2MarkersVo> getDc2Markers(
             @PathVariable("code") String code,
