@@ -5,12 +5,12 @@ import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.constants.StrategyTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
+import com.yh.bigdata.tts.common.param.PillarStrategyParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
-import com.yh.bigdata.tts.common.param.TrendmStrategyParams;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
-import com.yh.bigdata.tts.spider.strategy.tools.trendm.TrendmEvaluator;
-import com.yh.bigdata.tts.spider.strategy.tools.ultralow.UltraShortGateTools;
+import com.yh.bigdata.tts.spider.strategy.tools.pillar.PillarEvaluator;
+import com.yh.bigdata.tts.spider.strategy.tools.pillar.PillarScoreCalculator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,20 +18,23 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 趋势策略（trendm）· 无阻力门 + 日/周/月同时基准突破 + min30 梯子
+ * 柱子内上移（pillar）· 全局门控 + 强柱基准 K 突破
+ */
+/**
+ * @deprecated 已合并至 nrf（跨周期内梯子上移），保留类仅供历史枚举兼容。
  */
 @Slf4j
-@Component
-public class TrendmStrategy extends AbstractStrategy {
+// @Component — 不再注册为可扫描策略
+public class PillarBreakoutStrategy extends AbstractStrategy {
 
     @Override
     public StrategyTypeEnum getStrategy() {
-        return StrategyTypeEnum.TRENDM;
+        return StrategyTypeEnum.PILLAR_BREAKOUT;
     }
 
     @Override
     public PeriodTypeEnum getOpPeriodType() {
-        return PeriodTypeEnum.MIN30;
+        return PeriodTypeEnum.DAY;
     }
 
     @Override
@@ -39,8 +42,7 @@ public class TrendmStrategy extends AbstractStrategy {
         return Arrays.asList(
                 PeriodTypeEnum.MONTH,
                 PeriodTypeEnum.WEEK,
-                PeriodTypeEnum.DAY,
-                PeriodTypeEnum.MIN30);
+                PeriodTypeEnum.DAY);
     }
 
     @Override
@@ -48,22 +50,19 @@ public class TrendmStrategy extends AbstractStrategy {
                              PeriodTypeEnum opPeriodType, QueryContextParam queryContextParam) {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
         try {
-            TrendmStrategyParams params = resolveParams(queryContextParam);
+            PillarStrategyParams params = resolvePillarParams(queryContextParam);
             UltraShortStrategyParams ultraParams = resolveUltraParams(queryContextParam);
-
-            TrendmEvaluator.TrendmEvaluation eval = TrendmEvaluator.evaluate(
-                    stockBase, checkResult, params, ultraParams);
+            PillarEvaluator.PillarEvaluation eval =
+                    PillarEvaluator.evaluate(stockBase, checkResult, params, ultraParams);
             if (!eval.isHit()) {
                 return checkResult;
             }
-
-            UltraShortGateTools.appendMessages(checkResult, stockBase, ultraParams);
 
             checkResult.setHasTrend(true);
             checkResult.setHasSignal(true);
             checkResult.setSortValue(eval.getScore());
             checkResult.setTrendPeriodType(PeriodTypeEnum.MONTH);
-            checkResult.setOpPeriodType(PeriodTypeEnum.MIN30);
+            checkResult.setOpPeriodType(PillarScoreCalculator.primaryPeriod(eval));
 
         } catch (Exception ex) {
             log.error("{} - check exception : stock = {}", getClass().getName(), stockBase.getCode(), ex);
@@ -73,11 +72,11 @@ public class TrendmStrategy extends AbstractStrategy {
         return checkResult;
     }
 
-    private TrendmStrategyParams resolveParams(QueryContextParam queryContextParam) {
-        if (queryContextParam == null || queryContextParam.getTrendm() == null) {
-            return TrendmStrategyParams.defaults();
+    private PillarStrategyParams resolvePillarParams(QueryContextParam queryContextParam) {
+        if (queryContextParam == null || queryContextParam.getPillar() == null) {
+            return PillarStrategyParams.defaults();
         }
-        return TrendmStrategyParams.merge(queryContextParam.getTrendm());
+        return PillarStrategyParams.merge(queryContextParam.getPillar());
     }
 
     private UltraShortStrategyParams resolveUltraParams(QueryContextParam queryContextParam) {

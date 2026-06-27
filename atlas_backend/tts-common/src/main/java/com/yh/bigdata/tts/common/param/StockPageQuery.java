@@ -199,28 +199,48 @@ public class StockPageQuery extends PageQuery {
     /** 长线 · 须同时满足超短 30m 突破 */
     private Boolean lgRequireUltra;
 
-    /** 无阻力梯子 · 档位 short/medium/long（同梯子策略） */
+    /** 跨周期内柱子上移 · 档位 short/medium/long（同梯子策略） */
     private String nrfActiveTier;
 
-    /** 底部机会 · 启用日 K */
-    private Boolean boEnableDay;
-    /** 底部机会 · 启用周 K */
-    private Boolean boEnableWeek;
-    /** 底部机会 · 启用月 K */
-    private Boolean boEnableMonth;
-    /** 底部机会 · 日 K lookback */
-    private Integer boLookbackDay;
-    /** 底部机会 · 周 K lookback */
-    private Integer boLookbackWeek;
-    /** 底部机会 · 月 K lookback */
-    private Integer boLookbackMonth;
+    /** 柱子内上移 · 启用日 K */
+    private Boolean piEnableDay;
+    /** 柱子内上移 · 启用周 K */
+    private Boolean piEnableWeek;
+    /** 柱子内上移 · 启用月 K */
+    private Boolean piEnableMonth;
+    /** 柱子内上移 · 日 K lookback */
+    private Integer piLookbackDay;
+    /** 柱子内上移 · 周 K lookback */
+    private Integer piLookbackWeek;
+    /** 柱子内上移 · 月 K lookback */
+    private Integer piLookbackMonth;
+    /** 柱子内上移 · 须 min30 梯子 */
+    private Boolean piRequireUltra;
+    /** 柱子内上移 · 最低成交额（万） */
+    private Integer piMinAmountWan;
 
-    /** 趋势策略 · 日 K lookback */
-    private Integer tmLookbackDay;
-    /** 趋势策略 · 周 K lookback */
-    private Integer tmLookbackWeek;
-    /** 趋势策略 · 月 K lookback */
-    private Integer tmLookbackMonth;
+    /** 级联交叉突破 · 双低支撑门 */
+    private Boolean caEnableDualLowGate;
+    /** 级联交叉突破 · 无阻力 MACD 门 */
+    private Boolean caEnableMacdGate;
+    /** 级联交叉突破 · MACD 交叉 low 门 */
+    private Boolean caEnableCrossLowGate;
+    /** 级联交叉突破 · 突破日基准 */
+    private Boolean caEnableDay;
+    /** 级联交叉突破 · 突破周基准 */
+    private Boolean caEnableWeek;
+    /** 级联交叉突破 · 突破月基准 */
+    private Boolean caEnableMonth;
+    /** 级联交叉突破 · 日 K lookback */
+    private Integer caLookbackDay;
+    /** 级联交叉突破 · 周 K lookback */
+    private Integer caLookbackWeek;
+    /** 级联交叉突破 · 月 K lookback */
+    private Integer caLookbackMonth;
+    /** 级联交叉突破 · 须 min30 跨日桶突破 */
+    private Boolean caRequireUltra;
+    /** 级联交叉突破 · 最低成交额（万） */
+    private Integer caMinAmountWan;
 
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
@@ -601,41 +621,71 @@ public class StockPageQuery extends PageQuery {
         return FrictionlessLadderStrategyParams.merge(incoming);
     }
 
-    public BogoStrategyParams toBogoParams() {
-        BogoStrategyParams.BogoStrategyParamsBuilder b = BogoStrategyParams.builder();
-        if (boEnableDay != null) {
-            b.enableDay(boEnableDay);
+    public PillarStrategyParams toPillarParams() {
+        PillarStrategyParams.PillarStrategyParamsBuilder b = PillarStrategyParams.builder();
+        if (piEnableDay != null) {
+            b.enableDay(piEnableDay);
         }
-        if (boEnableWeek != null) {
-            b.enableWeek(boEnableWeek);
+        if (piEnableWeek != null) {
+            b.enableWeek(piEnableWeek);
         }
-        if (boEnableMonth != null) {
-            b.enableMonth(boEnableMonth);
+        if (piEnableMonth != null) {
+            b.enableMonth(piEnableMonth);
         }
-        if (boLookbackDay != null && boLookbackDay >= 10) {
-            b.lookbackDay(boLookbackDay);
+        if (piLookbackDay != null && piLookbackDay >= 10) {
+            b.lookbackDay(piLookbackDay);
         }
-        if (boLookbackWeek != null && boLookbackWeek >= 10) {
-            b.lookbackWeek(boLookbackWeek);
+        if (piLookbackWeek != null && piLookbackWeek >= 10) {
+            b.lookbackWeek(piLookbackWeek);
         }
-        if (boLookbackMonth != null && boLookbackMonth >= 6) {
-            b.lookbackMonth(boLookbackMonth);
+        if (piLookbackMonth != null && piLookbackMonth >= 6) {
+            b.lookbackMonth(piLookbackMonth);
         }
-        return BogoStrategyParams.merge(b.build());
+        if (piRequireUltra != null) {
+            b.requireUltra(piRequireUltra);
+        }
+        if (piMinAmountWan != null && piMinAmountWan >= 0) {
+            b.minAvgAmount(piMinAmountWan * 10_000D);
+        }
+        return PillarStrategyParams.merge(b.build());
     }
 
-    public TrendmStrategyParams toTrendmParams() {
-        TrendmStrategyParams.TrendmStrategyParamsBuilder b = TrendmStrategyParams.builder();
-        if (tmLookbackDay != null && tmLookbackDay >= 10) {
-            b.lookbackDay(tmLookbackDay);
+    public CascadeStrategyParams toCascadeParams() {
+        CascadeStrategyParams.CascadeStrategyParamsBuilder b = CascadeStrategyParams.builder();
+        if (caEnableDualLowGate != null) {
+            b.enableDualLowGate(caEnableDualLowGate);
         }
-        if (tmLookbackWeek != null && tmLookbackWeek >= 10) {
-            b.lookbackWeek(tmLookbackWeek);
+        if (caEnableMacdGate != null) {
+            b.enableMacdGate(caEnableMacdGate);
         }
-        if (tmLookbackMonth != null && tmLookbackMonth >= 6) {
-            b.lookbackMonth(tmLookbackMonth);
+        if (caEnableCrossLowGate != null) {
+            b.enableCrossLowGate(caEnableCrossLowGate);
         }
-        return TrendmStrategyParams.merge(b.build());
+        if (caEnableDay != null) {
+            b.enableDay(caEnableDay);
+        }
+        if (caEnableWeek != null) {
+            b.enableWeek(caEnableWeek);
+        }
+        if (caEnableMonth != null) {
+            b.enableMonth(caEnableMonth);
+        }
+        if (caLookbackDay != null && caLookbackDay >= 10) {
+            b.lookbackDay(caLookbackDay);
+        }
+        if (caLookbackWeek != null && caLookbackWeek >= 10) {
+            b.lookbackWeek(caLookbackWeek);
+        }
+        if (caLookbackMonth != null && caLookbackMonth >= 6) {
+            b.lookbackMonth(caLookbackMonth);
+        }
+        if (caRequireUltra != null) {
+            b.requireUltra(caRequireUltra);
+        }
+        if (caMinAmountWan != null && caMinAmountWan >= 0) {
+            b.minAvgAmount(caMinAmountWan * 10_000D);
+        }
+        return CascadeStrategyParams.merge(b.build());
     }
 
 }

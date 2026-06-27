@@ -129,7 +129,11 @@
 
       <text class="empty-text">{{totalCount > 0 ? '当前可见列表为空' : '暂无推荐'}}</text>
 
-      <text class="empty-hint">{{totalCount > 0 ? '可能已全部忽略，可清除忽略记录' : '切换市场查看更多标的'}}</text>
+      <text class="empty-hint">{{emptyHint || (totalCount > 0 ? '可能已全部忽略，可清除忽略记录' : '切换市场查看更多标的')}}</text>
+
+      <view wx:if="{{totalCount > 0 && recommendations.length === 0}}" class="empty-action" bindtap="onClearIgnored">
+        <text>清除忽略记录</text>
+      </view>
 
     </view>
 

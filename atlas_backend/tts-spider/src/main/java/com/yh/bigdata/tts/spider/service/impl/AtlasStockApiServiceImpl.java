@@ -18,9 +18,8 @@ import com.yh.bigdata.tts.spider.service.AtlasDetailComputeService;
 import com.yh.bigdata.tts.spider.service.AtlasIndustryChainService;
 import com.yh.bigdata.tts.spider.service.AtlasStockApiService;
 import com.yh.bigdata.tts.spider.service.StockService;
-import com.yh.bigdata.tts.common.param.BogoStrategyParams;
+import com.yh.bigdata.tts.common.param.CascadeStrategyParams;
 import com.yh.bigdata.tts.common.param.Dc2StrategyParams;
-import com.yh.bigdata.tts.common.param.TrendmStrategyParams;
 import com.yh.bigdata.tts.common.param.Gc2StrategyParams;
 import com.yh.bigdata.tts.common.param.RetestStrategyParams;
 import com.yh.bigdata.tts.common.param.UltraLowReboundStrategyParams;
@@ -28,9 +27,10 @@ import com.yh.bigdata.tts.common.param.LongStrategyParams;
 import com.yh.bigdata.tts.common.param.MediumStrategyParams;
 import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
-import com.yh.bigdata.tts.spider.strategy.tools.bogo.BogoMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.cascade.CascadeMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.dc2.Dc2MarkersTools;
-import com.yh.bigdata.tts.spider.strategy.tools.trendm.TrendmMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.frictionless.NrfMarkersTools;
+import com.yh.bigdata.tts.common.param.FrictionlessLadderStrategyParams;
 import com.yh.bigdata.tts.spider.strategy.tools.gc2.Gc2MarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.retest.RetestMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.LadderMarkersTools;
@@ -234,23 +234,27 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
     }
 
     @Override
-    public AtlasGc2MarkersVo getBogoMarkers(String code, String period) {
+    public AtlasGc2MarkersVo getCascadeMarkers(String code, String period) {
         StockBase stock = requireStock(code);
         PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
         if (periodType == null) {
             periodType = PeriodTypeEnum.DAY;
         }
-        return BogoMarkersTools.resolve(stock, periodType, BogoStrategyParams.defaults());
+        return CascadeMarkersTools.resolve(stock, periodType, CascadeStrategyParams.defaults());
     }
 
     @Override
-    public AtlasGc2MarkersVo getTrendmMarkers(String code, String period) {
+    public AtlasGc2MarkersVo getNrfMarkers(String code, String period,
+                                             FrictionlessLadderStrategyParams nrfParams,
+                                             TrendV2StrategyParams trendParams,
+                                             MediumStrategyParams mediumParams,
+                                             LongStrategyParams longParams) {
         StockBase stock = requireStock(code);
         PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
         if (periodType == null) {
             periodType = PeriodTypeEnum.DAY;
         }
-        return TrendmMarkersTools.resolve(stock, periodType, TrendmStrategyParams.defaults());
+        return NrfMarkersTools.resolve(stock, periodType, nrfParams, trendParams, mediumParams, longParams);
     }
 
     @Override

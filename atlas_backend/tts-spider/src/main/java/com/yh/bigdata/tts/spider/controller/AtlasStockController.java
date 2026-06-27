@@ -9,6 +9,7 @@ import com.yh.bigdata.tts.common.dto.atlas.AtlasRetestMarkersVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasUlowMin30MarkersVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockDetailVo;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasStockSummaryVo;
+import com.yh.bigdata.tts.common.param.FrictionlessLadderStrategyParams;
 import com.yh.bigdata.tts.common.param.StockPageQuery;
 import com.yh.bigdata.tts.common.param.LongStrategyParams;
 import com.yh.bigdata.tts.common.param.MediumStrategyParams;
@@ -215,12 +216,12 @@ public class AtlasStockController {
         }
     }
 
-    @GetMapping("/{code}/bogo/markers")
-    public Response<AtlasGc2MarkersVo> getBogoMarkers(
+    @GetMapping("/{code}/cascade/markers")
+    public Response<AtlasGc2MarkersVo> getCascadeMarkers(
             @PathVariable("code") String code,
             @RequestParam(value = "period", defaultValue = "day") String period) {
         try {
-            AtlasGc2MarkersVo markers = atlasStockApiService.getBogoMarkers(code, period);
+            AtlasGc2MarkersVo markers = atlasStockApiService.getCascadeMarkers(code, period);
             if (markers == null) {
                 return ResponseUtil.fail(ResponseUtil.NO_DATA);
             }
@@ -230,12 +231,26 @@ public class AtlasStockController {
         }
     }
 
-    @GetMapping("/{code}/trendm/markers")
-    public Response<AtlasGc2MarkersVo> getTrendmMarkers(
+    @GetMapping("/{code}/nrf/markers")
+    public Response<AtlasGc2MarkersVo> getNrfMarkers(
             @PathVariable("code") String code,
-            @RequestParam(value = "period", defaultValue = "day") String period) {
+            @RequestParam(value = "period", defaultValue = "day") String period,
+            StockPageQuery query) {
         try {
-            AtlasGc2MarkersVo markers = atlasStockApiService.getTrendmMarkers(code, period);
+            FrictionlessLadderStrategyParams nrfParams = query != null
+                    ? query.toFrictionlessParams()
+                    : FrictionlessLadderStrategyParams.defaults();
+            TrendV2StrategyParams trendParams = query != null
+                    ? query.toTrendV2Params()
+                    : TrendV2StrategyParams.defaults();
+            MediumStrategyParams mediumParams = query != null
+                    ? query.toMediumParams()
+                    : MediumStrategyParams.defaults();
+            LongStrategyParams longParams = query != null
+                    ? query.toLongParams()
+                    : LongStrategyParams.defaults();
+            AtlasGc2MarkersVo markers = atlasStockApiService.getNrfMarkers(
+                    code, period, nrfParams, trendParams, mediumParams, longParams);
             if (markers == null) {
                 return ResponseUtil.fail(ResponseUtil.NO_DATA);
             }

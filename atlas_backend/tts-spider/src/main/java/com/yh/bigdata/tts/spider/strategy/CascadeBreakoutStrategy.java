@@ -5,11 +5,12 @@ import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.constants.StrategyTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
-import com.yh.bigdata.tts.common.param.BogoStrategyParams;
+import com.yh.bigdata.tts.common.param.CascadeStrategyParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
+import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
-import com.yh.bigdata.tts.spider.strategy.tools.bogo.BogoEvaluator;
-import com.yh.bigdata.tts.spider.strategy.tools.bogo.BogoScoreCalculator;
+import com.yh.bigdata.tts.spider.strategy.tools.cascade.CascadeEvaluator;
+import com.yh.bigdata.tts.spider.strategy.tools.cascade.CascadeScoreCalculator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -17,15 +18,15 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 底部机会（bogo）· 无阻力 MACD 门 + 金叉/死叉基准 K 突破
+ * 级联交叉突破（cascade）
  */
 @Slf4j
 @Component
-public class BogoBreakoutStrategy extends AbstractStrategy {
+public class CascadeBreakoutStrategy extends AbstractStrategy {
 
     @Override
     public StrategyTypeEnum getStrategy() {
-        return StrategyTypeEnum.BOGO_BREAKOUT;
+        return StrategyTypeEnum.CASCADE_BREAKOUT;
     }
 
     @Override
@@ -46,8 +47,10 @@ public class BogoBreakoutStrategy extends AbstractStrategy {
                              PeriodTypeEnum opPeriodType, QueryContextParam queryContextParam) {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
         try {
-            BogoStrategyParams params = resolveParams(queryContextParam);
-            BogoEvaluator.BogoEvaluation eval = BogoEvaluator.evaluate(stockBase, checkResult, params);
+            CascadeStrategyParams params = resolveParams(queryContextParam);
+            UltraShortStrategyParams ultraParams = resolveUltraParams(queryContextParam);
+            CascadeEvaluator.CascadeEvaluation eval =
+                    CascadeEvaluator.evaluate(stockBase, checkResult, params, ultraParams);
             if (!eval.isHit()) {
                 return checkResult;
             }
@@ -56,7 +59,7 @@ public class BogoBreakoutStrategy extends AbstractStrategy {
             checkResult.setHasSignal(true);
             checkResult.setSortValue(eval.getScore());
             checkResult.setTrendPeriodType(PeriodTypeEnum.MONTH);
-            checkResult.setOpPeriodType(BogoScoreCalculator.primaryPeriod(eval));
+            checkResult.setOpPeriodType(CascadeScoreCalculator.primaryPeriod(eval));
 
         } catch (Exception ex) {
             log.error("{} - check exception : stock = {}", getClass().getName(), stockBase.getCode(), ex);
@@ -66,11 +69,18 @@ public class BogoBreakoutStrategy extends AbstractStrategy {
         return checkResult;
     }
 
-    private BogoStrategyParams resolveParams(QueryContextParam queryContextParam) {
-        if (queryContextParam == null || queryContextParam.getBogo() == null) {
-            return BogoStrategyParams.defaults();
+    private CascadeStrategyParams resolveParams(QueryContextParam queryContextParam) {
+        if (queryContextParam == null || queryContextParam.getCascade() == null) {
+            return CascadeStrategyParams.defaults();
         }
-        return BogoStrategyParams.merge(queryContextParam.getBogo());
+        return CascadeStrategyParams.merge(queryContextParam.getCascade());
+    }
+
+    private UltraShortStrategyParams resolveUltraParams(QueryContextParam queryContextParam) {
+        if (queryContextParam == null || queryContextParam.getUltraShort() == null) {
+            return UltraShortStrategyParams.defaults();
+        }
+        return UltraShortStrategyParams.merge(queryContextParam.getUltraShort());
     }
 
     private void applyFallbackSortValue(StockBase stockBase, CheckResult checkResult) {
@@ -78,7 +88,7 @@ public class BogoBreakoutStrategy extends AbstractStrategy {
             return;
         }
         try {
-            Trade dayTrade = RealtimeStockCache.getLastTrade(stockBase, PeriodTypeEnum.DAY, -1);
+            Trade dayTrade = RealtimeStockCache.getLastTrade(stockBase, PeriodTypeEnum.DAY, 0);
             if (dayTrade != null && dayTrade.getChangeRate() != null) {
                 checkResult.setSortValue(dayTrade.getChangeRate());
             } else if (stockBase.getChangeRate() != null) {

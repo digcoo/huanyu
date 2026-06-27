@@ -1,5 +1,6 @@
 package com.yh.bigdata.tts.spider.strategy.tools.frictionless;
 
+import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.param.FrictionlessLadderStrategyParams;
 import com.yh.bigdata.tts.common.param.LongStrategyParams;
@@ -7,16 +8,12 @@ import com.yh.bigdata.tts.common.param.MediumStrategyParams;
 import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
-import com.yh.bigdata.tts.spider.strategy.tools.longterm.LongEvaluator;
-import com.yh.bigdata.tts.spider.strategy.tools.longterm.LongFilterTools;
-import com.yh.bigdata.tts.spider.strategy.tools.medium.MediumEvaluator;
-import com.yh.bigdata.tts.spider.strategy.tools.medium.MediumFilterTools;
-import com.yh.bigdata.tts.spider.strategy.tools.trend.TrendV2Evaluator;
-import com.yh.bigdata.tts.spider.strategy.tools.trend.TrendV2FilterTools;
+import com.yh.bigdata.tts.spider.strategy.tools.MinAvgAmountFilterTools;
+import com.yh.bigdata.tts.spider.strategy.tools.ultralow.UltraShortGateTools;
 import lombok.Getter;
 
 /**
- * 无阻力梯子 = 梯子策略（短/中/长任一档）+ 固定日/周/月 MACD 门
+ * 跨周期内梯子上移（nrf）· 全局三门 + 单档跨周期柱内突破
  */
 public final class FrictionlessLadderEvaluator {
 
@@ -36,114 +33,127 @@ public final class FrictionlessLadderEvaluator {
             return Evaluation.miss(tier);
         }
 
+        TierContext ctx = resolveTierContext(tier, trendParams, mediumParams, longParams);
+        if (!MinAvgAmountFilterTools.passWithMessage(stock, checkResult, ctx.getMinAvgAmount())) {
+            return Evaluation.miss(tier);
+        }
+
+        CrossPeriodInBarBreakoutTools.Hit hit = CrossPeriodInBarBreakoutTools.findHit(stock, ctx.getSpec());
+        if (hit == null) {
+            return Evaluation.miss(tier);
+        }
+
+        UltraShortGateTools.GateResult ultraGate =
+                UltraShortGateTools.evaluate(stock, ctx.isRequireUltra(), ultraParams);
+        if (!ultraGate.isPassed()) {
+            return Evaluation.miss(tier);
+        }
+
+        return Evaluation.hit(tier, hit, ultraGate);
+    }
+
+    /** 标记 API · 仅计算基准/突破 K，不重复写门控结果 */
+    public static CrossPeriodInBarBreakoutTools.Hit findBreakoutHit(StockBase stock,
+                                                                    FrictionlessLadderStrategyParams nrfParams,
+                                                                    TrendV2StrategyParams trendParams,
+                                                                    MediumStrategyParams mediumParams,
+                                                                    LongStrategyParams longParams) {
+        FrictionlessLadderStrategyParams.ActiveTier tier = nrfParams != null
+                ? nrfParams.getActiveTier() : FrictionlessLadderStrategyParams.ActiveTier.SHORT;
+        TierContext ctx = resolveTierContext(tier, trendParams, mediumParams, longParams);
+        return CrossPeriodInBarBreakoutTools.findHit(stock, ctx.getSpec());
+    }
+
+    private static TierContext resolveTierContext(FrictionlessLadderStrategyParams.ActiveTier tier,
+                                                  TrendV2StrategyParams trendParams,
+                                                  MediumStrategyParams mediumParams,
+                                                  LongStrategyParams longParams) {
         switch (tier) {
-            case SHORT: {
-                TrendV2StrategyParams p = stripMacd(trendParams);
-                if (!TrendV2FilterTools.passFilters(stock, checkResult, p)) {
-                    return Evaluation.miss(tier);
-                }
-                TrendV2Evaluator.TrendV2Evaluation eval =
-                        TrendV2Evaluator.evaluate(stock, null, p, ultraParams);
-                if (!eval.isHit()) {
-                    return Evaluation.miss(tier);
-                }
-                return Evaluation.fromTrend(tier, eval);
-            }
             case MEDIUM: {
-                MediumStrategyParams p = stripMacd(mediumParams);
-                if (!MediumFilterTools.passFilters(stock, checkResult, p)) {
-                    return Evaluation.miss(tier);
-                }
-                MediumEvaluator.MediumEvaluation eval =
-                        MediumEvaluator.evaluate(stock, null, p, ultraParams);
-                if (!eval.isHit()) {
-                    return Evaluation.miss(tier);
-                }
-                return Evaluation.fromMedium(tier, eval);
+                MediumStrategyParams p = MediumStrategyParams.merge(mediumParams);
+                return new TierContext(
+                        CrossPeriodInBarBreakoutTools.weekTier(
+                                p.getPrevMonths(), p.getMaxWeeksPerMonth(),
+                                p.getMinStrongPct(), p.isRequireCurrentBreakout()),
+                        p.getMinAvgAmount(),
+                        p.isRequireUltra());
             }
             case LONG: {
-                LongStrategyParams p = stripMacd(longParams);
-                if (!LongFilterTools.passFilters(stock, checkResult, p)) {
-                    return Evaluation.miss(tier);
-                }
-                LongEvaluator.LongEvaluation eval =
-                        LongEvaluator.evaluate(stock, null, p, ultraParams);
-                if (!eval.isHit()) {
-                    return Evaluation.miss(tier);
-                }
-                return Evaluation.fromLong(tier, eval);
+                LongStrategyParams p = LongStrategyParams.merge(longParams);
+                return new TierContext(
+                        CrossPeriodInBarBreakoutTools.monthTier(
+                                p.getPrevYears(), p.getMaxMonthsPerYear(),
+                                p.getMinStrongPct(), p.isRequireCurrentBreakout()),
+                        p.getMinAvgAmount(),
+                        p.isRequireUltra());
             }
-            default:
-                return Evaluation.miss(tier);
+            case SHORT:
+            default: {
+                TrendV2StrategyParams p = TrendV2StrategyParams.merge(trendParams);
+                return new TierContext(
+                        CrossPeriodInBarBreakoutTools.dayTier(
+                                p.getPrevWeeks(), p.getMaxDaysPerWeek(),
+                                p.getMinStrongPct(), p.isRequireCurrentBreakout()),
+                        p.getMinAvgAmount(),
+                        p.isRequireUltra());
+            }
         }
     }
 
-    private static TrendV2StrategyParams stripMacd(TrendV2StrategyParams params) {
-        TrendV2StrategyParams p = TrendV2StrategyParams.merge(params);
-        p.setRequireMonthMacd(false);
-        p.setRequireWeekMacd(false);
-        p.setRequireDayMacd(false);
-        p.setRequireWeekGoldenCross(false);
-        p.setRequireUltra(true);
-        return p;
-    }
+    @Getter
+    private static final class TierContext {
+        private final CrossPeriodInBarBreakoutTools.TierSpec spec;
+        private final double minAvgAmount;
+        private final boolean requireUltra;
 
-    private static MediumStrategyParams stripMacd(MediumStrategyParams params) {
-        MediumStrategyParams p = MediumStrategyParams.merge(params);
-        p.setRequireMonthMacd(false);
-        p.setRequireYearMacd(false);
-        p.setRequireMonthGoldenCross(false);
-        p.setRequireUltra(true);
-        return p;
-    }
-
-    private static LongStrategyParams stripMacd(LongStrategyParams params) {
-        LongStrategyParams p = LongStrategyParams.merge(params);
-        p.setRequireYearMacd(false);
-        p.setRequireMonthMacd(false);
-        p.setRequireYearGoldenCross(false);
-        p.setRequireUltra(true);
-        return p;
+        TierContext(CrossPeriodInBarBreakoutTools.TierSpec spec, double minAvgAmount, boolean requireUltra) {
+            this.spec = spec;
+            this.minAvgAmount = minAvgAmount;
+            this.requireUltra = requireUltra;
+        }
     }
 
     @Getter
     public static final class Evaluation {
         private final FrictionlessLadderStrategyParams.ActiveTier activeTier;
         private final boolean hit;
-        private final int score;
-        private final TrendV2Evaluator.TrendV2Evaluation trendEval;
-        private final MediumEvaluator.MediumEvaluation mediumEval;
-        private final LongEvaluator.LongEvaluation longEval;
+        private final CrossPeriodInBarBreakoutTools.Hit periodHit;
+        private final UltraShortGateTools.GateResult ultraGate;
 
-        private Evaluation(FrictionlessLadderStrategyParams.ActiveTier activeTier, boolean hit, int score,
-                           TrendV2Evaluator.TrendV2Evaluation trendEval,
-                           MediumEvaluator.MediumEvaluation mediumEval,
-                           LongEvaluator.LongEvaluation longEval) {
+        private Evaluation(FrictionlessLadderStrategyParams.ActiveTier activeTier, boolean hit,
+                           CrossPeriodInBarBreakoutTools.Hit periodHit,
+                           UltraShortGateTools.GateResult ultraGate) {
             this.activeTier = activeTier;
             this.hit = hit;
-            this.score = score;
-            this.trendEval = trendEval;
-            this.mediumEval = mediumEval;
-            this.longEval = longEval;
+            this.periodHit = periodHit;
+            this.ultraGate = ultraGate;
         }
 
         static Evaluation miss(FrictionlessLadderStrategyParams.ActiveTier tier) {
-            return new Evaluation(tier, false, 0, null, null, null);
+            return new Evaluation(tier, false, null, null);
         }
 
-        static Evaluation fromTrend(FrictionlessLadderStrategyParams.ActiveTier tier,
-                                  TrendV2Evaluator.TrendV2Evaluation eval) {
-            return new Evaluation(tier, true, eval.getScore(), eval, null, null);
+        static Evaluation hit(FrictionlessLadderStrategyParams.ActiveTier tier,
+                              CrossPeriodInBarBreakoutTools.Hit periodHit,
+                              UltraShortGateTools.GateResult ultraGate) {
+            return new Evaluation(tier, true, periodHit, ultraGate);
         }
 
-        static Evaluation fromMedium(FrictionlessLadderStrategyParams.ActiveTier tier,
-                                     MediumEvaluator.MediumEvaluation eval) {
-            return new Evaluation(tier, true, eval.getScore(), null, eval, null);
+        public boolean isRequireUltra() {
+            return ultraGate != null && ultraGate.isRequired();
         }
 
-        static Evaluation fromLong(FrictionlessLadderStrategyParams.ActiveTier tier,
-                                   LongEvaluator.LongEvaluation eval) {
-            return new Evaluation(tier, true, eval.getScore(), null, null, eval);
+        public int getScore() {
+            if (!hit || periodHit == null) {
+                return 0;
+            }
+            int score = 35;
+            if (activeTier == FrictionlessLadderStrategyParams.ActiveTier.MEDIUM) {
+                score += 10;
+            } else if (activeTier == FrictionlessLadderStrategyParams.ActiveTier.LONG) {
+                score += 20;
+            }
+            return score;
         }
     }
 }

@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 无阻力梯子（nrf）· 梯子策略 + 固定日/周/月 MACD 门
+ * 跨周期内梯子上移（nrf）· 全局三门 + 跨桶强K柱内突破
  */
 @Slf4j
 @Component
@@ -70,7 +70,9 @@ public class FrictionlessLadderStrategy extends AbstractStrategy {
                 return checkResult;
             }
 
-            appendUltraMessages(checkResult, stockBase, ultraParams);
+            if (eval.isRequireUltra()) {
+                UltraShortGateTools.appendMessages(checkResult, eval.getUltraGate());
+            }
             writeNrfMessages(checkResult, eval);
 
             checkResult.setHasTrend(true);
@@ -94,11 +96,6 @@ public class FrictionlessLadderStrategy extends AbstractStrategy {
         checkResult.addSignal(signalPeriod, FrictionlessLadderScoreCalculator.buildSignalMessage(eval));
     }
 
-    private void appendUltraMessages(CheckResult checkResult, StockBase stock,
-                                     UltraShortStrategyParams ultraParams) {
-        UltraShortGateTools.appendMessages(checkResult, stock, ultraParams);
-    }
-
     private static PeriodTypeEnum trendPeriodForTier(FrictionlessLadderStrategyParams.ActiveTier tier) {
         if (tier == FrictionlessLadderStrategyParams.ActiveTier.LONG) {
             return PeriodTypeEnum.MONTH;
@@ -106,7 +103,7 @@ public class FrictionlessLadderStrategy extends AbstractStrategy {
         if (tier == FrictionlessLadderStrategyParams.ActiveTier.MEDIUM) {
             return PeriodTypeEnum.WEEK;
         }
-        return PeriodTypeEnum.WEEK;
+        return PeriodTypeEnum.DAY;
     }
 
     private static PeriodTypeEnum opPeriodForTier(FrictionlessLadderStrategyParams.ActiveTier tier) {

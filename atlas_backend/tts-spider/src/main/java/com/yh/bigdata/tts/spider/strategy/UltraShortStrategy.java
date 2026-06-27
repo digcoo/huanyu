@@ -16,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 超短线策略（ultra）· 前两日 min30 局部新高/最近强K 基准 + 当日 min30 突破
+ * 超短线策略（ultra）· 30m 跨日桶柱内突破（同 nrf 引擎）
  */
 @Slf4j
 @Component

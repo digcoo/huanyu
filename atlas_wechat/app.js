@@ -190,5 +190,10 @@ App({
       this.globalData.ignoredIds = listMemory.capIgnoredIds(this.globalData.ignoredIds);
       wx.setStorageSync('ignoredIds', this.globalData.ignoredIds);
     }
+  },
+
+  clearIgnoredIds() {
+    this.globalData.ignoredIds = [];
+    wx.removeStorageSync('ignoredIds');
   }
 });

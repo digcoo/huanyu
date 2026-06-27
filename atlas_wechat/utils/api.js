@@ -1,6 +1,13 @@
 const config = require('./config');
 
 function normalizeResponse(body) {
+  if (typeof body === 'string') {
+    try {
+      body = JSON.parse(body);
+    } catch (e) {
+      return { ok: false, code: -1, message: '响应格式错误', data: null };
+    }
+  }
   if (!body || typeof body !== 'object') {
     return { ok: false, code: -1, message: '响应格式错误', data: null };
   }
@@ -21,15 +28,18 @@ function normalizeResponse(body) {
 
 function request(options, authRetry) {
   authRetry = authRetry || 0;
+  var method = String(options.method || 'GET').toUpperCase();
+  var header = Object.assign({}, options.header || {});
+  if (method !== 'GET' && method !== 'HEAD' && !header['Content-Type']) {
+    header['Content-Type'] = 'application/json';
+  }
   return new Promise(function (resolve, reject) {
     wx.request({
       url: config.baseUrl + options.path,
-      method: options.method || 'GET',
+      method: method,
       data: options.data || {},
-      header: Object.assign({
-        'Content-Type': 'application/json'
-      }, options.header || {}),
-      timeout: config.apiTimeout,
+      header: header,
+      timeout: options.timeout != null ? options.timeout : config.apiTimeout,
       success: function (res) {
         if (res.statusCode === 401 && authRetry < 1 && options.skipAuthRetry !== true) {
           var auth = require('./auth');

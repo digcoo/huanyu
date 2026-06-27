@@ -2,6 +2,7 @@ package com.yh.bigdata.tts.spider.service;
 
 import com.yh.bigdata.tts.common.dto.atlas.*;
 import com.yh.bigdata.tts.common.model.StockBase;
+import com.yh.bigdata.tts.common.param.FrictionlessLadderStrategyParams;
 import com.yh.bigdata.tts.common.param.LongStrategyParams;
 import com.yh.bigdata.tts.common.param.MediumStrategyParams;
 import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
@@ -42,9 +43,11 @@ public interface AtlasStockApiService {
 
     AtlasGc2MarkersVo getGc2Markers(String code, String period);
 
-    AtlasGc2MarkersVo getBogoMarkers(String code, String period);
+    AtlasGc2MarkersVo getCascadeMarkers(String code, String period);
 
-    AtlasGc2MarkersVo getTrendmMarkers(String code, String period);
+    AtlasGc2MarkersVo getNrfMarkers(String code, String period, FrictionlessLadderStrategyParams nrfParams,
+                                      TrendV2StrategyParams trendParams, MediumStrategyParams mediumParams,
+                                      LongStrategyParams longParams);
 
     AtlasDc2MarkersVo getDc2Markers(String code, String period);
 

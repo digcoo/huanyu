@@ -9,9 +9,8 @@ const STRATEGY_API = {
   trend: { strategy: 'trend', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
   medium: { strategy: 'medium', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
   long: { strategy: 'long', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
-  nrf: { strategy: 'nrf', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'min30' },
-  bogo: { strategy: 'bogo', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  trendm: { strategy: 'trendm', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'min30' }
+  nrf: { strategy: 'nrf', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  cascade: { strategy: 'cascade', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' }
 };
 
 function normalizeStrategyId(strategyId) {
@@ -113,14 +112,18 @@ function appendGlobalGateTags(item, tags) {
   if (/日周月无阻力MACD门|无阻力MACD门/.test(text)) {
     tags.push('无阻力门');
   }
+  if (/日周月MACD交叉low门|MACD交叉low门/.test(text)) {
+    tags.push('交叉low门');
+  }
 }
 
 function appendUltraShortTags(item, tags) {
   appendGlobalGateTags(item, tags);
-  if (/\[ULTRA\]|局部新高\/最近强K基准/.test(text)) {
+  var text = [item && item.trendMessage, item && item.signalMessage].filter(Boolean).join('|');
+  if (/\[ULTRA\]|30m跨日桶柱内上移|局部新高\/最近强K基准/.test(text)) {
     tags.push('基准30m');
   }
-  if (/30m突破/.test(text)) {
+  if (/30m突破|柱内突破K,period=min30/.test(text)) {
     tags.push('超短突破');
   }
 }
@@ -376,61 +379,33 @@ function buildRetestSummary(item) {
 function buildNrfTags(item) {
   var tags = [];
   appendGlobalGateTags(item, tags);
-  if (!tags.length) tags.push('无阻力');
   var text = [item.trendMessage, item.signalMessage].join('|');
-  if (/日周月无阻力MACD门/.test(text)) tags.push('三门');
-  if (/日\+min30梯子|短线梯子/.test(text)) tags.push('日+min30');
-  if (/周\+min30梯子|中线梯子/.test(text)) tags.push('周+min30');
-  if (/月\+min30梯子|长线梯子/.test(text)) tags.push('月+min30');
-  if (/30m✓/.test(text)) tags.push('30m');
-  if (/日✓/.test(text)) tags.push('日');
-  if (/周✓/.test(text)) tags.push('周');
-  if (/月✓/.test(text)) tags.push('月');
+  if (/柱内上移|柱内突破/.test(text)) tags.push('柱内上移');
+  if (/日K跨周桶/.test(text)) tags.push('日K');
+  if (/周K跨月桶/.test(text)) tags.push('周K');
+  if (/月K跨年桶/.test(text)) tags.push('月K');
+  if (/30m✓|30分:/.test(text)) tags.push('30m');
+  if (item.signalMessage && /refDay=/.test(item.signalMessage)) {
+    tags.push('柱内突破K');
+  }
   return tags;
 }
 
 function buildNrfSummary(item) {
-  var trend = item.trendMessage || '';
-  var signal = item.signalMessage || '';
-  if (trend && signal) return trend.split('|')[0] + ' · ' + signal;
-  return trend || signal || '';
-}
-
-function buildBogoTags(item) {
-  var tags = [];
-  appendGlobalGateTags(item, tags);
-  var text = [item.trendMessage, item.signalMessage].join('|');
-  if (/crossType=GC/.test(text)) tags.push('金叉基准');
-  if (/crossType=DC/.test(text)) tags.push('死叉基准');
-  if (/period=day/.test(text)) tags.push('日K');
-  if (/period=week/.test(text)) tags.push('周K');
-  if (/period=month/.test(text)) tags.push('月K');
-  if (item.signalMessage && item.signalMessage.indexOf('refDay=') >= 0) {
-    tags.push('突破基准K');
-  }
-  var label = parseUnilateralTrendLabel(item.trendMessage);
-  if (label && tags.indexOf(label) < 0 && label.length <= 14) {
-    tags.push(label);
-  }
-  return tags;
-}
-
-function buildBogoSummary(item) {
   var signal = item.signalMessage || '';
   if (signal) return signal.split(',')[0];
   return parseUnilateralTrendLabel(item.trendMessage) || '';
 }
 
-function buildTrendmTags(item) {
-  var tags = ['日周月'];
-  appendGlobalGateTags(item, tags);
+function buildCascadeTags(item) {
+  var tags = ['级联交叉'];
   var text = [item.trendMessage, item.signalMessage].join('|');
-  if (/min30梯子|30m/.test(text)) tags.push('min30');
-  if (/crossType=GC/.test(text)) tags.push('金叉基准');
-  if (/crossType=DC/.test(text)) tags.push('死叉基准');
-  if (item.signalMessage && item.signalMessage.indexOf('refDay=') >= 0) {
-    tags.push('突破基准K');
-  }
+  if (/signalTier=day|refPeriod=day|日K基准/.test(text)) tags.push('日基准');
+  if (/signalTier=week|refPeriod=week|周K基准/.test(text)) tags.push('周基准');
+  if (/signalTier=month|refPeriod=month|月K基准/.test(text)) tags.push('月基准');
+  if (/crossType=GC/.test(text)) tags.push('金叉K');
+  if (/crossType=DC/.test(text)) tags.push('死叉K');
+  appendGlobalGateTags(item, tags);
   var label = parseUnilateralTrendLabel(item.trendMessage);
   if (label && tags.indexOf(label) < 0 && label.length <= 14) {
     tags.push(label);
@@ -438,10 +413,10 @@ function buildTrendmTags(item) {
   return tags;
 }
 
-function buildTrendmSummary(item) {
-  var trend = item.trendMessage || '';
-  if (trend) return trend.split('|').slice(0, 2).join(' · ');
-  return item.signalMessage ? item.signalMessage.split(',')[0] : '';
+function buildCascadeSummary(item) {
+  var signal = item.signalMessage || '';
+  if (signal) return signal.split(',')[0];
+  return parseUnilateralTrendLabel(item.trendMessage) || '';
 }
 
 function mapRecommendation(item, strategyId) {
@@ -468,10 +443,8 @@ function mapRecommendation(item, strategyId) {
     tags = tags.concat(buildDc2Tags(item));
   } else if (strategyId === 'nrf') {
     tags = tags.concat(buildNrfTags(item));
-  } else if (strategyId === 'bogo') {
-    tags = tags.concat(buildBogoTags(item));
-  } else if (strategyId === 'trendm') {
-    tags = tags.concat(buildTrendmTags(item));
+  } else if (strategyId === 'cascade') {
+    tags = tags.concat(buildCascadeTags(item));
   } else if (strategyId === 'ultra') {
     tags = tags.concat(buildUltraTags(item));
   } else {
@@ -490,10 +463,8 @@ function mapRecommendation(item, strategyId) {
     ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
     : strategyId === 'nrf'
     ? [buildNrfSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'bogo'
-    ? [buildBogoSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'trendm'
-    ? [buildTrendmSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'cascade'
+    ? [buildCascadeSummary(item), item.mainBusiness, item.summary]
     : strategyId === 'ultra'
     ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
     : strategyId === 'retest'

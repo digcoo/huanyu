@@ -21,13 +21,15 @@ public final class MediumEvaluator {
         if (hit == null) {
             return new MediumEvaluation(null, false);
         }
-        if (!UltraShortGateTools.passes(stock, p.isRequireUltra(), ultraParams)) {
+        UltraShortGateTools.GateResult ultraGate =
+                UltraShortGateTools.evaluate(stock, p.isRequireUltra(), ultraParams);
+        if (!ultraGate.isPassed()) {
             return new MediumEvaluation(hit, false);
         }
         MediumEvaluation eval = new MediumEvaluation(hit, true);
         if (checkResult != null) {
-            if (p.isRequireUltra()) {
-                UltraShortGateTools.appendMessages(checkResult, stock, ultraParams);
+            if (ultraGate.isRequired()) {
+                UltraShortGateTools.appendMessages(checkResult, ultraGate);
             }
             checkResult.addTrendPeriod(PeriodTypeEnum.WEEK, MediumScoreCalculator.buildTrendMessage(eval));
             checkResult.addSignal(PeriodTypeEnum.WEEK, MediumScoreCalculator.buildSignalMessage(eval));

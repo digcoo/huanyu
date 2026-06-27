@@ -268,6 +268,19 @@
   margin-top: 8rpx;
 }
 
+.empty-action {
+  margin-top: 24rpx;
+  padding: 12rpx 32rpx;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(0, 212, 255, 0.35);
+  background: rgba(0, 212, 255, 0.08);
+}
+
+.empty-action text {
+  font-size: 24rpx;
+  color: #00d4ff;
+}
+
 .list-footer-tap {
   cursor: pointer;
 }

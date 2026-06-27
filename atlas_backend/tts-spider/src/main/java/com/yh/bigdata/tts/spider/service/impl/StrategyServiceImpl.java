@@ -7,6 +7,7 @@ import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockTarget;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.StockEvaluationScratchpad;
 import com.yh.bigdata.tts.spider.service.StrategyService;
 import com.yh.bigdata.tts.spider.strategy.AbstractStrategy;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,8 @@ public class StrategyServiceImpl implements StrategyService {
 
         for (StockBase stockBase : RealtimeStockCache.filterStockMap.values()) {
 
-            CheckResult checkResult = strategy.check(stockBase, Arrays.asList(PeriodTypeEnum.WEEK, PeriodTypeEnum.MONTH, PeriodTypeEnum.QUARTER, PeriodTypeEnum.YEAR), PeriodTypeEnum.DAY, QueryContextParam.empty());
+            CheckResult checkResult = StockEvaluationScratchpad.runWithScratchpad(() ->
+                    strategy.check(stockBase, Arrays.asList(PeriodTypeEnum.WEEK, PeriodTypeEnum.MONTH, PeriodTypeEnum.QUARTER, PeriodTypeEnum.YEAR), PeriodTypeEnum.DAY, QueryContextParam.empty()));
 
             if (checkResult.isSuccess()) {
                 String stockCode = stockBase.getCode();

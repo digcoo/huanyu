@@ -28,7 +28,7 @@ function buildStrategyQueryParams(strategyId) {
     adapter.getStrategyApiParams(apiConfigId),
     strategyParams.toApiParams(strategyId)
   );
-  if (strategyId === 'nrf' || strategyId === 'trendm') {
+  if (strategyId === 'nrf') {
     Object.assign(params, strategyParams.toApiParams('ultra'));
   }
   return params;
@@ -41,6 +41,13 @@ function fetchHealth() {
 function toPageNum(v) {
   var n = Number(v);
   return n > 0 ? n : 1;
+}
+
+function buildQueryString(params) {
+  return Object.keys(params || {})
+    .filter(function (k) { return params[k] != null && params[k] !== ''; })
+    .map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); })
+    .join('&');
 }
 
 function resolveHasMore(data, page, itemCount) {
@@ -63,20 +70,31 @@ function fetchRecommendations(strategyId, page, size) {
   page = toPageNum(page);
   size = size || RECOMMEND_PAGE_SIZE;
   var apiStrategyId = strategyParams.resolveApiStrategyId(strategyId);
-  return api.get('/stock/findMy', Object.assign({}, buildStrategyQueryParams(strategyId), {
-    all: true,
+  var query = Object.assign({}, buildStrategyQueryParams(strategyId), {
+    all: 1,
     page: page,
     size: size
-  })).then(function (res) {
-    if (!res.ok || !res.data) {
-      return { items: [], page: page, totalNum: 0, hasMore: false };
+  });
+  var qs = buildQueryString(query);
+  var path = '/stock/findMy' + (qs ? '?' + qs : '');
+  return api.request({
+    path: path,
+    method: 'GET',
+    data: {},
+    timeout: 120000
+  }).then(function (res) {
+    if (!res.ok) {
+      var err = new Error(res.message || 'findMy failed');
+      err.apiCode = res.code;
+      return Promise.reject(err);
     }
-    var data = res.data;
+    var data = res.data || {};
     var currentPage = toPageNum(data.currentPage || page);
-    var items = (data.items || []).map(function (item) {
+    var rawItems = data.items || data.list || [];
+    var items = rawItems.map(function (item) {
       var mapId = strategyId === 'nrf' ? 'nrf' : apiStrategyId;
       return adapter.mapRecommendation(item, mapId);
-    });
+    }).filter(function (item) { return item && item.id; });
     return {
       items: items,
       page: currentPage,
@@ -134,22 +152,9 @@ function fetchKlinesRefresh(code, period, limit) {
   });
 }
 
-/** 梯子突破 · 基准 K / 突破 K 标记 */
-function fetchLadderMarkers(code, period) {
-  return api.get('/stock/' + encodePath(code) + '/ladder/markers', {
-    period: period || 'min30'
-  }).then(function (res) {
-    if (!res.ok || !res.data) return null;
-    return res.data;
-  });
-}
-
 function markerQueryParams(uiStrategyId, apiStrategyId) {
   if (uiStrategyId === 'nrf') {
     return strategyParams.toApiParams('nrf');
-  }
-  if (uiStrategyId === 'trendm') {
-    return strategyParams.toApiParams('ultra');
   }
   return strategyParams.toApiParams(apiStrategyId);
 }
@@ -222,9 +227,9 @@ function fetchGc2Markers(code, period) {
   });
 }
 
-/** 底部机会 · 基准 K / 突破 K 标记 */
-function fetchBogoMarkers(code, period) {
-  return api.get('/stock/' + encodePath(code) + '/bogo/markers', {
+/** 级联交叉突破 · 基准 K / 触发日 K 标记 */
+function fetchCascadeMarkers(code, period) {
+  return api.get('/stock/' + encodePath(code) + '/cascade/markers', {
     period: period || 'day'
   }).then(function (res) {
     if (!res.ok || !res.data) return null;
@@ -232,11 +237,12 @@ function fetchBogoMarkers(code, period) {
   });
 }
 
-/** 趋势策略 · 基准 K / 突破 K 标记 */
-function fetchTrendmMarkers(code, period) {
-  return api.get('/stock/' + encodePath(code) + '/trendm/markers', {
+/** 跨周期内梯子上移 · 基准 K / 突破 K 标记 */
+function fetchNrfMarkers(code, period) {
+  var params = strategyParams.toApiParams('nrf');
+  return api.get('/stock/' + encodePath(code) + '/nrf/markers', Object.assign({
     period: period || 'day'
-  }).then(function (res) {
+  }, params)).then(function (res) {
     if (!res.ok || !res.data) return null;
     return res.data;
   });
@@ -322,17 +328,15 @@ module.exports = {
   triggerStrategyRescan: triggerStrategyRescan,
   fetchKlines: fetchKlines,
   fetchKlinesRefresh: fetchKlinesRefresh,
-  fetchLadderMarkers: fetchLadderMarkers,
   fetchUltraMarkers: fetchUltraMarkers,
   fetchTrendMarkers: fetchTrendMarkers,
   fetchMediumMarkers: fetchMediumMarkers,
   fetchLongMarkers: fetchLongMarkers,
   fetchRetestMarkers: fetchRetestMarkers,
   fetchGc2Markers: fetchGc2Markers,
-  fetchBogoMarkers: fetchBogoMarkers,
-  fetchTrendmMarkers: fetchTrendmMarkers,
+  fetchCascadeMarkers: fetchCascadeMarkers,
+  fetchNrfMarkers: fetchNrfMarkers,
   fetchDc2Markers: fetchDc2Markers,
-  fetchUlowMarkers: fetchLadderMarkers,
   fetchSummary: fetchSummary,
   search: search,
   fetchDetail: fetchDetail,

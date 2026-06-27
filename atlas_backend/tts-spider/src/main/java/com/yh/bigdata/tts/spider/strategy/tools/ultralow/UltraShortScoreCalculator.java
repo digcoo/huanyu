@@ -22,14 +22,12 @@ public final class UltraShortScoreCalculator {
     public static String buildTrendMessage(UltraShortEvaluator.UltraShortEvaluation eval) {
         String prefix = "[ULTRA]超短线|" + StrategyGlobalGateTools.FULL_GATE_LABEL;
         if (eval.getHit() == null || eval.getHit().getReferenceBar() == null) {
-            return prefix + "|前两日局部新高/最近强K基准";
+            return prefix + "|30m跨日桶柱内上移";
         }
         Trade ref = eval.getHit().getReferenceBar();
-        double bodyPct = ref.getShitiRate() != null ? ref.getShitiRate() * 100 : 0;
-        return String.format(prefix + "|局部新高/最近强K基准|refDay=%s,refHigh=%.2f,实体+%.1f%%,窗口%d根",
+        return String.format(prefix + "|30m跨日桶柱内上移|refDay=%s,refHigh=%.2f,窗口%d根",
                 safeDay(ref),
                 ref.getHigh() != null ? ref.getHigh() : 0,
-                bodyPct,
                 eval.getHit().getScanWindowSize());
     }
 
@@ -40,9 +38,11 @@ public final class UltraShortScoreCalculator {
         }
         Trade sig = eval.getHit().getSignalBar();
         Trade ref = eval.getHit().getReferenceBar();
-        double bodyPct = sig.getShitiRate() != null ? sig.getShitiRate() * 100 : 0;
-        return String.format("30m突破 close>前K high且>ref low,(sig low或前K close)<ref high,实体+%.1f%%,refDay=%s,sigDay=%s",
-                bodyPct, safeDay(ref), safeDay(sig));
+        return String.format("柱内突破K,period=min30,refDay=%s,refHigh=%.2f,sigDay=%s,sigClose=%.2f",
+                safeDay(ref),
+                ref.getHigh() != null ? ref.getHigh() : 0,
+                safeDay(sig),
+                sig.getClose() != null ? sig.getClose() : 0);
     }
 
     private static String safeDay(Trade bar) {

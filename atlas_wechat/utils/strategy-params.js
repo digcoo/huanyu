@@ -69,19 +69,18 @@ var DC2_DEFAULTS = {
   d2LookbackLong: 52
 };
 
-var BOGO_DEFAULTS = {
-  boEnableDay: true,
-  boEnableWeek: false,
-  boEnableMonth: false,
-  boLookbackDay: 60,
-  boLookbackWeek: 52,
-  boLookbackMonth: 36
-};
-
-var TRENDM_DEFAULTS = {
-  tmLookbackDay: 60,
-  tmLookbackWeek: 52,
-  tmLookbackMonth: 36
+var CASCADE_DEFAULTS = {
+  caEnableDualLowGate: false,
+  caEnableMacdGate: false,
+  caEnableCrossLowGate: false,
+  caEnableDay: true,
+  caEnableWeek: false,
+  caEnableMonth: false,
+  caLookbackDay: 60,
+  caLookbackWeek: 52,
+  caLookbackMonth: 36,
+  caMinAmountWan: 3000,
+  caRequireUltra: false
 };
 
 var ULTRA_DEFAULTS = {
@@ -159,55 +158,6 @@ var ULTRA_SCHEMA = [
     label: '当前K须为突破K',
     hint: '关闭则当日任一根满足突破条件即可',
     type: 'switch'
-  }
-];
-
-var LADDER_SCHEMA = [
-  {
-    key: 'lMinAmountWan',
-    label: '最低成交额',
-    hint: '近6日日均成交额（万）',
-    type: 'slider',
-    min: 1000,
-    max: 10000,
-    step: 500,
-    unit: '万'
-  },
-  {
-    key: 'lEnableUltra',
-    label: '超短突破',
-    hint: '30m · 前2日基准 + 当日首根突破',
-    type: 'switch'
-  },
-  {
-    key: 'lEnableShort',
-    label: '短线突破',
-    hint: '日K · 前2周基准 + 本周首根突破',
-    type: 'switch'
-  },
-  {
-    key: 'lEnableMedium',
-    label: '中线突破',
-    hint: '周K · 前2月基准 + 本月首根突破',
-    type: 'switch'
-  },
-  {
-    key: 'lEnableLong',
-    label: '长线突破',
-    hint: '月K · 前2年基准 + 本年首根突破',
-    type: 'switch'
-  },
-  {
-    key: 'lTierMin',
-    label: '最低展示档位',
-    type: 'picker',
-    options: [
-      { value: 'ALL', label: '全部档位' },
-      { value: 'C', label: 'C档及以上 (长线+)' },
-      { value: 'B', label: 'B档及以上 (中线+)' },
-      { value: 'A', label: 'A档及以上 (短线+)' },
-      { value: 'S', label: '仅超短 (S)' }
-    ]
   }
 ];
 
@@ -334,7 +284,7 @@ var TREND_SCHEMA = [
   {
     key: 'trRequireUltra',
     label: '须满足超短 30m 突破',
-    hint: '开启后须同时命中超短策略；30m 参数沿用超短 Tab 设置',
+    hint: '开启后须同时满足 30m 跨日桶柱内突破；ul* 参数沿用超短 Tab 设置',
     type: 'switch'
   }
 ];
@@ -523,37 +473,64 @@ var DC2_SCHEMA = [
   }
 ];
 
-var BOGO_SCHEMA = [
+var CASCADE_SCHEMA = [
   {
     type: 'section',
-    label: '启用周期',
-    hint: '在对应周期找最近金叉/死叉 K 为基准，现价突破基准 K 高点'
+    label: '可选三门',
+    hint: '默认均关闭；开启后日/周/月须全部满足对应门控'
   },
   {
-    key: 'boEnableDay',
-    label: '日 K',
-    hint: '日 K 最近金叉或死叉柱 + 突破',
+    key: 'caEnableDualLowGate',
+    label: '双低支撑门',
     type: 'switch'
   },
   {
-    key: 'boEnableWeek',
-    label: '周 K',
-    hint: '周 K 最近金叉或死叉柱 + 突破',
+    key: 'caEnableMacdGate',
+    label: '无阻力 MACD 门',
     type: 'switch'
   },
   {
-    key: 'boEnableMonth',
-    label: '月 K',
-    hint: '月 K 最近金叉或死叉柱 + 突破',
+    key: 'caEnableCrossLowGate',
+    label: 'MACD 交叉 low 门',
+    type: 'switch'
+  },
+  {
+    key: 'caMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）；0=不启用',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: '级联档位',
+    hint: '日K边沿突破对应基准 high；破日须周稳、破周须月稳；周/月档须日close>日基准high；多档勾选取并集'
+  },
+  {
+    key: 'caEnableDay',
+    label: '突破日基准',
+    type: 'switch'
+  },
+  {
+    key: 'caEnableWeek',
+    label: '突破周基准',
+    type: 'switch'
+  },
+  {
+    key: 'caEnableMonth',
+    label: '突破月基准',
     type: 'switch'
   },
   {
     type: 'section',
-    label: '回溯根数',
-    hint: '各周期向前搜索金叉/死叉的最大 K 数'
+    label: '交叉 K 回溯',
+    hint: '各周期向前搜索 MACD 金叉/死叉的最大 K 数'
   },
   {
-    key: 'boLookbackDay',
+    key: 'caLookbackDay',
     label: '日 K lookback',
     type: 'slider',
     min: 20,
@@ -562,7 +539,7 @@ var BOGO_SCHEMA = [
     unit: '根'
   },
   {
-    key: 'boLookbackWeek',
+    key: 'caLookbackWeek',
     label: '周 K lookback',
     type: 'slider',
     min: 20,
@@ -571,58 +548,23 @@ var BOGO_SCHEMA = [
     unit: '根'
   },
   {
-    key: 'boLookbackMonth',
+    key: 'caLookbackMonth',
     label: '月 K lookback',
     type: 'slider',
     min: 12,
     max: 60,
     step: 4,
     unit: '根'
-  }
-];
-
-var TRENDM_SCHEMA = [
-  {
-    type: 'section',
-    label: '日/周/月基准突破',
-    hint: '三周期须同时满足：最近金叉/死叉 K（非当前 K）为基准，前 K 未破、当前 K 突破 ref.high'
   },
   {
     type: 'section',
-    label: 'min30 梯子',
-    hint: '固定联检 30m 超短梯子；参数沿用「超短」Tab'
+    label: '超短叠加',
+    hint: '开启后须同时满足 30m 跨日桶柱内突破；ul* 参数沿用「超短」Tab 设置'
   },
   {
-    type: 'section',
-    label: '回溯根数',
-    hint: '各周期向前搜索金叉/死叉的最大 K 数'
-  },
-  {
-    key: 'tmLookbackDay',
-    label: '日 K lookback',
-    type: 'slider',
-    min: 20,
-    max: 120,
-    step: 5,
-    unit: '根'
-  },
-  {
-    key: 'tmLookbackWeek',
-    label: '周 K lookback',
-    type: 'slider',
-    min: 20,
-    max: 104,
-    step: 4,
-    unit: '根'
-  },
-  {
-    key: 'tmLookbackMonth',
-    label: '月 K lookback',
-    type: 'slider',
-    min: 12,
-    max: 60,
-    step: 4,
-    unit: '根'
+    key: 'caRequireUltra',
+    label: '须满足超短 Min30 突破',
+    type: 'switch'
   }
 ];
 
@@ -693,7 +635,7 @@ var MEDIUM_SCHEMA = [
   {
     key: 'mdRequireUltra',
     label: '须满足超短 30m 突破',
-    hint: '开启后须同时命中超短策略；30m 参数沿用超短 Tab 设置',
+    hint: '开启后须同时满足 30m 跨日桶柱内突破；ul* 参数沿用超短 Tab 设置',
     type: 'switch'
   }
 ];
@@ -765,7 +707,7 @@ var LONG_SCHEMA = [
   {
     key: 'lgRequireUltra',
     label: '须满足超短 30m 突破',
-    hint: '开启后须同时命中超短策略；30m 参数沿用超短 Tab 设置',
+    hint: '开启后须同时满足 30m 跨日桶柱内突破；ul* 参数沿用超短 Tab 设置',
     type: 'switch'
   }
 ];
@@ -777,54 +719,65 @@ var SCHEMA_BY_STRATEGY = {
   long: LONG_SCHEMA,
   resonance: RESONANCE_SCHEMA,
   rebound: REBOUND_SCHEMA,
-  ladder: [],
   nrf: [],
   retest: RETEST_SCHEMA,
   gc2: GC2_SCHEMA,
   dc2: DC2_SCHEMA,
-  bogo: BOGO_SCHEMA,
-  trendm: TRENDM_SCHEMA
+  cascade: CASCADE_SCHEMA
 };
 
 var LADDER_TIER_SHORT = 'short';
 var LADDER_TIER_MEDIUM = 'medium';
 var LADDER_TIER_LONG = 'long';
 
-var LADDER_TIERS = [
-  { id: LADDER_TIER_SHORT, apiId: 'trend', label: '短', title: '短线' },
-  { id: LADDER_TIER_MEDIUM, apiId: 'medium', label: '中', title: '中线' },
-  { id: LADDER_TIER_LONG, apiId: 'long', label: '长', title: '长线' }
-];
-
 var NRF_TIERS = [
-  { id: LADDER_TIER_SHORT, apiId: 'trend', label: '日+min30', title: '日+min30' },
-  { id: LADDER_TIER_MEDIUM, apiId: 'medium', label: '周+min30', title: '周+min30' },
-  { id: LADDER_TIER_LONG, apiId: 'long', label: '月+min30', title: '月+min30' }
+  { id: LADDER_TIER_SHORT, apiId: 'trend', label: '日K', title: '日K跨周桶' },
+  { id: LADDER_TIER_MEDIUM, apiId: 'medium', label: '周K', title: '周K跨月桶' },
+  { id: LADDER_TIER_LONG, apiId: 'long', label: '月K', title: '月K跨年桶' }
 ];
 
-var NRF_ULTRA_SWITCH_KEYS = {
-  trRequireUltra: true,
-  mdRequireUltra: true,
-  lgRequireUltra: true
-};
+function nrfTierFormDefaults(tierKey) {
+  var base = tierKey === LADDER_TIER_MEDIUM ? MEDIUM_DEFAULTS
+    : tierKey === LADDER_TIER_LONG ? LONG_DEFAULTS : TREND_DEFAULTS;
+  var out = clone(base);
+  if (tierKey === LADDER_TIER_SHORT) {
+    out.trRequireUltra = false;
+    out.trRequireCurrentBreakout = true;
+    out.trRequireMonthMacd = false;
+    out.trRequireWeekMacd = false;
+    out.trRequireDayMacd = false;
+    out.trRequireWeekGoldenCross = false;
+  } else if (tierKey === LADDER_TIER_MEDIUM) {
+    out.mdRequireUltra = false;
+    out.mdRequireCurrentBreakout = true;
+    out.mdRequireMonthMacd = false;
+    out.mdRequireYearMacd = false;
+    out.mdRequireMonthGoldenCross = false;
+  } else {
+    out.lgRequireUltra = false;
+    out.lgRequireCurrentBreakout = true;
+    out.lgRequireYearMacd = false;
+    out.lgRequireMonthMacd = false;
+    out.lgRequireYearGoldenCross = false;
+  }
+  return out;
+}
 
-function buildLadderBundleDefaults() {
+function buildNrfBundleDefaults() {
   return {
     activeTier: LADDER_TIER_SHORT,
-    short: clone(TREND_DEFAULTS),
-    medium: clone(MEDIUM_DEFAULTS),
-    long: clone(LONG_DEFAULTS)
+    short: nrfTierFormDefaults(LADDER_TIER_SHORT),
+    medium: nrfTierFormDefaults(LADDER_TIER_MEDIUM),
+    long: nrfTierFormDefaults(LADDER_TIER_LONG)
   };
 }
 
-var LADDER_BUNDLE_DEFAULTS = buildLadderBundleDefaults();
-
-var NRF_BUNDLE_DEFAULTS = buildLadderBundleDefaults();
+var NRF_BUNDLE_DEFAULTS = buildNrfBundleDefaults();
 
 function migrateLegacyNrfBundle(raw) {
   if (!raw || typeof raw !== 'object') return null;
   if (raw.activeTier && raw.short) return raw;
-  var def = buildLadderBundleDefaults();
+  var def = buildNrfBundleDefaults();
   var tier = LADDER_TIER_SHORT;
   if (raw.nrfLadderMode === 'week') tier = LADDER_TIER_MEDIUM;
   else if (raw.nrfLadderMode === 'month') tier = LADDER_TIER_LONG;
@@ -834,17 +787,6 @@ function migrateLegacyNrfBundle(raw) {
     medium: normalizeTierParams(LADDER_TIER_MEDIUM, raw.medium || raw.week || def.medium),
     long: normalizeTierParams(LADDER_TIER_LONG, raw.long || raw.month || def.long)
   };
-}
-
-function buildNrfBundleDefaults() {
-  return buildLadderBundleDefaults();
-}
-
-function applyNrfUltraDefaults(bundle) {
-  if (bundle.short) bundle.short.trRequireUltra = true;
-  if (bundle.medium) bundle.medium.mdRequireUltra = true;
-  if (bundle.long) bundle.long.lgRequireUltra = true;
-  return bundle;
 }
 
 function loadNrfBundleRaw() {
@@ -858,31 +800,49 @@ function loadNrfBundleRaw() {
         saved = migrateLegacyNrfBundle(saved) || migrateLadderFromLegacyStorages();
       }
       if (saved && saved.short) {
-        wx.setStorageSync(storageKey('nrf'), applyNrfUltraDefaults(normalizeLadderBundle(saved)));
+        wx.setStorageSync(storageKey('nrf'), normalizeLadderBundle(saved));
       }
     }
-    return applyNrfUltraDefaults(normalizeLadderBundle(saved || buildNrfBundleDefaults()));
+    return normalizeLadderBundle(saved || buildNrfBundleDefaults());
   } catch (e) {
-    return applyNrfUltraDefaults(buildNrfBundleDefaults());
+    return buildNrfBundleDefaults();
   }
+}
+
+function sanitizeNrfTierParams(tierKey, params) {
+  var out = clone(params);
+  if (tierKey === LADDER_TIER_SHORT) {
+    out.trRequireMonthMacd = false;
+    out.trRequireWeekMacd = false;
+    out.trRequireDayMacd = false;
+    out.trRequireWeekGoldenCross = false;
+  } else if (tierKey === LADDER_TIER_MEDIUM) {
+    out.mdRequireMonthMacd = false;
+    out.mdRequireYearMacd = false;
+    out.mdRequireMonthGoldenCross = false;
+  } else {
+    out.lgRequireYearMacd = false;
+    out.lgRequireMonthMacd = false;
+    out.lgRequireYearGoldenCross = false;
+  }
+  return out;
 }
 
 function loadNrfTierForm(tier) {
   var bundle = loadNrfBundleRaw();
   var key = tier || bundle.activeTier || LADDER_TIER_SHORT;
-  return clone(bundle[key] || bundle.short);
+  return sanitizeNrfTierParams(key, clone(bundle[key] || bundle.short));
 }
 
 function saveNrfTierForm(tier, form, setActive) {
   var bundle = loadNrfBundleRaw();
-  var tierKey = tier || bundle.activeTier || LADDER_TIER_SHORT;
+  var tierKey = (form && form.nrfActiveTier) || tier || bundle.activeTier || LADDER_TIER_SHORT;
   if (setActive) {
     bundle.activeTier = tierKey;
   }
-  var normalized = normalizeTierParams(tierKey, form);
-  if (tierKey === LADDER_TIER_SHORT) normalized.trRequireUltra = true;
-  else if (tierKey === LADDER_TIER_MEDIUM) normalized.mdRequireUltra = true;
-  else normalized.lgRequireUltra = true;
+  var tierForm = clone(form || {});
+  delete tierForm.nrfActiveTier;
+  var normalized = sanitizeNrfTierParams(tierKey, normalizeTierParams(tierKey, tierForm));
   bundle[tierKey] = normalized;
   wx.setStorageSync(storageKey('nrf'), bundle);
   return bundle;
@@ -906,18 +866,177 @@ function getFrictionlessGateHeadSchema() {
     type: 'section',
     label: '无阻力 MACD 门',
     hint: '固定：日、周、月须同时满足 MACD>0 或 (MACD≤0 且 当前K.close>前K.high)'
+  }, {
+    type: 'section',
+    label: 'MACD 交叉 low 门',
+    hint: '固定：现价 > 最近一根 MACD 交叉 K 的 low（金叉或死叉），日、周、月须全部满足'
   }];
 }
 
-var FRICTIONLESS_GATE_STRATEGIES = { ultra: true, bogo: true, trendm: true };
+var NRF_TIER_PICKER = [
+  { value: LADDER_TIER_SHORT, label: '日 K · 跨周桶' },
+  { value: LADDER_TIER_MEDIUM, label: '周 K · 跨月桶' },
+  { value: LADDER_TIER_LONG, label: '月 K · 跨年桶' }
+];
+
+var NRF_IN_BAR_HINT = '背景桶内任一根强K可为基准；中间K收盘<=ref.high；'
+  + '信号K须 close>前K.high、close>=ref.low 且 min(low,前收)<=ref.high';
+
+function nrfTierBodySchema(tierId) {
+  if (tierId === LADDER_TIER_MEDIUM || tierApiId(tierId) === 'medium') {
+    return [{
+      type: 'section',
+      label: '档位参数',
+      hint: '近6日日均成交额；信号月之前的完整自然月数'
+    }, {
+      key: 'mdMinAmountWan',
+      label: '最低成交额',
+      hint: '近6日日均成交额（万）',
+      type: 'slider',
+      min: 1000,
+      max: 10000,
+      step: 500,
+      unit: '万'
+    }, {
+      key: 'mdPrevMonths',
+      label: '基准背景月数',
+      hint: '自然月，信号月之前的完整月数',
+      type: 'slider',
+      min: 1,
+      max: 4,
+      step: 1,
+      unit: '月'
+    }, {
+      type: 'section',
+      label: '突破 K',
+      hint: '开启则须最新一根操作周期 K 满足信号条件；关闭则本周期任一根满足即可'
+    }, {
+      key: 'mdRequireCurrentBreakout',
+      label: '当前 K 须为突破 K',
+      type: 'switch'
+    }, {
+      type: 'section',
+      label: '超短叠加',
+      hint: '开启后须同时满足 30m 跨日桶柱内突破；ul* 参数沿用超短 Tab 设置'
+    }, {
+      key: 'mdRequireUltra',
+      label: '须满足超短 30m 突破',
+      type: 'switch'
+    }];
+  }
+  if (tierId === LADDER_TIER_LONG || tierApiId(tierId) === 'long') {
+    return [{
+      type: 'section',
+      label: '档位参数',
+      hint: '近6日日均成交额；信号年之前的完整自然年数'
+    }, {
+      key: 'lgMinAmountWan',
+      label: '最低成交额',
+      hint: '近6日日均成交额（万）',
+      type: 'slider',
+      min: 1000,
+      max: 10000,
+      step: 500,
+      unit: '万'
+    }, {
+      key: 'lgPrevYears',
+      label: '基准背景年数',
+      hint: '自然年，信号年之前的完整年数',
+      type: 'slider',
+      min: 1,
+      max: 4,
+      step: 1,
+      unit: '年'
+    }, {
+      type: 'section',
+      label: '突破 K',
+      hint: '开启则须最新一根操作周期 K 满足信号条件；关闭则本周期任一根满足即可'
+    }, {
+      key: 'lgRequireCurrentBreakout',
+      label: '当前 K 须为突破 K',
+      type: 'switch'
+    }, {
+      type: 'section',
+      label: '超短叠加',
+      hint: '开启后须同时满足 30m 跨日桶柱内突破；ul* 参数沿用超短 Tab 设置'
+    }, {
+      key: 'lgRequireUltra',
+      label: '须满足超短 30m 突破',
+      type: 'switch'
+    }];
+  }
+  return [{
+    type: 'section',
+    label: '档位参数',
+    hint: '近6日日均成交额；信号周之前的完整自然周数'
+  }, {
+    key: 'trMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 1000,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  }, {
+    key: 'trPrevWeeks',
+    label: '基准背景周数',
+    hint: '自然周，信号周之前的完整周数',
+    type: 'slider',
+    min: 1,
+    max: 4,
+      step: 1,
+      unit: '周'
+    }, {
+      type: 'section',
+      label: '突破 K',
+      hint: '开启则须最新一根操作周期 K 满足信号条件；关闭则本周期任一根满足即可'
+    }, {
+      key: 'trRequireCurrentBreakout',
+      label: '当前 K 须为突破 K',
+      type: 'switch'
+    }, {
+      type: 'section',
+      label: '超短叠加',
+      hint: '开启后须同时满足 30m 跨日桶柱内突破；ul* 参数沿用超短 Tab 设置'
+    }, {
+      key: 'trRequireUltra',
+    label: '须满足超短 30m 突破',
+    type: 'switch'
+  }];
+}
+
+function getNrfPanelSchema(tierId) {
+  var tier = tierId || LADDER_TIER_SHORT;
+  return getFrictionlessGateHeadSchema().concat([{
+    type: 'section',
+    label: '运行档位',
+    hint: '一次只扫描一档；在更大周期背景桶内找强K基准，信号K须柱内突破'
+  }, {
+    key: 'nrfActiveTier',
+    label: '当前档位',
+    type: 'picker',
+    options: NRF_TIER_PICKER
+  }, {
+    type: 'section',
+    label: '跨周期柱内突破',
+    hint: NRF_IN_BAR_HINT
+  }]).concat(nrfTierBodySchema(tier));
+}
+
+var FRICTIONLESS_GATE_STRATEGIES = { ultra: true, nrf: true };
 
 function schemaWithFrictionlessGate(strategyId, schema) {
   if (!FRICTIONLESS_GATE_STRATEGIES[strategyId]) {
     return schema || [];
   }
+  if (strategyId === 'nrf') {
+    return getNrfPanelSchema(LADDER_TIER_SHORT);
+  }
   var body = schema || [];
   if (body[0] && body[0].label === '双低支撑门') {
-    while (body[0] && (body[0].label === '双低支撑门' || body[0].label === '无阻力 MACD 门')) {
+    while (body[0] && (body[0].label === '双低支撑门' || body[0].label === '无阻力 MACD 门'
+        || body[0].label === 'MACD 交叉 low 门')) {
       body = body.slice(1);
     }
   } else if (body[0] && body[0].label === '无阻力 MACD 门') {
@@ -926,20 +1045,34 @@ function schemaWithFrictionlessGate(strategyId, schema) {
   return getFrictionlessGateHeadSchema().concat(body);
 }
 
-function getNrfHeadSchema() {
-  return getFrictionlessGateHeadSchema().concat([{
-    type: 'section',
-    label: 'min30 梯子',
-    hint: '三档均固定联检 30m 超短梯子 + 对应日/周/月梯子；30m 参数沿用「超短」Tab'
-  }]);
+function nrfBreakoutModeLabel(tier, p) {
+  if (tier === LADDER_TIER_MEDIUM || tierApiId(tier) === 'medium') {
+    return p.mdRequireCurrentBreakout !== false ? '当前K突破' : '周期内突破';
+  }
+  if (tier === LADDER_TIER_LONG || tierApiId(tier) === 'long') {
+    return p.lgRequireCurrentBreakout !== false ? '当前K突破' : '周期内突破';
+  }
+  return p.trRequireCurrentBreakout !== false ? '当前K突破' : '周期内突破';
 }
 
-function getNrfPanelSchema(tierId) {
-  return getNrfHeadSchema().concat(getTierSchema(tierId).filter(function (f) {
-    if (NRF_ULTRA_SWITCH_KEYS[f.key]) return false;
-    if (f.type === 'section' && f.label === '超短叠加') return false;
-    return true;
-  }));
+function formatNrfTierSummary(tier, p) {
+  var breakoutPart = ' · ' + nrfBreakoutModeLabel(tier, p);
+  if (tier === LADDER_TIER_MEDIUM || tierApiId(tier) === 'medium') {
+    return (p.mdMinAmountWan != null ? p.mdMinAmountWan : 5000) + '万 · '
+      + (p.mdPrevMonths != null ? p.mdPrevMonths : 2) + '月基准'
+      + breakoutPart
+      + (p.mdRequireUltra ? ' · +min30' : '');
+  }
+  if (tier === LADDER_TIER_LONG || tierApiId(tier) === 'long') {
+    return (p.lgMinAmountWan != null ? p.lgMinAmountWan : 5000) + '万 · '
+      + (p.lgPrevYears != null ? p.lgPrevYears : 2) + '年基准'
+      + breakoutPart
+      + (p.lgRequireUltra ? ' · +min30' : '');
+  }
+  return (p.trMinAmountWan != null ? p.trMinAmountWan : 5000) + '万 · '
+    + (p.trPrevWeeks != null ? p.trPrevWeeks : 2) + '周基准'
+    + breakoutPart
+    + (p.trRequireUltra ? ' · +min30' : '');
 }
 
 function getTierListFor(strategyId) {
@@ -970,19 +1103,16 @@ var DEFAULTS_BY_STRATEGY = {
   long: LONG_DEFAULTS,
   resonance: RESONANCE_DEFAULTS,
   rebound: REBOUND_DEFAULTS,
-  ladder: LADDER_BUNDLE_DEFAULTS,
   nrf: NRF_BUNDLE_DEFAULTS,
   retest: RETEST_DEFAULTS,
   gc2: GC2_DEFAULTS,
   dc2: DC2_DEFAULTS,
-  bogo: BOGO_DEFAULTS,
-  trendm: TRENDM_DEFAULTS
+  cascade: CASCADE_DEFAULTS
 };
 
 var TIER_PICKER = null;
 var RESONANCE_TIER_PICKER = RESONANCE_SCHEMA.find(function (f) { return f.key === 'cTierMin'; });
 var REBOUND_TIER_PICKER = REBOUND_SCHEMA.find(function (f) { return f.key === 'rTierMin'; });
-var LADDER_TIER_PICKER = LADDER_SCHEMA.find(function (f) { return f.key === 'lTierMin'; });
 var RETEST_TIER_PICKER = RETEST_SCHEMA.find(function (f) { return f.key === 'tTierMin'; });
 var GC2_TIER_PICKER = GC2_SCHEMA.find(function (f) { return f.key === 'g2TierMin'; });
 var DC2_TIER_PICKER = DC2_SCHEMA.find(function (f) { return f.key === 'd2TierMin'; });
@@ -1014,7 +1144,7 @@ function normalizeTierParams(tier, raw) {
 }
 
 function normalizeLadderBundle(raw) {
-  var def = buildLadderBundleDefaults();
+  var def = buildNrfBundleDefaults();
   if (!raw || typeof raw !== 'object') {
     return def;
   }
@@ -1029,7 +1159,7 @@ function normalizeLadderBundle(raw) {
 }
 
 function migrateLadderFromLegacyStorages() {
-  var bundle = buildLadderBundleDefaults();
+  var bundle = buildNrfBundleDefaults();
   try {
     var tr = wx.getStorageSync(STORAGE_PREFIX + 'trend');
     if (tr) bundle.short = normalize('trend', tr);
@@ -1037,6 +1167,7 @@ function migrateLadderFromLegacyStorages() {
     if (md) bundle.medium = normalize('medium', md);
     var lg = wx.getStorageSync(STORAGE_PREFIX + 'long');
     if (lg) bundle.long = normalize('long', lg);
+    var oldLadder = wx.getStorageSync(STORAGE_PREFIX + 'ladder');
     if (oldLadder && oldLadder.lLadderTier) {
       var tierCode = String(oldLadder.lLadderTier).toUpperCase();
       if (tierCode === 'B') bundle.activeTier = LADDER_TIER_MEDIUM;
@@ -1044,45 +1175,6 @@ function migrateLadderFromLegacyStorages() {
       else bundle.activeTier = LADDER_TIER_SHORT;
     }
   } catch (e) {}
-  return bundle;
-}
-
-function loadLadderBundleRaw() {
-  try {
-    var saved = wx.getStorageSync(storageKey('ladder'));
-    if (!saved || !saved.short) {
-      saved = migrateLadderFromLegacyStorages();
-      wx.setStorageSync(storageKey('ladder'), saved);
-    }
-    return normalizeLadderBundle(saved);
-  } catch (e) {
-    return buildLadderBundleDefaults();
-  }
-}
-
-function loadTierForm(tier) {
-  var bundle = loadLadderBundleRaw();
-  var key = tier || bundle.activeTier || LADDER_TIER_SHORT;
-  return clone(bundle[key] || bundle.short);
-}
-
-function saveTierForm(tier, form, setActive) {
-  var bundle = loadLadderBundleRaw();
-  var tierKey = tier || bundle.activeTier || LADDER_TIER_SHORT;
-  if (setActive) {
-    bundle.activeTier = tierKey;
-  }
-  bundle[tierKey] = normalizeTierParams(tierKey, form);
-  wx.setStorageSync(storageKey('ladder'), bundle);
-  return bundle;
-}
-
-function resetLadderTier(tier) {
-  var bundle = loadLadderBundleRaw();
-  var tierKey = tier || bundle.activeTier || LADDER_TIER_SHORT;
-  var def = buildLadderBundleDefaults();
-  bundle[tierKey] = clone(def[tierKey]);
-  wx.setStorageSync(storageKey('ladder'), bundle);
   return bundle;
 }
 
@@ -1094,13 +1186,6 @@ function getActiveTierParams(strategyId) {
     return nrfBundle[nrfTier];
   }
   return load(strategyId);
-}
-
-function ladderTierTitle(tier) {
-  for (var i = 0; i < LADDER_TIERS.length; i++) {
-    if (LADDER_TIERS[i].id === tier) return LADDER_TIERS[i].title;
-  }
-  return '短线';
 }
 
 function nrfTierTitle(tier) {
@@ -1145,25 +1230,6 @@ function formatTierSummary(tier, p) {
     + (p.lgRequireUltra !== false ? ' · +超短' : '');
 }
 
-function migrateLadderTier(raw, out) {
-  if (!raw || !raw.lLadderTier) return;
-  var t = String(raw.lLadderTier).toUpperCase();
-  out.lEnableUltra = t === 'S';
-  out.lEnableShort = t === 'A';
-  out.lEnableMedium = t === 'B';
-  out.lEnableLong = t === 'C';
-}
-
-/** 列表主图默认周期：取已启用档位中最高频（超短优先） */
-function ladderPrimaryPeriod(params) {
-  var p = params || {};
-  if (p.lEnableUltra) return 'min30';
-  if (p.lEnableShort) return 'day';
-  if (p.lEnableMedium) return 'week';
-  if (p.lEnableLong) return 'month';
-  return 'min30';
-}
-
 function retestPrimaryPeriod(params) {
   var p = params || {};
   if (p.tEnableUltra) return 'min30';
@@ -1187,16 +1253,12 @@ function dc2PrimaryPeriod(params) {
   return 'day';
 }
 
-function bogoPrimaryPeriod(params) {
+function cascadePrimaryPeriod(params) {
   var p = params || {};
-  if (p.boEnableDay) return 'day';
-  if (p.boEnableWeek) return 'week';
-  if (p.boEnableMonth) return 'month';
+  if (p.caEnableMonth) return 'month';
+  if (p.caEnableWeek) return 'week';
+  if (p.caEnableDay) return 'day';
   return 'day';
-}
-
-function trendmPrimaryPeriod(params) {
-  return 'min30';
 }
 
 function chartPrimaryPeriod(strategyId, params) {
@@ -1212,8 +1274,7 @@ function chartPrimaryPeriod(strategyId, params) {
   if (strategyId === 'retest') return retestPrimaryPeriod(params);
   if (strategyId === 'gc2') return gc2PrimaryPeriod(params);
   if (strategyId === 'dc2') return dc2PrimaryPeriod(params);
-  if (strategyId === 'bogo') return bogoPrimaryPeriod(params);
-  if (strategyId === 'trendm') return trendmPrimaryPeriod(params);
+  if (strategyId === 'cascade') return cascadePrimaryPeriod(params);
   return null;
 }
 
@@ -1261,12 +1322,6 @@ function normalize(strategyId, raw) {
       out.rEnableShort = true;
     }
   }
-  if (strategyId === 'ladder') {
-    migrateLadderTier(raw, out);
-    if (!out.lEnableUltra && !out.lEnableShort && !out.lEnableMedium && !out.lEnableLong) {
-      out.lEnableUltra = true;
-    }
-  }
   if (strategyId === 'retest') {
     if (!out.tEnableBear && !out.tEnableBull) {
       out.tEnableBear = true;
@@ -1291,12 +1346,33 @@ function normalize(strategyId, raw) {
       out.d2TierMin = 'B';
     }
   }
-  if (strategyId === 'bogo') {
-    if (!out.boEnableDay && !out.boEnableWeek && !out.boEnableMonth) {
-      out.boEnableDay = true;
+  if (strategyId === 'cascade') {
+    if (!out.caEnableDay && !out.caEnableWeek && !out.caEnableMonth) {
+      out.caEnableDay = true;
+    }
+  }
+  if (strategyId === 'ultra') {
+    if (out.ulRequireDayMacd && out.ulRequireDayMacdNegative) {
+      out.ulRequireDayMacdNegative = false;
     }
   }
   return out;
+}
+
+/** 当前参数组合可能导致零结果时的提示（供首页空态） */
+function emptyResultHint(strategyId) {
+  strategyId = normalizeStrategyId(strategyId);
+  if (strategyId !== 'ultra') {
+    return isCustomized(strategyId) ? '当前参数无匹配，可点 ⚙ 恢复默认' : '';
+  }
+  var p = load('ultra');
+  if (p.ulRequireDayMacdNegative && p.ulRequireWeekMacdNegative && p.ulRequireMonthMacdNegative) {
+    return '日/周/月 MACD<0 全开时无匹配标的，请点 ⚙ 恢复默认';
+  }
+  if (isCustomized('ultra')) {
+    return '当前参数无匹配，可点 ⚙ 恢复默认或放宽 MACD/突破 条件';
+  }
+  return '';
 }
 
 function load(strategyId) {
@@ -1459,7 +1535,7 @@ function formatSummary(strategyId) {
   if (strategyId === 'nrf') {
     var nrfBundle2 = loadNrfBundleRaw();
     var nrfTier = nrfBundle2.activeTier || LADDER_TIER_SHORT;
-    return nrfTierTitle(nrfTier) + ' · ' + formatTierSummary(nrfTier, nrfBundle2[nrfTier]) + ' · 双低门 · 无阻力门';
+    return nrfTierTitle(nrfTier) + ' · ' + formatNrfTierSummary(nrfTier, nrfBundle2[nrfTier]) + ' · 三门全局';
   }
   if (strategyId === 'retest') {
     var tModes = [];
@@ -1488,15 +1564,19 @@ function formatSummary(strategyId) {
     return (d2Modes.length ? d2Modes.join('+') : '未启用') + ' · '
       + tierLabelFrom(DC2_TIER_PICKER, p.d2TierMin);
   }
-  if (strategyId === 'bogo') {
-    var boModes = [];
-    if (p.boEnableDay) boModes.push('日K');
-    if (p.boEnableWeek) boModes.push('周K');
-    if (p.boEnableMonth) boModes.push('月K');
-    return (boModes.length ? boModes.join('+') : '未启用') + ' · 双低门 · 无阻力门 · 金叉/死叉突破';
-  }
-  if (strategyId === 'trendm') {
-    return '日+周+月基准突破 · 双低门 · 无阻力门 · min30梯子';
+  if (strategyId === 'cascade') {
+    var caModes = [];
+    if (p.caEnableDay) caModes.push('日基准');
+    if (p.caEnableWeek) caModes.push('周基准');
+    if (p.caEnableMonth) caModes.push('月基准');
+    var gateParts = [];
+    if (p.caEnableDualLowGate) gateParts.push('双低');
+    if (p.caEnableMacdGate) gateParts.push('无阻力');
+    if (p.caEnableCrossLowGate) gateParts.push('交叉low');
+    return (caModes.length ? caModes.join('+') : '未启用') + ' · 级联交叉突破'
+      + (gateParts.length ? ' · ' + gateParts.join('+') : '')
+      + (p.caMinAmountWan != null && p.caMinAmountWan > 0 ? ' · ' + p.caMinAmountWan + '万' : '')
+      + (p.caRequireUltra ? ' · +min30' : '');
   }
   if (strategyId === 'ultra') {
     var macdParts = [];
@@ -1506,7 +1586,7 @@ function formatSummary(strategyId) {
     if (p.ulRequireMonthMacdNegative) macdParts.push('月MACD<0');
     var amountPart = (p.ulMinAmountWan != null ? p.ulMinAmountWan : 5000) + '万';
     var sigPart = p.ulRequireCurrentBreakout ? '当前K突破' : '当日有突破';
-    return '双低门 · 无阻力门 · ' + amountPart + ' · ' + sigPart
+    return '三门全局 · ' + amountPart + ' · ' + sigPart
       + (macdParts.length ? ' · ' + macdParts.join('+') : '');
   }
   return '';
@@ -1522,28 +1602,22 @@ module.exports = {
   resetTierFor: resetTierFor,
   hasCustomParams: hasCustomParams,
   load: load,
-  loadTierForm: loadTierForm,
   save: save,
-  saveTierForm: saveTierForm,
   reset: reset,
-  resetLadderTier: resetLadderTier,
   toApiParams: toApiParams,
   isCustomized: isCustomized,
   formatSummary: formatSummary,
+  emptyResultHint: emptyResultHint,
   normalize: normalize,
   resolveApiStrategyId: resolveApiStrategyId,
   getActiveTierParams: getActiveTierParams,
-  ladderTierTitle: ladderTierTitle,
   nrfTierTitle: nrfTierTitle,
-  LADDER_TIERS: LADDER_TIERS,
   NRF_TIERS: NRF_TIERS,
   getTierListFor: getTierListFor,
-  ladderPrimaryPeriod: ladderPrimaryPeriod,
   retestPrimaryPeriod: retestPrimaryPeriod,
   gc2PrimaryPeriod: gc2PrimaryPeriod,
   dc2PrimaryPeriod: dc2PrimaryPeriod,
-  bogoPrimaryPeriod: bogoPrimaryPeriod,
-  trendmPrimaryPeriod: trendmPrimaryPeriod,
+  cascadePrimaryPeriod: cascadePrimaryPeriod,
   chartPrimaryPeriod: chartPrimaryPeriod
 };
 

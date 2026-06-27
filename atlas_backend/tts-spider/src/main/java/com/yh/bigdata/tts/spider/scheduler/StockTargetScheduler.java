@@ -20,6 +20,7 @@ import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockTarget;
 import com.yh.bigdata.tts.common.utils.StockQuoteUtils;
 import com.yh.bigdata.tts.spider.strategy.AbstractStrategy;
+import com.yh.bigdata.tts.spider.strategy.tools.StockEvaluationScratchpad;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 
 /**
@@ -114,6 +115,7 @@ public class StockTargetScheduler {
             if (contextParam.getLongTerm() == null) {
                 contextParam.setLongTerm(com.yh.bigdata.tts.common.param.LongStrategyParams.defaults());
             }
+            final QueryContextParam evalContext = contextParam;
             int saved = 0;
             String lastDay = stockTargetMapper.selectLatestDay();
             Set<String> oldStockTargetList = new HashSet<>();
@@ -137,7 +139,8 @@ public class StockTargetScheduler {
 
                 for (StockBase stockBase : RealtimeStockCache.filterStockMap.values()) {
 
-                    CheckResult checkResult = strategy.check(stockBase, null, null, contextParam);
+                    CheckResult checkResult = StockEvaluationScratchpad.runWithScratchpad(() ->
+                            strategy.check(stockBase, null, null, evalContext));
                     if (!checkResult.isSuccess()) {
                         continue;
                     }

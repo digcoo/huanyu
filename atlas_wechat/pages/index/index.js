@@ -17,16 +17,14 @@ const DEFAULT_STRATEGY = 'ultra';
 
 const ACTIVE_STRATEGIES = [
   { id: 'ultra', name: '超短线', icon: '⚡' },
-  { id: 'nrf', name: '无阻力梯子', icon: '🛤' },
-  { id: 'bogo', name: '底部机会', icon: '📈' },
-  { id: 'trendm', name: '趋势', icon: '📊' }
+  { id: 'nrf', name: '跨周期内梯子上移', icon: '🛤' },
+  { id: 'cascade', name: '级联交叉', icon: '🔗' }
 ];
 
 const STRATEGY_TITLES = {
   ultra: '超短线策略',
-  nrf: '无阻力梯子',
-  bogo: '底部机会',
-  trendm: '趋势策略'
+  nrf: '跨周期内梯子上移',
+  cascade: '级联交叉突破'
 };
 
 const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
@@ -55,6 +53,9 @@ function applyHeldList(self, list, period, strategyId, extra) {
   var patch = Object.assign({
     recommendations: mapChartKlines(slimmed, period, strategyId)
   }, extra || {});
+  if (extra && extra.totalCount != null) {
+    patch.emptyHint = buildListEmptyHint(strategyId, extra.totalCount, slimmed.length);
+  }
   if (trimmed.length < (list || []).length) {
     patch.listTrimmedHint = '已释放较早条目以节省内存';
   } else {
@@ -65,7 +66,7 @@ function applyHeldList(self, list, period, strategyId, extra) {
 
 function migrateSavedStrategy(strategyId) {
   var id = strategyId || DEFAULT_STRATEGY;
-  if (id === 'ladder' || id === 'ultraLow') {
+  if (id === 'ladder' || id === 'ultraLow' || id === 'pillar') {
     var fromLadder = strategyParams.load('nrf');
     return { strategy: 'nrf', tier: fromLadder.activeTier || 'short' };
   }
@@ -83,7 +84,7 @@ function migrateSavedStrategy(strategyId) {
 function strategyTitleFor(strategyId, tier) {
   if (strategyId === 'nrf') {
     var nrfTier = tier || strategyParams.load('nrf').activeTier || 'short';
-    return '无阻力梯子 · ' + strategyParams.nrfTierTitle(nrfTier);
+    return '跨周期内梯子上移 · ' + strategyParams.nrfTierTitle(nrfTier);
   }
   return STRATEGY_TITLES[strategyId] || '策略';
 }
@@ -137,8 +138,20 @@ function filterNovelItems(items, seen) {
 }
 
 /**
- * 拉取推荐列表，跳过已忽略项；单页全部被忽略时自动继续下一页
+ * 拉取推荐列表，跳过已忽略项；仅当整页全部被忽略时才自动翻下一页（避免预取多页导致 loadMore 跳页/漏项）
  */
+function buildListEmptyHint(strategyId, totalNum, visibleCount) {
+  if (totalNum > 0 && visibleCount === 0) {
+    return '可能已全部忽略，可清除忽略记录';
+  }
+  if (totalNum === 0) {
+    var paramHint = strategyParams.emptyResultHint(strategyId);
+    if (paramHint) return paramHint;
+    return '暂无推荐，可点击 ↻ 重跑策略';
+  }
+  return '切换市场查看更多标的';
+}
+
 function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage) {
   targetCount = targetCount || RECOMMEND_PAGE_SIZE;
   startPage = toPageNum(startPage);
@@ -146,6 +159,7 @@ function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage
   var totalNum = 0;
   var lastPage = startPage - 1;
   var hasMore = false;
+  var seenAll = {};
 
   function fetchPage(page) {
     page = toPageNum(page);
@@ -153,13 +167,15 @@ function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage
       totalNum = result.totalNum != null ? result.totalNum : 0;
       hasMore = !!result.hasMore;
       lastPage = toPageNum(result.page || page);
+      seenAll = listMemory.rememberSeenIds(seenAll, result.items || []);
       accumulated = accumulated.concat(filterIgnored(result.items, ignored));
-      if (accumulated.length >= targetCount || !hasMore) {
+      if (accumulated.length > 0 || !hasMore) {
         return {
           items: accumulated,
           page: lastPage,
           totalNum: totalNum,
-          hasMore: resolvePagedHasMore(hasMore, lastPage, totalNum)
+          hasMore: resolvePagedHasMore(hasMore, lastPage, totalNum),
+          seenIds: seenAll
         };
       }
       return fetchPage(lastPage + 1);
@@ -184,11 +200,10 @@ function fetchNextRecommendationsPage(strategyId, ignored, backendPage, seenIds)
       var more = resolvePagedHasMore(!!result.hasMore, pageNum, totalNum);
       var visible = filterIgnored(result.items, ignored);
       var novel = filterNovelItems(visible, seen);
+      seen = listMemory.rememberSeenIds(seen, result.items || []);
       if (novel.length === 0 && more) {
-        seen = listMemory.rememberSeenIds(seen, visible);
         return fetchFrom(pageNum + 1);
       }
-      seen = listMemory.rememberSeenIds(seen, novel);
       return {
         items: novel,
         page: pageNum,
@@ -211,12 +226,20 @@ function attachKlinesInBackground(self, items, period) {
     withKlines.forEach(function (item) {
       klineById[item.id] = listMemory.slimItemKlines(item, period);
     });
-    var merged = (self._baseList && self._baseList.length ? self._baseList : items).map(function (item) {
+    var base = (self._baseList && self._baseList.length ? self._baseList : items);
+    var merged = base.map(function (item) {
       return klineById[item.id] ? Object.assign({}, item, klineById[item.id]) : item;
     });
-    applyHeldList(self, merged, activePeriod, strategyId);
+    if (!merged.length) return items;
+    applyHeldList(self, merged, activePeriod, strategyId, {
+      totalCount: self.data.totalCount
+    });
     return barMarkers.enrichItemsWithBarMarkers(merged, strategyId, activePeriod).then(function (enriched) {
-      applyHeldList(self, enriched, activePeriod, strategyId);
+      if (enriched && enriched.length) {
+        applyHeldList(self, enriched, activePeriod, strategyId, {
+          totalCount: self.data.totalCount
+        });
+      }
       return enriched;
     }).catch(function () {
       return merged;
@@ -259,7 +282,8 @@ Page({
     showStrategyParams: false,
     paramsCustomized: false,
     rescanning: false,
-    showBackTop: false
+    showBackTop: false,
+    emptyHint: ''
   },
 
   onLoad() {
@@ -369,6 +393,13 @@ Page({
       if (nrfPeriod) {
         patch.activePeriod = nrfPeriod;
         wx.setStorageSync('activePeriod', nrfPeriod);
+      }
+    } else if (strategyId === 'cascade') {
+      var periodParams = strategyParams.load(strategyId);
+      var nextPeriod = strategyParams.chartPrimaryPeriod(strategyId, periodParams);
+      if (nextPeriod) {
+        patch.activePeriod = nextPeriod;
+        wx.setStorageSync('activePeriod', nextPeriod);
       }
     }
     if (Object.keys(patch).length) {
@@ -542,6 +573,7 @@ Page({
     const strategyId = this.data.activeStrategy;
     const period = this.data.activePeriod;
     const ignored = app.globalData.ignoredIds;
+    const reqId = (this._loadReqId = (this._loadReqId || 0) + 1);
 
     this.setData({ loading: true, hasMore: false, loadingMore: false, totalCount: 0 });
     this._loadPage = 1;
@@ -549,6 +581,7 @@ Page({
     this._seenRecommendationIds = {};
 
     return this._fetchRecommendPage(strategyId, period, 1, ignored).then(function (result) {
+      if (reqId !== self._loadReqId) return null;
       return Promise.all([
         Promise.resolve(result),
         stockApi.fetchMarketIndices('cn', period).then(function (raw) {
@@ -558,11 +591,14 @@ Page({
         })
       ]);
     }).then(function (results) {
+      if (!results || reqId !== self._loadReqId) return;
       var pageResult = results[0];
       var indices = results[1];
       self._loadPage = toPageNum(pageResult.page);
       self._backendPage = toPageNum(pageResult.page);
-      self._seenRecommendationIds = listMemory.initSeenIds(pageResult.items);
+      self._seenRecommendationIds = pageResult.seenIds
+        ? pageResult.seenIds
+        : listMemory.initSeenIds(pageResult.items);
       applyHeldList(self, pageResult.items, period, strategyId, {
         activeMarket: marketId,
         indices: indices,
@@ -570,17 +606,31 @@ Page({
         hasMore: pageResult.hasMore,
         loading: false
       });
-      applyKlinesForItems(self, pageResult.items, period);
-    }).catch(function () {
-      if (config.fallbackOnError) {
-        self._allRecommendations = buildStrategyRecommendations();
-        self.loadMarket(marketId);
-        wx.showToast({ title: '已使用离线数据', icon: 'none' });
-        return;
+      if (pageResult.items && pageResult.items.length) {
+        applyKlinesForItems(self, pageResult.items, period);
       }
-      self.setData({ loading: false, recommendations: [], totalCount: 0, hasMore: false });
+    }).catch(function () {
+      if (reqId !== self._loadReqId) return;
+      self.setData({
+        loading: false,
+        recommendations: [],
+        totalCount: 0,
+        hasMore: false,
+        emptyHint: config.fallbackOnError
+          ? ('无法连接后端 ' + config.baseUrl + '，请检查 config.local.js 与防火墙')
+          : '加载失败，请稍后重试'
+      });
       wx.showToast({ title: '加载失败', icon: 'none' });
     });
+  },
+
+  onClearIgnored() {
+    app.clearIgnoredIds();
+    if (config.useMock) {
+      this.loadMarket(this.data.activeMarket);
+      return;
+    }
+    this.loadMarketFromApi(this.data.activeMarket);
   },
 
   onMarketChange(e) {
@@ -689,8 +739,8 @@ Page({
     const strategyId = this.data.activeStrategy;
     const period = this.data.activePeriod;
     this._baseList = (this._baseList || []).filter(function (r) { return r.id !== item.id; });
-    this.setData({
-      recommendations: mapChartKlines(this._baseList, period, strategyId),
+    applyHeldList(this, this._baseList, period, strategyId, {
+      totalCount: this.data.totalCount,
       watchlistCount: app.globalData.watchlist.length
     });
   },
@@ -699,8 +749,8 @@ Page({
     const { item } = e.detail;
     app.ignoreItem(item.id);
     this._baseList = (this._baseList || []).filter(function (r) { return r.id !== item.id; });
-    this.setData({
-      recommendations: mapChartKlines(this._baseList, this.data.activePeriod, this.data.activeStrategy)
+    applyHeldList(this, this._baseList, this.data.activePeriod, this.data.activeStrategy, {
+      totalCount: this.data.totalCount
     });
   },
 

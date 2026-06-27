@@ -21,13 +21,15 @@ public final class TrendV2Evaluator {
         if (hit == null) {
             return new TrendV2Evaluation(null, false);
         }
-        if (!UltraShortGateTools.passes(stock, p.isRequireUltra(), ultraParams)) {
+        UltraShortGateTools.GateResult ultraGate =
+                UltraShortGateTools.evaluate(stock, p.isRequireUltra(), ultraParams);
+        if (!ultraGate.isPassed()) {
             return new TrendV2Evaluation(hit, false);
         }
         TrendV2Evaluation eval = new TrendV2Evaluation(hit, true);
         if (checkResult != null) {
-            if (p.isRequireUltra()) {
-                UltraShortGateTools.appendMessages(checkResult, stock, ultraParams);
+            if (ultraGate.isRequired()) {
+                UltraShortGateTools.appendMessages(checkResult, ultraGate);
             }
             checkResult.addTrendPeriod(PeriodTypeEnum.DAY, TrendV2ScoreCalculator.buildTrendMessage(eval));
             checkResult.addSignal(PeriodTypeEnum.DAY, TrendV2ScoreCalculator.buildSignalMessage(eval));

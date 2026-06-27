@@ -22,7 +22,7 @@ public final class BreakoutBucketTools {
     private BreakoutBucketTools() {
     }
 
-    static String dayKey(Trade bar) {
+    public static String dayKey(Trade bar) {
         if (bar == null || bar.getDay() == null) {
             return null;
         }

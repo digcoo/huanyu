@@ -21,13 +21,15 @@ public final class LongEvaluator {
         if (hit == null) {
             return new LongEvaluation(null, false);
         }
-        if (!UltraShortGateTools.passes(stock, p.isRequireUltra(), ultraParams)) {
+        UltraShortGateTools.GateResult ultraGate =
+                UltraShortGateTools.evaluate(stock, p.isRequireUltra(), ultraParams);
+        if (!ultraGate.isPassed()) {
             return new LongEvaluation(hit, false);
         }
         LongEvaluation eval = new LongEvaluation(hit, true);
         if (checkResult != null) {
-            if (p.isRequireUltra()) {
-                UltraShortGateTools.appendMessages(checkResult, stock, ultraParams);
+            if (ultraGate.isRequired()) {
+                UltraShortGateTools.appendMessages(checkResult, ultraGate);
             }
             checkResult.addTrendPeriod(PeriodTypeEnum.MONTH, LongScoreCalculator.buildTrendMessage(eval));
             checkResult.addSignal(PeriodTypeEnum.MONTH, LongScoreCalculator.buildSignalMessage(eval));

@@ -57,11 +57,11 @@ public class QueryContextParam extends PageQuery {
     /** 无阻力梯子策略自定义参数 */
     private FrictionlessLadderStrategyParams frictionlessLadder;
 
-    /** 底部机会策略自定义参数 */
-    private BogoStrategyParams bogo;
+    /** 柱子内上移策略自定义参数 */
+    private PillarStrategyParams pillar;
 
-    /** 趋势策略（trendm）自定义参数 */
-    private TrendmStrategyParams trendm;
+    /** 级联交叉突破策略自定义参数 */
+    private CascadeStrategyParams cascade;
 
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
@@ -79,8 +79,8 @@ public class QueryContextParam extends PageQuery {
                 .medium(MediumStrategyParams.defaults())
                 .longTerm(LongStrategyParams.defaults())
                 .frictionlessLadder(FrictionlessLadderStrategyParams.defaults())
-                .bogo(BogoStrategyParams.defaults())
-                .trendm(TrendmStrategyParams.defaults())
+                .pillar(PillarStrategyParams.defaults())
+                .cascade(CascadeStrategyParams.defaults())
                 .build();
     }
 	

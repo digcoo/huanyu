@@ -5,14 +5,13 @@ import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.utils.DateUtil;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * 回测时点快照：将 K 线截断到 asOfDay，供策略引擎在历史 bar 上复用现有 check 逻辑。
+ * 回测时点快照：将 K 线截断到 asOfDay；周/月/季/年 K 在周期未完成时从日 K 派生进行中 bar。
  */
 public final class BacktestSnapshotContext {
 
@@ -65,32 +64,18 @@ public final class BacktestSnapshotContext {
 
     private static Map<PeriodTypeEnum, List<Trade>> buildSnapshot(String code, String asOfDay) {
         long asOfTime = DateUtil.parseDate(asOfDay).getTime();
+        List<Trade> dayBars = PeriodBarAsOfTools.slice(RealtimeStockCache.dayMap.get(code), asOfTime);
         Map<PeriodTypeEnum, List<Trade>> map = new EnumMap<>(PeriodTypeEnum.class);
-        map.put(PeriodTypeEnum.DAY, slice(RealtimeStockCache.dayMap.get(code), asOfTime));
-        map.put(PeriodTypeEnum.WEEK, slice(RealtimeStockCache.weekMap.get(code), asOfTime));
-        map.put(PeriodTypeEnum.MONTH, slice(RealtimeStockCache.monthMap.get(code), asOfTime));
-        map.put(PeriodTypeEnum.QUARTER, slice(RealtimeStockCache.quarterMap.get(code), asOfTime));
-        map.put(PeriodTypeEnum.YEAR, slice(RealtimeStockCache.yearMap.get(code), asOfTime));
-        map.put(PeriodTypeEnum.MIN30, slice(RealtimeStockCache.min30Map.get(code), asOfTime));
+        map.put(PeriodTypeEnum.DAY, dayBars);
+        map.put(PeriodTypeEnum.WEEK, PeriodBarAsOfTools.sliceWithDerivedInProgress(
+                RealtimeStockCache.weekMap.get(code), dayBars, asOfDay, PeriodTypeEnum.WEEK));
+        map.put(PeriodTypeEnum.MONTH, PeriodBarAsOfTools.sliceWithDerivedInProgress(
+                RealtimeStockCache.monthMap.get(code), dayBars, asOfDay, PeriodTypeEnum.MONTH));
+        map.put(PeriodTypeEnum.QUARTER, PeriodBarAsOfTools.sliceWithDerivedInProgress(
+                RealtimeStockCache.quarterMap.get(code), dayBars, asOfDay, PeriodTypeEnum.QUARTER));
+        map.put(PeriodTypeEnum.YEAR, PeriodBarAsOfTools.sliceWithDerivedInProgress(
+                RealtimeStockCache.yearMap.get(code), dayBars, asOfDay, PeriodTypeEnum.YEAR));
+        map.put(PeriodTypeEnum.MIN30, PeriodBarAsOfTools.slice(RealtimeStockCache.min30Map.get(code), asOfTime));
         return map;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<Trade> slice(List<?> raw, long asOfTime) {
-        if (raw == null || raw.isEmpty()) {
-            return new ArrayList<>();
-        }
-        List<Trade> source = (List<Trade>) raw;
-        List<Trade> out = new ArrayList<>();
-        for (Trade trade : source) {
-            if (trade.getDay() == null) {
-                continue;
-            }
-            long time = DateUtil.parseDate(trade.getDay()).getTime();
-            if (time <= asOfTime) {
-                out.add(trade);
-            }
-        }
-        return out;
     }
 }

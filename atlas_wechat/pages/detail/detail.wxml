@@ -79,8 +79,8 @@
           showMacd="{{true}}"
           resonance="{{detail.resonance}}"
           activePeriod="{{activePeriod}}"
-          barMarkers="{{ladderBarMarkers}}"
-          markerEpoch="{{ladderMarkerEpoch}}"
+          barMarkers="{{barMarkers}}"
+          markerEpoch="{{markerEpoch}}"
         />
       </view>
     </view>

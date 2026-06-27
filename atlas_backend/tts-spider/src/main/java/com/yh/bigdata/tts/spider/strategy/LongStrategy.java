@@ -9,6 +9,7 @@ import com.yh.bigdata.tts.common.param.LongStrategyParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.frictionless.MacdCrossLowGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.longterm.LongEvaluator;
 import com.yh.bigdata.tts.spider.strategy.tools.longterm.LongFilterTools;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,10 @@ public class LongStrategy extends AbstractStrategy {
                              PeriodTypeEnum opPeriodType, QueryContextParam queryContextParam) {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
         try {
+            if (!MacdCrossLowGateTools.passesAll(stockBase, checkResult)) {
+                return checkResult;
+            }
+
             LongStrategyParams params = resolveParams(queryContextParam);
 
             if (!LongFilterTools.passFilters(stockBase, checkResult, params)) {

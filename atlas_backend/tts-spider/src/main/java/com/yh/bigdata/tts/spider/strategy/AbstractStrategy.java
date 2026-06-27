@@ -7,6 +7,7 @@ import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.*;
+import com.yh.bigdata.tts.spider.strategy.tools.frictionless.MacdCrossLowGateTools;
 
 import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.constants.StrategyTypeEnum;
@@ -116,7 +117,8 @@ public abstract class AbstractStrategy {
 
 	public List<CheckResult> doQuery(List<PeriodTypeEnum> trendPeriodTypes, PeriodTypeEnum opPeriodType, QueryContextParam queryContextParam) {
         return RealtimeStockCache.filterStockMap.values().stream()
-                .map(x -> check(x, trendPeriodTypes, opPeriodType, queryContextParam))
+                .map(x -> StockEvaluationScratchpad.runWithScratchpad(
+                        () -> check(x, trendPeriodTypes, opPeriodType, queryContextParam)))
                 .filter(CheckResult::isSuccess)
                 .collect(Collectors.toList())
                 ;
@@ -127,6 +129,10 @@ public abstract class AbstractStrategy {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
 
         try {
+            if (!MacdCrossLowGateTools.passesAll(stockBase, checkResult)) {
+                return checkResult;
+            }
+
 //            List<PeriodTypeEnum> finalTrendPeriodTypes = !CollectionUtils.isEmpty(trendPeriodTypes)? trendPeriodTypes : getTrendPeriodTypes();
             List<PeriodTypeEnum> finalTrendPeriodTypes = getTrendPeriodTypes();
             PeriodTypeEnum finalOpPeriodType = getOpPeriodType();
@@ -173,6 +179,7 @@ public abstract class AbstractStrategy {
         } catch (Exception ex) {
             log.error("{} - check exception : stock = {}", this.getClass().getName(), stockBase.getCode(), ex);
         } finally {
+            StockEvaluationScratchpad.clear();
             try {
                 Trade monthTrade1 = RealtimeStockCache.getLastTrade(stockBase, PeriodTypeEnum.MONTH, -1);
                 Trade weekTrade1 = RealtimeStockCache.getLastTrade(stockBase, PeriodTypeEnum.WEEK, -1);

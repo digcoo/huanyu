@@ -9,6 +9,7 @@ import com.yh.bigdata.tts.common.param.MediumStrategyParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.frictionless.MacdCrossLowGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.medium.MediumEvaluator;
 import com.yh.bigdata.tts.spider.strategy.tools.medium.MediumFilterTools;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,10 @@ public class MediumStrategy extends AbstractStrategy {
                              PeriodTypeEnum opPeriodType, QueryContextParam queryContextParam) {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
         try {
+            if (!MacdCrossLowGateTools.passesAll(stockBase, checkResult)) {
+                return checkResult;
+            }
+
             MediumStrategyParams params = resolveParams(queryContextParam);
 
             if (!MediumFilterTools.passFilters(stockBase, checkResult, params)) {

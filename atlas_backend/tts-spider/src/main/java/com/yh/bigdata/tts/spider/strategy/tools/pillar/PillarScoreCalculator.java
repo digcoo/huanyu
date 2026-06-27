@@ -1,19 +1,15 @@
-package com.yh.bigdata.tts.spider.strategy.tools.bogo;
+package com.yh.bigdata.tts.spider.strategy.tools.pillar;
 
 import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.model.Trade;
-
-/**
- * 底部机会 · 评分与展示
- */
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.StrategyGlobalGateTools;
 
-public final class BogoScoreCalculator {
+public final class PillarScoreCalculator {
 
-    private BogoScoreCalculator() {
+    private PillarScoreCalculator() {
     }
 
-    public static int computeScore(BogoEvaluator.BogoEvaluation eval) {
+    public static int computeScore(PillarEvaluator.PillarEvaluation eval) {
         int score = 30;
         if (eval.getDayHit() != null) {
             score += 15;
@@ -40,7 +36,7 @@ public final class BogoScoreCalculator {
         return Math.max(score, 20);
     }
 
-    public static PeriodTypeEnum primaryPeriod(BogoEvaluator.BogoEvaluation eval) {
+    public static PeriodTypeEnum primaryPeriod(PillarEvaluator.PillarEvaluation eval) {
         if (eval.getMonthHit() != null) {
             return PeriodTypeEnum.MONTH;
         }
@@ -53,7 +49,7 @@ public final class BogoScoreCalculator {
         return PeriodTypeEnum.DAY;
     }
 
-    public static BogoBreakoutTools.PeriodHit primaryHit(BogoEvaluator.BogoEvaluation eval) {
+    public static PillarBreakoutTools.PeriodHit primaryHit(PillarEvaluator.PillarEvaluation eval) {
         if (eval.getMonthHit() != null) {
             return eval.getMonthHit();
         }
@@ -63,26 +59,23 @@ public final class BogoScoreCalculator {
         return eval.getDayHit();
     }
 
-    public static String buildTrendMessage(BogoEvaluator.BogoEvaluation eval) {
-        BogoBreakoutTools.PeriodHit hit = primaryHit(eval);
+    public static String buildTrendMessage(PillarEvaluator.PillarEvaluation eval) {
+        PillarBreakoutTools.PeriodHit hit = primaryHit(eval);
         if (hit == null) {
-            return "[BOGO]底部机会|" + StrategyGlobalGateTools.FULL_GATE_LABEL;
+            return "[PILLAR]柱子内上移|" + StrategyGlobalGateTools.FULL_GATE_LABEL;
         }
-        String periodLabel = periodLabel(hit.getPeriod());
-        String crossLabel = hit.getCrossKind() == BogoStructureTools.CrossKind.GOLDEN ? "金叉" : "死叉";
-        return "[BOGO]底部机会|" + StrategyGlobalGateTools.FULL_GATE_LABEL + "|" + periodLabel + crossLabel + "基准突破";
+        return "[PILLAR]柱子内上移|" + StrategyGlobalGateTools.FULL_GATE_LABEL + "|"
+                + periodLabel(hit.getPeriod()) + "强柱基准突破";
     }
 
-    public static String buildSignalMessage(BogoEvaluator.BogoEvaluation eval) {
-        BogoBreakoutTools.PeriodHit hit = primaryHit(eval);
+    public static String buildSignalMessage(PillarEvaluator.PillarEvaluation eval) {
+        PillarBreakoutTools.PeriodHit hit = primaryHit(eval);
         if (hit == null || hit.getReferenceBar() == null || hit.getSignalBar() == null) {
             return "";
         }
         Trade ref = hit.getReferenceBar();
         Trade sig = hit.getSignalBar();
-        String crossType = hit.getCrossKind() == BogoStructureTools.CrossKind.GOLDEN ? "GC" : "DC";
-        return String.format("突破基准K,crossType=%s,period=%s,refDay=%s,refHigh=%.2f,sigDay=%s,sigClose=%.2f",
-                crossType,
+        return String.format("突破基准K,period=%s,refDay=%s,refHigh=%.2f,sigDay=%s,sigClose=%.2f",
                 hit.getPeriod().getCode(),
                 dayOf(ref),
                 ref.getHigh() != null ? ref.getHigh() : 0,

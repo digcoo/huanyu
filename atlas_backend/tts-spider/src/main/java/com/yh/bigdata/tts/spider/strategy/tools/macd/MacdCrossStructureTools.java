@@ -1,4 +1,4 @@
-package com.yh.bigdata.tts.spider.strategy.tools.bogo;
+package com.yh.bigdata.tts.spider.strategy.tools.macd;
 
 import com.yh.bigdata.tts.common.indicator.MACDIndicatorUtils;
 import com.yh.bigdata.tts.common.indicator.Ticker;
@@ -9,9 +9,9 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 /**
- * 底部机会 · 最近 MACD 金叉或死叉 K（基准 K）
+ * MACD 交叉 K 结构 · 最近 MACD 交叉柱（红柱金叉或绿柱死叉）
  */
-public final class BogoStructureTools {
+public final class MacdCrossStructureTools {
 
     public enum CrossKind {
         GOLDEN, DEATH
@@ -28,17 +28,22 @@ public final class BogoStructureTools {
         }
     }
 
-    private BogoStructureTools() {
+    private MacdCrossStructureTools() {
     }
 
-    /**
-     * 自最新 K 向前，取最近一根金叉或死叉柱（不得为当前 K）。
-     */
     public static CrossBar findLatestCrossBar(List<Trade> trades, int lookback) {
         if (CollectionUtils.isEmpty(trades) || lookback < 1) {
             return null;
         }
         List<MACDIndicatorUtils.MACDPoint> points = MACDIndicatorUtils.calculateMACD(Ticker.from(trades));
+        return findLatestCrossBar(trades, points, lookback);
+    }
+
+    static CrossBar findLatestCrossBar(List<Trade> trades, List<MACDIndicatorUtils.MACDPoint> points,
+                                       int lookback) {
+        if (CollectionUtils.isEmpty(trades) || lookback < 1) {
+            return null;
+        }
         if (CollectionUtils.isEmpty(points) || points.size() != trades.size()) {
             return null;
         }

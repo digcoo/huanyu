@@ -16,6 +16,7 @@ import com.yh.bigdata.tts.common.utils.StockCodeUtil;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.service.BacktestService;
 import com.yh.bigdata.tts.spider.strategy.AbstractStrategy;
+import com.yh.bigdata.tts.spider.strategy.tools.StockEvaluationScratchpad;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,7 +148,8 @@ public class BacktestServiceImpl implements BacktestService {
             CheckResult checkResult = BacktestSnapshotContext.runWithSnapshot(
                     stock.getCode(),
                     signalBar.getDay(),
-                    () -> strategy.check(asOfStock, null, null, ctx));
+                    () -> StockEvaluationScratchpad.runWithScratchpad(
+                            () -> strategy.check(asOfStock, null, null, ctx)));
 
             if (checkResult == null || !checkResult.isSuccess()) {
                 continue;

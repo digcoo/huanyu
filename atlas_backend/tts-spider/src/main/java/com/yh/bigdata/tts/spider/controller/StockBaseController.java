@@ -365,15 +365,17 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getLgRequireYearGoldenCross()),
                 String.valueOf(pageQuery.getLgRequireUltra()),
                 String.valueOf(pageQuery.getNrfActiveTier()),
-                String.valueOf(pageQuery.getBoEnableDay()),
-                String.valueOf(pageQuery.getBoEnableWeek()),
-                String.valueOf(pageQuery.getBoEnableMonth()),
-                String.valueOf(pageQuery.getBoLookbackDay()),
-                String.valueOf(pageQuery.getBoLookbackWeek()),
-                String.valueOf(pageQuery.getBoLookbackMonth()),
-                String.valueOf(pageQuery.getTmLookbackDay()),
-                String.valueOf(pageQuery.getTmLookbackWeek()),
-                String.valueOf(pageQuery.getTmLookbackMonth()));
+                String.valueOf(pageQuery.getCaEnableDualLowGate()),
+                String.valueOf(pageQuery.getCaEnableMacdGate()),
+                String.valueOf(pageQuery.getCaEnableCrossLowGate()),
+                String.valueOf(pageQuery.getCaEnableDay()),
+                String.valueOf(pageQuery.getCaEnableWeek()),
+                String.valueOf(pageQuery.getCaEnableMonth()),
+                String.valueOf(pageQuery.getCaLookbackDay()),
+                String.valueOf(pageQuery.getCaLookbackWeek()),
+                String.valueOf(pageQuery.getCaLookbackMonth()),
+                String.valueOf(pageQuery.getCaRequireUltra()),
+                String.valueOf(pageQuery.getCaMinAmountWan()));
     }
 
     public void clearRecommendCache() {
@@ -413,8 +415,8 @@ public class StockBaseController {
                 .medium(stockPageQuery.toMediumParams())
                 .longTerm(stockPageQuery.toLongParams())
                 .frictionlessLadder(stockPageQuery.toFrictionlessParams())
-                .bogo(stockPageQuery.toBogoParams())
-                .trendm(stockPageQuery.toTrendmParams())
+                .pillar(stockPageQuery.toPillarParams())
+                .cascade(stockPageQuery.toCascadeParams())
                 .build();
 
     }

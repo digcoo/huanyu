@@ -1,5 +1,6 @@
 package com.yh.bigdata.tts.spider.scheduler;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,14 +61,23 @@ public class DayAllSpiderScheduler {
 //			if (!SinaHttpUtils.isTradeOfCurrentDay()) {
 //				return;
 //			}
-            String code = null;
-			stockBaseCrawler.run();
-			stockDayCrawler.run(code, 2);
-			stockMin30Crawler.run(code, 16);
-			stockWeekCrawler.run(code, 2);
-			stockMonthCrawler.run(code, 2);
-			stockQuarterCrawler.run(code, 2);
-			stockYearCrawler.run(code, 2);
+            String code = "";
+            if (StringUtils.isEmpty(code)) {
+                stockBaseCrawler.run();
+                stockDayCrawler.run(null, 2);
+                stockMin30Crawler.run(null, 16);
+                stockWeekCrawler.run(null, 2);
+                stockMonthCrawler.run(null, 2);
+                stockQuarterCrawler.run(null, 2);
+                stockYearCrawler.run(null, 2);
+            }else {
+                stockDayCrawler.run(code, 100);
+                stockMin30Crawler.run(code, 100);
+                stockWeekCrawler.run(code, 100);
+                stockMonthCrawler.run(code, 100);
+                stockQuarterCrawler.run(code, 100);
+                stockYearCrawler.run(code, 100);
+            }
 		} catch (Exception e) {
 			logger.error("DayAllSpiderScheduler exception..... ", e);
 		}

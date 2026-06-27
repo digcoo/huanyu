@@ -5,8 +5,8 @@ const adapter = require('../../utils/adapter');
 const stockApi = require('../../utils/stock-api');
 const retestMarkers = require('../../utils/retest-markers');
 const gc2Markers = require('../../utils/gc2-markers');
-const bogoMarkers = require('../../utils/bogo-markers');
-const trendmMarkers = require('../../utils/trendm-markers');
+const cascadeMarkers = require('../../utils/cascade-markers');
+const nrfMarkers = require('../../utils/nrf-markers');
 const dc2Markers = require('../../utils/dc2-markers');
 const strategyParams = require('../../utils/strategy-params');
 const ultraMarkers = require('../../utils/ultra-markers');
@@ -20,18 +20,18 @@ function mapChartKlines(detail, period) {
 }
 
 function applyBarMarkers(page, markers) {
-  page.setData({ ladderBarMarkers: markers, ladderMarkerEpoch: Date.now() });
+  page.setData({ barMarkers: markers, markerEpoch: Date.now() });
   return markers;
 }
 
 function clearBarMarkers(page) {
-  page.setData({ ladderBarMarkers: [], ladderMarkerEpoch: 0 });
+  page.setData({ barMarkers: [], markerEpoch: 0 });
   return [];
 }
 
 function syncRetestMarkers(page, detail, period, klines) {
-  if (!detail || !retestMarkers.isRetestStrategy(adapter.extractStrategy(detail.id))
-      || !retestMarkers.shouldShowRetestMarkers(adapter.extractStrategy(detail.id), period)) {
+  var strategyId = adapter.extractStrategy(detail && detail.id);
+  if (!detail || !retestMarkers.shouldShowRetestMarkers(strategyId, period)) {
     return Promise.resolve(clearBarMarkers(page));
   }
   if (config.useMock) {
@@ -66,165 +66,24 @@ function syncRetestMarkers(page, detail, period, klines) {
   });
 }
 
-function syncGc2Markers(page, detail, period, klines) {
-  if (!detail || !gc2Markers.isGc2Strategy(adapter.extractStrategy(detail.id))
-      || !gc2Markers.shouldShowGc2Markers(adapter.extractStrategy(detail.id), period)) {
-    return Promise.resolve(clearBarMarkers(page));
-  }
-  if (config.useMock) {
-    return Promise.resolve(applyBarMarkers(page, gc2Markers.buildMockGc2Markers(klines || page.data.chartKlines)));
-  }
-
-  function applyMarkerVo(m) {
-    return applyBarMarkers(page, gc2Markers.markersVoToBarMarkers(m));
-  }
-
-  var cached = gc2Markers.parseMarkersFromSignal(detail);
-  if (cached && (cached.referenceDay || cached.signalDay)) {
-    return Promise.resolve(applyMarkerVo(cached));
-  }
-
-  return stockApi.fetchGc2Markers(detail.code, period).then(function (m) {
-    if (m && (m.referenceDay || m.signalDay)) {
-      return applyMarkerVo(m);
-    }
-    return stockApi.fetchSummary(detail.code).then(function (item) {
-      if (item && item.signalMessage) {
-        detail.signalMessage = item.signalMessage;
-      }
-      var parsed = gc2Markers.parseMarkersFromSignal(detail);
-      if (parsed && (parsed.referenceDay || parsed.signalDay)) {
-        return applyMarkerVo(parsed);
-      }
-      return clearBarMarkers(page);
-    });
-  }).catch(function () {
-    return clearBarMarkers(page);
-  });
-}
-
-function syncBogoMarkers(page, detail, period, klines) {
-  if (!detail || !bogoMarkers.isBogoStrategy(adapter.extractStrategy(detail.id))
-      || !bogoMarkers.shouldShowBogoMarkers(adapter.extractStrategy(detail.id), period)) {
-    return Promise.resolve(clearBarMarkers(page));
-  }
-  if (config.useMock) {
-    return Promise.resolve(applyBarMarkers(page, bogoMarkers.buildMockBogoMarkers(klines || page.data.chartKlines)));
-  }
-
-  function applyMarkerVo(m) {
-    return applyBarMarkers(page, bogoMarkers.markersVoToBarMarkers(m, detail));
-  }
-
-  var cached = bogoMarkers.parseMarkersFromSignal(detail);
-  if (cached && (cached.referenceDay || cached.signalDay)) {
-    return Promise.resolve(applyBarMarkers(page, bogoMarkers.markersVoToBarMarkers(cached, detail)));
-  }
-
-  return stockApi.fetchBogoMarkers(detail.code, period).then(function (m) {
-    if (m && (m.referenceDay || m.signalDay)) {
-      return applyMarkerVo(m);
-    }
-    return stockApi.fetchSummary(detail.code).then(function (item) {
-      if (item && item.signalMessage) {
-        detail.signalMessage = item.signalMessage;
-      }
-      if (item && item.trendMessage) {
-        detail.trendMessage = item.trendMessage;
-      }
-      var parsed = bogoMarkers.parseMarkersFromSignal(detail);
-      if (parsed && (parsed.referenceDay || parsed.signalDay)) {
-        return applyBarMarkers(page, bogoMarkers.markersVoToBarMarkers(parsed, detail));
-      }
-      return clearBarMarkers(page);
-    });
-  }).catch(function () {
-    return clearBarMarkers(page);
-  });
-}
-
-function syncTrendmMarkers(page, detail, period, klines) {
-  if (!detail || !trendmMarkers.isTrendmStrategy(adapter.extractStrategy(detail.id))
-      || !trendmMarkers.shouldShowTrendmMarkers(adapter.extractStrategy(detail.id), period)) {
-    return Promise.resolve(clearBarMarkers(page));
-  }
-  if (period === 'min30') {
-    return syncUltraMarkers(page, detail, period, klines);
-  }
-  if (config.useMock) {
-    return Promise.resolve(applyBarMarkers(page, trendmMarkers.buildMockTrendmMarkers(klines || page.data.chartKlines, period)));
-  }
-
-  function applyMarkerVo(m) {
-    return applyBarMarkers(page, trendmMarkers.markersVoToBarMarkers(m, detail, period));
-  }
-
-  var cached = trendmMarkers.parseMarkersFromSignal(detail);
-  if (cached && (cached.referenceDay || cached.signalDay)) {
-    return Promise.resolve(applyBarMarkers(page, trendmMarkers.markersVoToBarMarkers(cached, detail, period)));
-  }
-
-  return stockApi.fetchTrendmMarkers(detail.code, period).then(function (m) {
-    if (m && (m.referenceDay || m.signalDay)) {
-      return applyMarkerVo(m);
-    }
-    return stockApi.fetchSummary(detail.code).then(function (item) {
-      if (item && item.signalMessage) {
-        detail.signalMessage = item.signalMessage;
-      }
-      if (item && item.trendMessage) {
-        detail.trendMessage = item.trendMessage;
-      }
-      var parsed = trendmMarkers.parseMarkersFromSignal(detail);
-      if (parsed && (parsed.referenceDay || parsed.signalDay)) {
-        return applyBarMarkers(page, trendmMarkers.markersVoToBarMarkers(parsed, detail, period));
-      }
-      return clearBarMarkers(page);
-    });
-  }).catch(function () {
-    return clearBarMarkers(page);
-  });
-}
-
-function syncDc2Markers(page, detail, period, klines) {
-  if (!detail || !dc2Markers.isDc2Strategy(adapter.extractStrategy(detail.id))
-      || !dc2Markers.shouldShowDc2Markers(adapter.extractStrategy(detail.id), period)) {
-    return Promise.resolve(clearBarMarkers(page));
-  }
-  if (config.useMock) {
-    return Promise.resolve(applyBarMarkers(page, dc2Markers.buildMockDc2Markers(klines || page.data.chartKlines)));
-  }
-
-  function applyMarkerVo(m) {
-    return applyBarMarkers(page, dc2Markers.markersVoToBarMarkers(m));
-  }
-
-  var cached = dc2Markers.parseMarkersFromSignal(detail);
-  if (cached && (cached.referenceDay || cached.signalDay)) {
-    return Promise.resolve(applyMarkerVo(cached));
-  }
-
-  return stockApi.fetchDc2Markers(detail.code, period).then(function (m) {
-    if (m && (m.referenceDay || m.signalDay)) {
-      return applyMarkerVo(m);
-    }
-    return stockApi.fetchSummary(detail.code).then(function (item) {
-      if (item && item.signalMessage) {
-        detail.signalMessage = item.signalMessage;
-      }
-      var parsed = dc2Markers.parseMarkersFromSignal(detail);
-      if (parsed && (parsed.referenceDay || parsed.signalDay)) {
-        return applyMarkerVo(parsed);
-      }
-      return clearBarMarkers(page);
-    });
-  }).catch(function () {
-    return clearBarMarkers(page);
-  });
+function refSigOpts(mod, detail, fetchMarkers, buildMock) {
+  return {
+    shouldShow: mod.shouldShow,
+    buildMock: buildMock || mod.buildMockMarkers || mod.buildMockUltraMarkers
+      || mod.buildMockNrfMarkers
+      || mod.buildMockTrendMarkers || mod.buildMockMediumMarkers
+      || mod.buildMockLongMarkers,
+    markersVoToBarMarkers: function (m) {
+      return mod.markersVoToBarMarkers(m, detail);
+    },
+    parseMarkersFromSignal: mod.parseMarkersFromSignal,
+    fetchMarkers: fetchMarkers
+  };
 }
 
 function syncRefSigMarkers(page, detail, period, klines, opts) {
-  if (!detail || !opts.shouldShow(adapter.extractStrategy(detail.id), period)) {
+  var strategyId = adapter.extractStrategy(detail && detail.id);
+  if (!detail || !opts.shouldShow(strategyId, period)) {
     return Promise.resolve(clearBarMarkers(page));
   }
   if (config.useMock) {
@@ -240,19 +99,13 @@ function syncRefSigMarkers(page, detail, period, klines, opts) {
     return Promise.resolve(applyMarkerVo(cached));
   }
 
-  var uiStrategyId = adapter.extractStrategy(detail.id);
-
-  return opts.fetchMarkers(detail.code, period, uiStrategyId).then(function (m) {
+  return opts.fetchMarkers(detail.code, period, strategyId).then(function (m) {
     if (m && (m.referenceDay || m.signalDay)) {
       return applyMarkerVo(m);
     }
     return stockApi.fetchSummary(detail.code).then(function (item) {
-      if (item && item.signalMessage) {
-        detail.signalMessage = item.signalMessage;
-      }
-      if (item && item.trendMessage) {
-        detail.trendMessage = item.trendMessage;
-      }
+      if (item && item.signalMessage) detail.signalMessage = item.signalMessage;
+      if (item && item.trendMessage) detail.trendMessage = item.trendMessage;
       var parsed = opts.parseMarkersFromSignal(detail);
       if (parsed && (parsed.referenceDay || parsed.signalDay)) {
         return applyMarkerVo(parsed);
@@ -264,71 +117,49 @@ function syncRefSigMarkers(page, detail, period, klines, opts) {
   });
 }
 
-function syncUltraMarkers(page, detail, period, klines) {
-  return syncRefSigMarkers(page, detail, period, klines, {
-    shouldShow: ultraMarkers.shouldShowUltraMarkers,
-    buildMock: ultraMarkers.buildMockUltraMarkers,
-    markersVoToBarMarkers: ultraMarkers.markersVoToBarMarkers,
-    parseMarkersFromSignal: ultraMarkers.parseMarkersFromSignal,
-    fetchMarkers: stockApi.fetchUltraMarkers
-  });
-}
-
-function syncTrendMarkers(page, detail, period, klines) {
-  return syncRefSigMarkers(page, detail, period, klines, {
-    shouldShow: trendMarkers.shouldShowTrendMarkers,
-    buildMock: trendMarkers.buildMockTrendMarkers,
-    markersVoToBarMarkers: trendMarkers.markersVoToBarMarkers,
-    parseMarkersFromSignal: trendMarkers.parseMarkersFromSignal,
-    fetchMarkers: stockApi.fetchTrendMarkers
-  });
-}
-
-function syncMediumMarkers(page, detail, period, klines) {
-  return syncRefSigMarkers(page, detail, period, klines, {
-    shouldShow: mediumMarkers.shouldShowMediumMarkers,
-    buildMock: mediumMarkers.buildMockMediumMarkers,
-    markersVoToBarMarkers: mediumMarkers.markersVoToBarMarkers,
-    parseMarkersFromSignal: mediumMarkers.parseMarkersFromSignal,
-    fetchMarkers: stockApi.fetchMediumMarkers
-  });
-}
-
-function syncLongMarkers(page, detail, period, klines) {
-  return syncRefSigMarkers(page, detail, period, klines, {
-    shouldShow: longMarkers.shouldShowLongMarkers,
-    buildMock: longMarkers.buildMockLongMarkers,
-    markersVoToBarMarkers: longMarkers.markersVoToBarMarkers,
-    parseMarkersFromSignal: longMarkers.parseMarkersFromSignal,
-    fetchMarkers: stockApi.fetchLongMarkers
-  });
-}
-
 function syncBarMarkers(page, detail, period, klines) {
   var strategyId = adapter.extractStrategy(detail && detail.id);
   if (ultraMarkers.shouldShowUltraMarkers(strategyId, period)) {
-    return syncUltraMarkers(page, detail, period, klines);
+    return syncRefSigMarkers(page, detail, period, klines,
+      refSigOpts(ultraMarkers, detail, stockApi.fetchUltraMarkers));
+  }
+  if (nrfMarkers.shouldShowNrfMarkers(strategyId, period)) {
+    return syncRefSigMarkers(page, detail, period, klines,
+      refSigOpts(nrfMarkers, detail, stockApi.fetchNrfMarkers));
   }
   if (trendMarkers.shouldShowTrendMarkers(strategyId, period)) {
-    return syncTrendMarkers(page, detail, period, klines);
+    return syncRefSigMarkers(page, detail, period, klines,
+      refSigOpts(trendMarkers, detail, stockApi.fetchTrendMarkers));
   }
   if (mediumMarkers.shouldShowMediumMarkers(strategyId, period)) {
-    return syncMediumMarkers(page, detail, period, klines);
+    return syncRefSigMarkers(page, detail, period, klines,
+      refSigOpts(mediumMarkers, detail, stockApi.fetchMediumMarkers));
   }
   if (longMarkers.shouldShowLongMarkers(strategyId, period)) {
-    return syncLongMarkers(page, detail, period, klines);
+    return syncRefSigMarkers(page, detail, period, klines,
+      refSigOpts(longMarkers, detail, stockApi.fetchLongMarkers));
   }
-  if (trendmMarkers.shouldShowTrendmMarkers(strategyId, period)) {
-    return syncTrendmMarkers(page, detail, period, klines);
-  }
-  if (bogoMarkers.shouldShowBogoMarkers(strategyId, period)) {
-    return syncBogoMarkers(page, detail, period, klines);
+  if (cascadeMarkers.shouldShowCascadeMarkers(strategyId, period)) {
+    return syncRefSigMarkers(page, detail, period, klines,
+      refSigOpts(cascadeMarkers, detail, stockApi.fetchCascadeMarkers));
   }
   if (gc2Markers.shouldShowGc2Markers(strategyId, period)) {
-    return syncGc2Markers(page, detail, period, klines);
+    return syncRefSigMarkers(page, detail, period, klines, {
+      shouldShow: gc2Markers.shouldShowGc2Markers,
+      buildMock: gc2Markers.buildMockGc2Markers,
+      markersVoToBarMarkers: gc2Markers.markersVoToBarMarkers,
+      parseMarkersFromSignal: gc2Markers.parseMarkersFromSignal,
+      fetchMarkers: stockApi.fetchGc2Markers
+    });
   }
   if (dc2Markers.shouldShowDc2Markers(strategyId, period)) {
-    return syncDc2Markers(page, detail, period, klines);
+    return syncRefSigMarkers(page, detail, period, klines, {
+      shouldShow: dc2Markers.shouldShowDc2Markers,
+      buildMock: dc2Markers.buildMockDc2Markers,
+      markersVoToBarMarkers: dc2Markers.markersVoToBarMarkers,
+      parseMarkersFromSignal: dc2Markers.parseMarkersFromSignal,
+      fetchMarkers: stockApi.fetchDc2Markers
+    });
   }
   if (retestMarkers.shouldShowRetestMarkers(strategyId, period)) {
     return syncRetestMarkers(page, detail, period, klines);
@@ -354,8 +185,8 @@ Page({
     inWatchlist: false,
     klineRefreshing: false,
     klineLive: false,
-    ladderBarMarkers: [],
-    ladderMarkerEpoch: 0
+    barMarkers: [],
+    markerEpoch: 0
   },
 
   onLoad(options) {
@@ -569,8 +400,8 @@ Page({
     this.setData({
       detail: null,
       chartKlines: [],
-      ladderBarMarkers: [],
-      ladderMarkerEpoch: 0
+      barMarkers: [],
+      markerEpoch: 0
     });
   }
 });

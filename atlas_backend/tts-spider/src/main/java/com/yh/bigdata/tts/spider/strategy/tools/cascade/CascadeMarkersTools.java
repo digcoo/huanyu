@@ -1,38 +1,39 @@
-package com.yh.bigdata.tts.spider.strategy.tools.bogo;
+package com.yh.bigdata.tts.spider.strategy.tools.cascade;
 
 import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.dto.atlas.AtlasGc2MarkersVo;
 import com.yh.bigdata.tts.common.model.StockBase;
-import com.yh.bigdata.tts.common.param.BogoStrategyParams;
+import com.yh.bigdata.tts.common.param.CascadeStrategyParams;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 底部机会 · 基准 K / 突破 K 标记
+ * 级联交叉突破 · 基准交叉 K / 触发日 K 标记
  */
-public final class BogoMarkersTools {
+public final class CascadeMarkersTools {
 
     private static final Pattern REF_DAY = Pattern.compile("refDay=([^,|]+(?:\\s[^,|]+)*)");
     private static final Pattern SIG_DAY = Pattern.compile("sigDay=([^,|]+(?:\\s[^,|]+)*)");
+    private static final Pattern REF_HIGH = Pattern.compile("refHigh=([0-9.]+)");
 
-    private BogoMarkersTools() {
+    private CascadeMarkersTools() {
     }
 
-    public static AtlasGc2MarkersVo resolve(StockBase stock, PeriodTypeEnum period, BogoStrategyParams params) {
+    public static AtlasGc2MarkersVo resolve(StockBase stock, PeriodTypeEnum period, CascadeStrategyParams params) {
         if (stock == null) {
             return null;
         }
-        BogoStrategyParams p = params != null ? params : BogoStrategyParams.defaults();
+        CascadeStrategyParams p = params != null ? params : CascadeStrategyParams.defaults();
         PeriodTypeEnum pType = period != null ? period : PeriodTypeEnum.DAY;
 
-        BogoBreakoutTools.PeriodHit hit = findHitForPeriod(stock, pType, p);
-        if (hit != null && hit.getReferenceBar() != null && hit.getSignalBar() != null) {
+        CascadeBreakoutTools.TierHit hit = findHitForPeriod(stock, pType, p);
+        if (hit != null && hit.getReferenceBar() != null && hit.getTodayDayBar() != null) {
             return AtlasGc2MarkersVo.builder()
                     .referenceDay(hit.getReferenceBar().getDay())
                     .referenceHigh(hit.getReferenceBar().getHigh())
-                    .signalDay(hit.getSignalBar().getDay())
-                    .signalHigh(hit.getSignalBar().getHigh())
+                    .signalDay(hit.getTodayDayBar().getDay())
+                    .signalHigh(hit.getTodayDayBar().getHigh())
                     .build();
         }
 
@@ -40,9 +41,9 @@ public final class BogoMarkersTools {
         return parseFromText(combined);
     }
 
-    public static BogoBreakoutTools.PeriodHit findHitForPeriod(StockBase stock, PeriodTypeEnum period,
-                                                              BogoStrategyParams params) {
-        BogoStrategyParams p = params != null ? params : BogoStrategyParams.defaults();
+    public static CascadeBreakoutTools.TierHit findHitForPeriod(StockBase stock, PeriodTypeEnum period,
+                                                                  CascadeStrategyParams params) {
+        CascadeStrategyParams p = params != null ? params : CascadeStrategyParams.defaults();
         if (period == null) {
             period = PeriodTypeEnum.DAY;
         }
@@ -51,18 +52,19 @@ public final class BogoMarkersTools {
                 if (!p.isEnableMonth()) {
                     return null;
                 }
-                return BogoBreakoutTools.findHit(stock, PeriodTypeEnum.MONTH, p.getLookbackMonth());
+                return CascadeBreakoutTools.findMonthTierHit(stock, p.getLookbackMonth(), p.getLookbackDay());
             case WEEK:
                 if (!p.isEnableWeek()) {
                     return null;
                 }
-                return BogoBreakoutTools.findHit(stock, PeriodTypeEnum.WEEK, p.getLookbackWeek());
+                return CascadeBreakoutTools.findWeekTierHit(
+                        stock, p.getLookbackWeek(), p.getLookbackMonth(), p.getLookbackDay());
             case DAY:
             default:
                 if (!p.isEnableDay()) {
                     return null;
                 }
-                return BogoBreakoutTools.findHit(stock, PeriodTypeEnum.DAY, p.getLookbackDay());
+                return CascadeBreakoutTools.findDayTierHit(stock, p.getLookbackDay(), p.getLookbackWeek());
         }
     }
 
@@ -72,13 +74,26 @@ public final class BogoMarkersTools {
         }
         String refDay = matchGroup(REF_DAY, text);
         String sigDay = matchGroup(SIG_DAY, text);
+        Double refHigh = parseDouble(matchGroup(REF_HIGH, text));
         if (refDay.isEmpty() && sigDay.isEmpty()) {
             return null;
         }
         return AtlasGc2MarkersVo.builder()
                 .referenceDay(refDay)
+                .referenceHigh(refHigh)
                 .signalDay(sigDay)
                 .build();
+    }
+
+    private static Double parseDouble(String s) {
+        if (s == null || s.isEmpty()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(s);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 
     private static String matchGroup(Pattern pattern, String text) {

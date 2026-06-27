@@ -9,6 +9,7 @@ import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.frictionless.MacdCrossLowGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.trend.TrendV2Evaluator;
 import com.yh.bigdata.tts.spider.strategy.tools.trend.TrendV2FilterTools;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,10 @@ public class TrendV2Strategy extends AbstractStrategy {
                              PeriodTypeEnum opPeriodType, QueryContextParam queryContextParam) {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
         try {
+            if (!MacdCrossLowGateTools.passesAll(stockBase, checkResult)) {
+                return checkResult;
+            }
+
             TrendV2StrategyParams params = resolveParams(queryContextParam);
 
             if (!TrendV2FilterTools.passFilters(stockBase, checkResult, params)) {
