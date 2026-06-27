@@ -6,42 +6,29 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 级联交叉突破（cascade）· 可选四门 + 日/周/月基准档 + 日 K 边沿 + 级联确认
+ * 级联梯子突破（cladder）· 可选四门 + 日/周/月基准压顶 + 前后阳柱（三周期交集）
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CascadeStrategyParams {
+public class CascadeLadderStrategyParams {
 
     public static final int DEFAULT_LOOKBACK_DAY = 60;
     public static final int DEFAULT_LOOKBACK_WEEK = 52;
     public static final int DEFAULT_LOOKBACK_MONTH = 36;
-    public static final double DEFAULT_MIN_AVG_AMOUNT = 30_000_000D;
 
     @Builder.Default
-    private boolean enableDualLowGate = false;
+    private boolean enableDualLowGate = true;
 
     @Builder.Default
-    private boolean enableMacdGate = false;
+    private boolean enableMacdGate = true;
 
     @Builder.Default
-    private boolean enableCrossLowGate = false;
+    private boolean enableCrossLowGate = true;
 
     @Builder.Default
-    private boolean enableBarHighGate = false;
-
-    /** 突破日基准 K.high */
-    @Builder.Default
-    private boolean enableDay = true;
-
-    /** 突破周基准 K.high */
-    @Builder.Default
-    private boolean enableWeek = false;
-
-    /** 突破月基准 K.high */
-    @Builder.Default
-    private boolean enableMonth = false;
+    private boolean enableBarHighGate = true;
 
     @Builder.Default
     private int lookbackDay = DEFAULT_LOOKBACK_DAY;
@@ -52,30 +39,26 @@ public class CascadeStrategyParams {
     @Builder.Default
     private int lookbackMonth = DEFAULT_LOOKBACK_MONTH;
 
-    /** 须同时满足 30m 跨日桶柱内突破 */
     @Builder.Default
-    private boolean requireUltra = false;
+    private boolean requireUltra = true;
 
     /** 近 6 日日均成交额门槛（元）；0 表示不启用 */
     @Builder.Default
-    private double minAvgAmount = DEFAULT_MIN_AVG_AMOUNT;
+    private double minAvgAmount = 0D;
 
-    public static CascadeStrategyParams defaults() {
-        return CascadeStrategyParams.builder().build();
+    public static CascadeLadderStrategyParams defaults() {
+        return CascadeLadderStrategyParams.builder().build();
     }
 
-    public static CascadeStrategyParams merge(CascadeStrategyParams incoming) {
+    public static CascadeLadderStrategyParams merge(CascadeLadderStrategyParams incoming) {
         if (incoming == null) {
             return defaults();
         }
-        CascadeStrategyParams d = defaults();
+        CascadeLadderStrategyParams d = defaults();
         d.enableDualLowGate = incoming.enableDualLowGate;
         d.enableMacdGate = incoming.enableMacdGate;
         d.enableCrossLowGate = incoming.enableCrossLowGate;
         d.enableBarHighGate = incoming.enableBarHighGate;
-        d.enableDay = incoming.enableDay;
-        d.enableWeek = incoming.enableWeek;
-        d.enableMonth = incoming.enableMonth;
         if (incoming.lookbackDay >= 10) {
             d.lookbackDay = incoming.lookbackDay;
         }
@@ -88,9 +71,6 @@ public class CascadeStrategyParams {
         d.requireUltra = incoming.requireUltra;
         if (incoming.minAvgAmount >= 0) {
             d.minAvgAmount = incoming.minAvgAmount;
-        }
-        if (!d.enableDay && !d.enableWeek && !d.enableMonth) {
-            d.enableDay = true;
         }
         return d;
     }

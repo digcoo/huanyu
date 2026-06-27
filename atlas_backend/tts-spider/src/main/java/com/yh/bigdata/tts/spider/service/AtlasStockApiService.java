@@ -45,6 +45,8 @@ public interface AtlasStockApiService {
 
     AtlasGc2MarkersVo getCascadeMarkers(String code, String period);
 
+    AtlasGc2MarkersVo getCladderMarkers(String code, String period);
+
     AtlasGc2MarkersVo getNrfMarkers(String code, String period, FrictionlessLadderStrategyParams nrfParams,
                                       TrendV2StrategyParams trendParams, MediumStrategyParams mediumParams,
                                       LongStrategyParams longParams);

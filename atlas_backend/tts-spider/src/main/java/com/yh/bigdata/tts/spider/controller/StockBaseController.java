@@ -375,7 +375,15 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getCaLookbackWeek()),
                 String.valueOf(pageQuery.getCaLookbackMonth()),
                 String.valueOf(pageQuery.getCaRequireUltra()),
-                String.valueOf(pageQuery.getCaMinAmountWan()));
+                String.valueOf(pageQuery.getCaMinAmountWan()),
+                String.valueOf(pageQuery.getClEnableDualLowGate()),
+                String.valueOf(pageQuery.getClEnableMacdGate()),
+                String.valueOf(pageQuery.getClEnableCrossLowGate()),
+                String.valueOf(pageQuery.getClLookbackDay()),
+                String.valueOf(pageQuery.getClLookbackWeek()),
+                String.valueOf(pageQuery.getClLookbackMonth()),
+                String.valueOf(pageQuery.getClRequireUltra()),
+                String.valueOf(pageQuery.getClMinAmountWan()));
     }
 
     public void clearRecommendCache() {
@@ -417,6 +425,7 @@ public class StockBaseController {
                 .frictionlessLadder(stockPageQuery.toFrictionlessParams())
                 .pillar(stockPageQuery.toPillarParams())
                 .cascade(stockPageQuery.toCascadeParams())
+                .cascadeLadder(stockPageQuery.toCascadeLadderParams())
                 .build();
 
     }

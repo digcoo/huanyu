@@ -5,40 +5,34 @@ import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.constants.StrategyTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
-import com.yh.bigdata.tts.common.param.MediumStrategyParams;
+import com.yh.bigdata.tts.common.param.CascadeLadderStrategyParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
-import com.yh.bigdata.tts.spider.strategy.tools.frictionless.BarHighLadderGateTools;
-import com.yh.bigdata.tts.spider.strategy.tools.frictionless.MacdCrossLowGateTools;
-import com.yh.bigdata.tts.spider.strategy.tools.medium.MediumEvaluator;
-import com.yh.bigdata.tts.spider.strategy.tools.medium.MediumFilterTools;
+import com.yh.bigdata.tts.spider.strategy.tools.cladder.CascadeLadderEvaluator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * 中线策略（medium）· 自然月桶周K 基准 + 本月周K 突破
- */
 @Slf4j
 @Component
-public class MediumStrategy extends AbstractStrategy {
+public class CascadeLadderBreakoutStrategy extends AbstractStrategy {
 
     @Override
     public StrategyTypeEnum getStrategy() {
-        return StrategyTypeEnum.MEDIUM;
+        return StrategyTypeEnum.CASCADE_LADDER;
     }
 
     @Override
     public PeriodTypeEnum getOpPeriodType() {
-        return PeriodTypeEnum.WEEK;
+        return PeriodTypeEnum.DAY;
     }
 
     @Override
     public List<PeriodTypeEnum> getTrendPeriodTypes() {
-        return Arrays.asList(PeriodTypeEnum.YEAR, PeriodTypeEnum.MONTH, PeriodTypeEnum.WEEK);
+        return Arrays.asList(PeriodTypeEnum.MONTH, PeriodTypeEnum.WEEK, PeriodTypeEnum.DAY);
     }
 
     @Override
@@ -46,31 +40,18 @@ public class MediumStrategy extends AbstractStrategy {
                              PeriodTypeEnum opPeriodType, QueryContextParam queryContextParam) {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
         try {
-            if (!MacdCrossLowGateTools.passesAll(stockBase, checkResult)) {
-                return checkResult;
-            }
-            if (!BarHighLadderGateTools.passesAll(stockBase, checkResult)) {
-                return checkResult;
-            }
-
-            MediumStrategyParams params = resolveParams(queryContextParam);
-
-            if (!MediumFilterTools.passFilters(stockBase, checkResult, params)) {
-                return checkResult;
-            }
-
-            MediumEvaluator.MediumEvaluation eval =
-                    MediumEvaluator.evaluate(stockBase, checkResult, params, resolveUltraParams(queryContextParam));
+            CascadeLadderStrategyParams params = resolveParams(queryContextParam);
+            UltraShortStrategyParams ultraParams = resolveUltraParams(queryContextParam);
+            CascadeLadderEvaluator.CascadeLadderEvaluation eval =
+                    CascadeLadderEvaluator.evaluate(stockBase, checkResult, params, ultraParams);
             if (!eval.isHit()) {
                 return checkResult;
             }
-
             checkResult.setHasTrend(true);
             checkResult.setHasSignal(true);
             checkResult.setSortValue(eval.getScore());
             checkResult.setTrendPeriodType(PeriodTypeEnum.MONTH);
-            checkResult.setOpPeriodType(PeriodTypeEnum.WEEK);
-
+            checkResult.setOpPeriodType(PeriodTypeEnum.DAY);
         } catch (Exception ex) {
             log.error("{} - check exception : stock = {}", getClass().getName(), stockBase.getCode(), ex);
         } finally {
@@ -79,11 +60,11 @@ public class MediumStrategy extends AbstractStrategy {
         return checkResult;
     }
 
-    private MediumStrategyParams resolveParams(QueryContextParam queryContextParam) {
-        if (queryContextParam == null || queryContextParam.getMedium() == null) {
-            return MediumStrategyParams.defaults();
+    private CascadeLadderStrategyParams resolveParams(QueryContextParam queryContextParam) {
+        if (queryContextParam == null || queryContextParam.getCascadeLadder() == null) {
+            return CascadeLadderStrategyParams.defaults();
         }
-        return MediumStrategyParams.merge(queryContextParam.getMedium());
+        return CascadeLadderStrategyParams.merge(queryContextParam.getCascadeLadder());
     }
 
     private UltraShortStrategyParams resolveUltraParams(QueryContextParam queryContextParam) {
@@ -98,9 +79,9 @@ public class MediumStrategy extends AbstractStrategy {
             return;
         }
         try {
-            Trade weekTrade = RealtimeStockCache.getLastTrade(stockBase, PeriodTypeEnum.WEEK, -1);
-            if (weekTrade != null && weekTrade.getChangeRate() != null) {
-                checkResult.setSortValue(weekTrade.getChangeRate());
+            Trade dayTrade = RealtimeStockCache.getLastTrade(stockBase, PeriodTypeEnum.DAY, 0);
+            if (dayTrade != null && dayTrade.getChangeRate() != null) {
+                checkResult.setSortValue(dayTrade.getChangeRate());
             } else if (stockBase.getChangeRate() != null) {
                 checkResult.setSortValue(stockBase.getChangeRate());
             }

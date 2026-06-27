@@ -1,23 +1,20 @@
-package com.yh.bigdata.tts.spider.strategy.tools.cascade;
+package com.yh.bigdata.tts.spider.strategy.tools.cladder;
 
 import com.yh.bigdata.tts.common.model.StockBase;
-import com.yh.bigdata.tts.common.param.CascadeStrategyParams;
+import com.yh.bigdata.tts.common.param.CascadeLadderStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.BarHighLadderGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.DualLowSupportGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.FrictionlessMacdGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.MacdCrossLowGateTools;
 
-/**
- * 级联交叉突破 · 可选四门（默认均关闭）
- */
-public final class CascadeOptionalGateTools {
+public final class CascadeLadderOptionalGateTools {
 
-    private CascadeOptionalGateTools() {
+    private CascadeLadderOptionalGateTools() {
     }
 
-    public static boolean passGate(StockBase stock, CheckResult checkResult, CascadeStrategyParams params) {
-        CascadeStrategyParams p = params != null ? params : CascadeStrategyParams.defaults();
+    public static boolean passGate(StockBase stock, CheckResult checkResult, CascadeLadderStrategyParams params) {
+        CascadeLadderStrategyParams p = params != null ? params : CascadeLadderStrategyParams.defaults();
         if (p.isEnableDualLowGate()
                 && !DualLowSupportGateTools.passesAll(stock, checkResult)) {
             return false;

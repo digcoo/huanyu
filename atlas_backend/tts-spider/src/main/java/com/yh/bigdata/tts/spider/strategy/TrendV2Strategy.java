@@ -9,6 +9,7 @@ import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.frictionless.BarHighLadderGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.MacdCrossLowGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.trend.TrendV2Evaluator;
 import com.yh.bigdata.tts.spider.strategy.tools.trend.TrendV2FilterTools;
@@ -46,6 +47,9 @@ public class TrendV2Strategy extends AbstractStrategy {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
         try {
             if (!MacdCrossLowGateTools.passesAll(stockBase, checkResult)) {
+                return checkResult;
+            }
+            if (!BarHighLadderGateTools.passesAll(stockBase, checkResult)) {
                 return checkResult;
             }
 

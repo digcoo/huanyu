@@ -161,6 +161,11 @@ function createRefSigMarkerModule(opts) {
     mod.isCascadeStrategy = isStrategy;
     mod.buildMockCascadeMarkers = function (klines) { return buildMockMarkers(klines); };
     mod.enrichItemsWithCascadeMarkers = enrichItems;
+  } else if (strategyId === 'cladder') {
+    mod.shouldShowCladderMarkers = shouldShow;
+    mod.isCladderStrategy = isStrategy;
+    mod.buildMockCladderMarkers = function (klines) { return buildMockMarkers(klines); };
+    mod.enrichItemsWithCladderMarkers = enrichItems;
   } else if (strategyId === 'trend') {
     mod.shouldShowTrendMarkers = shouldShow;
     mod.buildMockTrendMarkers = function (klines) { return buildMockMarkers(klines); };

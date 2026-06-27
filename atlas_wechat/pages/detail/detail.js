@@ -6,6 +6,7 @@ const stockApi = require('../../utils/stock-api');
 const retestMarkers = require('../../utils/retest-markers');
 const gc2Markers = require('../../utils/gc2-markers');
 const cascadeMarkers = require('../../utils/cascade-markers');
+const cladderMarkers = require('../../utils/cladder-markers');
 const nrfMarkers = require('../../utils/nrf-markers');
 const dc2Markers = require('../../utils/dc2-markers');
 const strategyParams = require('../../utils/strategy-params');
@@ -142,6 +143,15 @@ function syncBarMarkers(page, detail, period, klines) {
   if (cascadeMarkers.shouldShowCascadeMarkers(strategyId, period)) {
     return syncRefSigMarkers(page, detail, period, klines,
       refSigOpts(cascadeMarkers, detail, stockApi.fetchCascadeMarkers));
+  }
+  if (cladderMarkers.shouldShowCladderMarkers(strategyId, period)) {
+    return syncRefSigMarkers(page, detail, period, klines, {
+      shouldShow: cladderMarkers.shouldShowCladderMarkers,
+      buildMock: function (kl) { return cladderMarkers.buildMockCladderMarkers(kl, period); },
+      markersVoToBarMarkers: function (m) { return cladderMarkers.markersVoToBarMarkers(m, period); },
+      parseMarkersFromSignal: function (item) { return cladderMarkers.parseMarkersFromSignal(item, period); },
+      fetchMarkers: stockApi.fetchCladderMarkers
+    });
   }
   if (gc2Markers.shouldShowGc2Markers(strategyId, period)) {
     return syncRefSigMarkers(page, detail, period, klines, {

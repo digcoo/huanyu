@@ -30,6 +30,11 @@ function buildStrategyQueryParams(strategyId) {
   );
   if (strategyId === 'nrf') {
     Object.assign(params, strategyParams.toApiParams('ultra'));
+  } else if (strategyId === 'cladder') {
+    var clParams = strategyParams.load('cladder');
+    if (clParams.clRequireUltra !== false) {
+      Object.assign(params, strategyParams.toApiParams('ultra'));
+    }
   }
   return params;
 }
@@ -237,6 +242,16 @@ function fetchCascadeMarkers(code, period) {
   });
 }
 
+/** 级联梯子突破 · 基准 K / 触发 K 标记 */
+function fetchCladderMarkers(code, period) {
+  return api.get('/stock/' + encodePath(code) + '/cladder/markers', {
+    period: period || 'day'
+  }).then(function (res) {
+    if (!res.ok || !res.data) return null;
+    return res.data;
+  });
+}
+
 /** 跨周期内梯子上移 · 基准 K / 突破 K 标记 */
 function fetchNrfMarkers(code, period) {
   var params = strategyParams.toApiParams('nrf');
@@ -335,6 +350,7 @@ module.exports = {
   fetchRetestMarkers: fetchRetestMarkers,
   fetchGc2Markers: fetchGc2Markers,
   fetchCascadeMarkers: fetchCascadeMarkers,
+  fetchCladderMarkers: fetchCladderMarkers,
   fetchNrfMarkers: fetchNrfMarkers,
   fetchDc2Markers: fetchDc2Markers,
   fetchSummary: fetchSummary,

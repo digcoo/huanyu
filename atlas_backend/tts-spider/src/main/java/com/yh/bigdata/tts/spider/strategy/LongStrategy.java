@@ -9,6 +9,7 @@ import com.yh.bigdata.tts.common.param.LongStrategyParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.frictionless.BarHighLadderGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.MacdCrossLowGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.longterm.LongEvaluator;
 import com.yh.bigdata.tts.spider.strategy.tools.longterm.LongFilterTools;
@@ -46,6 +47,9 @@ public class LongStrategy extends AbstractStrategy {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
         try {
             if (!MacdCrossLowGateTools.passesAll(stockBase, checkResult)) {
+                return checkResult;
+            }
+            if (!BarHighLadderGateTools.passesAll(stockBase, checkResult)) {
                 return checkResult;
             }
 

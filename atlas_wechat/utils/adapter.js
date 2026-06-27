@@ -10,7 +10,8 @@ const STRATEGY_API = {
   medium: { strategy: 'medium', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
   long: { strategy: 'long', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
   nrf: { strategy: 'nrf', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  cascade: { strategy: 'cascade', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' }
+  cascade: { strategy: 'cascade', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  cladder: { strategy: 'cladder', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' }
 };
 
 function normalizeStrategyId(strategyId) {
@@ -397,6 +398,26 @@ function buildNrfSummary(item) {
   return parseUnilateralTrendLabel(item.trendMessage) || '';
 }
 
+function buildCladderTags(item) {
+  var tags = ['级联梯子'];
+  var text = [item.trendMessage, item.signalMessage].join('|');
+  if (/period=day|日K/.test(text)) tags.push('日');
+  if (/period=week|周K/.test(text)) tags.push('周');
+  if (/period=month|月K/.test(text)) tags.push('月');
+  appendGlobalGateTags(item, tags);
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (label && tags.indexOf(label) < 0 && label.length <= 14) {
+    tags.push(label);
+  }
+  return tags;
+}
+
+function buildCladderSummary(item) {
+  var signal = item.signalMessage || '';
+  if (signal) return signal.split(',')[0];
+  return parseUnilateralTrendLabel(item.trendMessage) || '';
+}
+
 function buildCascadeTags(item) {
   var tags = ['级联交叉'];
   var text = [item.trendMessage, item.signalMessage].join('|');
@@ -445,6 +466,8 @@ function mapRecommendation(item, strategyId) {
     tags = tags.concat(buildNrfTags(item));
   } else if (strategyId === 'cascade') {
     tags = tags.concat(buildCascadeTags(item));
+  } else if (strategyId === 'cladder') {
+    tags = tags.concat(buildCladderTags(item));
   } else if (strategyId === 'ultra') {
     tags = tags.concat(buildUltraTags(item));
   } else {
@@ -465,6 +488,8 @@ function mapRecommendation(item, strategyId) {
     ? [buildNrfSummary(item), item.mainBusiness, item.summary]
     : strategyId === 'cascade'
     ? [buildCascadeSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'cladder'
+    ? [buildCladderSummary(item), item.mainBusiness, item.summary]
     : strategyId === 'ultra'
     ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
     : strategyId === 'retest'

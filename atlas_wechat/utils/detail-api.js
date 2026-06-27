@@ -17,7 +17,7 @@ function loadDetail(id, period) {
     stockApi.fetchDetail(code),
     stockApi.fetchKlines(code, period, stockApi.klineLimitForPeriod(period)),
     stockApi.fetchCompass(code),
-    strategy === 'nrf' || strategy === 'cascade'
+    strategy === 'nrf' || strategy === 'cascade' || strategy === 'cladder'
       ? stockApi.fetchSummary(code) : Promise.resolve(null)
   ]).then(function (results) {
     var detailRes = results[0];

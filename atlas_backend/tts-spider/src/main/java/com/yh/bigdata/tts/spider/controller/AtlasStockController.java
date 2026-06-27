@@ -231,6 +231,21 @@ public class AtlasStockController {
         }
     }
 
+    @GetMapping("/{code}/cladder/markers")
+    public Response<AtlasGc2MarkersVo> getCladderMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getCladderMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
     @GetMapping("/{code}/nrf/markers")
     public Response<AtlasGc2MarkersVo> getNrfMarkers(
             @PathVariable("code") String code,

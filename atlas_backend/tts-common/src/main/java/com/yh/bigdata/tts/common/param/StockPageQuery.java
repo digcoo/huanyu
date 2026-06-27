@@ -225,6 +225,8 @@ public class StockPageQuery extends PageQuery {
     private Boolean caEnableMacdGate;
     /** 级联交叉突破 · MACD 交叉 low 门 */
     private Boolean caEnableCrossLowGate;
+    /** 级联交叉突破 · 高点递进门 */
+    private Boolean caEnableBarHighGate;
     /** 级联交叉突破 · 突破日基准 */
     private Boolean caEnableDay;
     /** 级联交叉突破 · 突破周基准 */
@@ -241,6 +243,25 @@ public class StockPageQuery extends PageQuery {
     private Boolean caRequireUltra;
     /** 级联交叉突破 · 最低成交额（万） */
     private Integer caMinAmountWan;
+
+    /** 级联梯子突破 · 双低支撑门 */
+    private Boolean clEnableDualLowGate;
+    /** 级联梯子突破 · 无阻力 MACD 门 */
+    private Boolean clEnableMacdGate;
+    /** 级联梯子突破 · MACD 交叉 low 门 */
+    private Boolean clEnableCrossLowGate;
+    /** 级联梯子突破 · 高点递进门 */
+    private Boolean clEnableBarHighGate;
+    /** 级联梯子突破 · 日 K lookback */
+    private Integer clLookbackDay;
+    /** 级联梯子突破 · 周 K lookback */
+    private Integer clLookbackWeek;
+    /** 级联梯子突破 · 月 K lookback */
+    private Integer clLookbackMonth;
+    /** 级联梯子突破 · 须 min30 跨日桶突破 */
+    private Boolean clRequireUltra;
+    /** 级联梯子突破 · 最低成交额（万） */
+    private Integer clMinAmountWan;
 
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
@@ -661,6 +682,9 @@ public class StockPageQuery extends PageQuery {
         if (caEnableCrossLowGate != null) {
             b.enableCrossLowGate(caEnableCrossLowGate);
         }
+        if (caEnableBarHighGate != null) {
+            b.enableBarHighGate(caEnableBarHighGate);
+        }
         if (caEnableDay != null) {
             b.enableDay(caEnableDay);
         }
@@ -686,6 +710,38 @@ public class StockPageQuery extends PageQuery {
             b.minAvgAmount(caMinAmountWan * 10_000D);
         }
         return CascadeStrategyParams.merge(b.build());
+    }
+
+    public CascadeLadderStrategyParams toCascadeLadderParams() {
+        CascadeLadderStrategyParams.CascadeLadderStrategyParamsBuilder b = CascadeLadderStrategyParams.builder();
+        if (clEnableDualLowGate != null) {
+            b.enableDualLowGate(clEnableDualLowGate);
+        }
+        if (clEnableMacdGate != null) {
+            b.enableMacdGate(clEnableMacdGate);
+        }
+        if (clEnableCrossLowGate != null) {
+            b.enableCrossLowGate(clEnableCrossLowGate);
+        }
+        if (clEnableBarHighGate != null) {
+            b.enableBarHighGate(clEnableBarHighGate);
+        }
+        if (clLookbackDay != null && clLookbackDay >= 10) {
+            b.lookbackDay(clLookbackDay);
+        }
+        if (clLookbackWeek != null && clLookbackWeek >= 10) {
+            b.lookbackWeek(clLookbackWeek);
+        }
+        if (clLookbackMonth != null && clLookbackMonth >= 6) {
+            b.lookbackMonth(clLookbackMonth);
+        }
+        if (clRequireUltra != null) {
+            b.requireUltra(clRequireUltra);
+        }
+        if (clMinAmountWan != null && clMinAmountWan >= 0) {
+            b.minAvgAmount(clMinAmountWan * 10_000D);
+        }
+        return CascadeLadderStrategyParams.merge(b.build());
     }
 
 }

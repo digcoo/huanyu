@@ -49,8 +49,9 @@ public final class CascadeScoreCalculator {
     public static String buildTrendMessage(CascadeEvaluator.CascadeEvaluation eval, CascadeStrategyParams params) {
         StringBuilder sb = new StringBuilder("[CASCADE]级联交叉突破");
         CascadeStrategyParams p = params != null ? params : CascadeStrategyParams.defaults();
-        if (p.isEnableDualLowGate() || p.isEnableMacdGate() || p.isEnableCrossLowGate()) {
-            sb.append("|可选三门");
+        if (p.isEnableDualLowGate() || p.isEnableMacdGate() || p.isEnableCrossLowGate()
+                || p.isEnableBarHighGate()) {
+            sb.append("|可选四门");
         }
         appendTierTrendLabel(sb, eval.getMonthHit());
         appendTierTrendLabel(sb, eval.getWeekHit());

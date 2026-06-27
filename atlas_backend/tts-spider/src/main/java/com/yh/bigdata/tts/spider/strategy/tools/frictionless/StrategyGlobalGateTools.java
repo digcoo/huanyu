@@ -4,14 +4,15 @@ import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 
 /**
- * 策略全局门控入口：双低支撑门 → 无阻力 MACD 门 → MACD 交叉 low 门。
+ * 策略全局门控入口：双低支撑门 → 无阻力 MACD 门 → MACD 交叉 low 门 → 高点递进门。
  */
 public final class StrategyGlobalGateTools {
 
     public static final String FULL_GATE_LABEL =
             DualLowSupportGateTools.GATE_LABEL + "|"
                     + FrictionlessMacdGateTools.GATE_LABEL + "|"
-                    + MacdCrossLowGateTools.GATE_LABEL;
+                    + MacdCrossLowGateTools.GATE_LABEL + "|"
+                    + BarHighLadderGateTools.GATE_LABEL;
 
     private StrategyGlobalGateTools() {
     }
@@ -23,6 +24,9 @@ public final class StrategyGlobalGateTools {
         if (!FrictionlessMacdGateTools.passesMacdAll(stock, checkResult)) {
             return false;
         }
-        return MacdCrossLowGateTools.passesAll(stock, checkResult);
+        if (!MacdCrossLowGateTools.passesAll(stock, checkResult)) {
+            return false;
+        }
+        return BarHighLadderGateTools.passesAll(stock, checkResult);
     }
 }

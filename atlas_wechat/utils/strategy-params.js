@@ -73,6 +73,7 @@ var CASCADE_DEFAULTS = {
   caEnableDualLowGate: false,
   caEnableMacdGate: false,
   caEnableCrossLowGate: false,
+  caEnableBarHighGate: false,
   caEnableDay: true,
   caEnableWeek: false,
   caEnableMonth: false,
@@ -81,6 +82,18 @@ var CASCADE_DEFAULTS = {
   caLookbackMonth: 36,
   caMinAmountWan: 3000,
   caRequireUltra: false
+};
+
+var CLADDER_DEFAULTS = {
+  clEnableDualLowGate: true,
+  clEnableMacdGate: true,
+  clEnableCrossLowGate: true,
+  clEnableBarHighGate: true,
+  clLookbackDay: 60,
+  clLookbackWeek: 52,
+  clLookbackMonth: 36,
+  clMinAmountWan: 0,
+  clRequireUltra: true
 };
 
 var ULTRA_DEFAULTS = {
@@ -476,7 +489,7 @@ var DC2_SCHEMA = [
 var CASCADE_SCHEMA = [
   {
     type: 'section',
-    label: '可选三门',
+    label: '可选四门',
     hint: '默认均关闭；开启后日/周/月须全部满足对应门控'
   },
   {
@@ -492,6 +505,11 @@ var CASCADE_SCHEMA = [
   {
     key: 'caEnableCrossLowGate',
     label: 'MACD 交叉 low 门',
+    type: 'switch'
+  },
+  {
+    key: 'caEnableBarHighGate',
+    label: '高点递进门',
     type: 'switch'
   },
   {
@@ -563,6 +581,86 @@ var CASCADE_SCHEMA = [
   },
   {
     key: 'caRequireUltra',
+    label: '须满足超短 Min30 突破',
+    type: 'switch'
+  }
+];
+
+var CLADDER_SCHEMA = [
+  {
+    type: 'section',
+    label: '可选四门',
+    hint: '默认均开启；关闭后不再校验对应门控'
+  },
+  {
+    key: 'clEnableDualLowGate',
+    label: '双低支撑门',
+    type: 'switch'
+  },
+  {
+    key: 'clEnableMacdGate',
+    label: '无阻力 MACD 门',
+    type: 'switch'
+  },
+  {
+    key: 'clEnableCrossLowGate',
+    label: 'MACD 交叉 low 门',
+    type: 'switch'
+  },
+  {
+    key: 'clEnableBarHighGate',
+    label: '高点递进门',
+    type: 'switch'
+  },
+  {
+    key: 'clMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）；0=不启用',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: '基准回溯',
+    hint: '日/周/月各自找基准K；三周期须同时满足（交集）'
+  },
+  {
+    key: 'clLookbackDay',
+    label: '日 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 120,
+    step: 5,
+    unit: '根'
+  },
+  {
+    key: 'clLookbackWeek',
+    label: '周 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 104,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'clLookbackMonth',
+    label: '月 K lookback',
+    type: 'slider',
+    min: 12,
+    max: 60,
+    step: 4,
+    unit: '根'
+  },
+  {
+    type: 'section',
+    label: '超短叠加',
+    hint: '开启后须同时满足 30m 跨日桶柱内突破；ul* 参数沿用「超短」Tab 设置'
+  },
+  {
+    key: 'clRequireUltra',
     label: '须满足超短 Min30 突破',
     type: 'switch'
   }
@@ -723,7 +821,8 @@ var SCHEMA_BY_STRATEGY = {
   retest: RETEST_SCHEMA,
   gc2: GC2_SCHEMA,
   dc2: DC2_SCHEMA,
-  cascade: CASCADE_SCHEMA
+  cascade: CASCADE_SCHEMA,
+  cladder: CLADDER_SCHEMA
 };
 
 var LADDER_TIER_SHORT = 'short';
@@ -1107,7 +1206,8 @@ var DEFAULTS_BY_STRATEGY = {
   retest: RETEST_DEFAULTS,
   gc2: GC2_DEFAULTS,
   dc2: DC2_DEFAULTS,
-  cascade: CASCADE_DEFAULTS
+  cascade: CASCADE_DEFAULTS,
+  cladder: CLADDER_DEFAULTS
 };
 
 var TIER_PICKER = null;
@@ -1261,6 +1361,10 @@ function cascadePrimaryPeriod(params) {
   return 'day';
 }
 
+function cladderPrimaryPeriod() {
+  return 'day';
+}
+
 function chartPrimaryPeriod(strategyId, params) {
   strategyId = normalizeStrategyId(strategyId);
   if (strategyId === 'ultra') return 'min30';
@@ -1275,6 +1379,7 @@ function chartPrimaryPeriod(strategyId, params) {
   if (strategyId === 'gc2') return gc2PrimaryPeriod(params);
   if (strategyId === 'dc2') return dc2PrimaryPeriod(params);
   if (strategyId === 'cascade') return cascadePrimaryPeriod(params);
+  if (strategyId === 'cladder') return cladderPrimaryPeriod(params);
   return null;
 }
 
@@ -1535,7 +1640,7 @@ function formatSummary(strategyId) {
   if (strategyId === 'nrf') {
     var nrfBundle2 = loadNrfBundleRaw();
     var nrfTier = nrfBundle2.activeTier || LADDER_TIER_SHORT;
-    return nrfTierTitle(nrfTier) + ' · ' + formatNrfTierSummary(nrfTier, nrfBundle2[nrfTier]) + ' · 三门全局';
+    return nrfTierTitle(nrfTier) + ' · ' + formatNrfTierSummary(nrfTier, nrfBundle2[nrfTier]) + ' · 四门全局';
   }
   if (strategyId === 'retest') {
     var tModes = [];
@@ -1573,10 +1678,22 @@ function formatSummary(strategyId) {
     if (p.caEnableDualLowGate) gateParts.push('双低');
     if (p.caEnableMacdGate) gateParts.push('无阻力');
     if (p.caEnableCrossLowGate) gateParts.push('交叉low');
+    if (p.caEnableBarHighGate) gateParts.push('高点递');
     return (caModes.length ? caModes.join('+') : '未启用') + ' · 级联交叉突破'
       + (gateParts.length ? ' · ' + gateParts.join('+') : '')
       + (p.caMinAmountWan != null && p.caMinAmountWan > 0 ? ' · ' + p.caMinAmountWan + '万' : '')
       + (p.caRequireUltra ? ' · +min30' : '');
+  }
+  if (strategyId === 'cladder') {
+    var clGateParts = [];
+    if (p.clEnableDualLowGate) clGateParts.push('双低');
+    if (p.clEnableMacdGate) clGateParts.push('无阻力');
+    if (p.clEnableCrossLowGate) clGateParts.push('交叉low');
+    if (p.clEnableBarHighGate) clGateParts.push('高点递');
+    return '日周月交集 · 级联梯子突破'
+      + (clGateParts.length ? ' · ' + clGateParts.join('+') : ' · 四门关')
+      + (p.clMinAmountWan != null && p.clMinAmountWan > 0 ? ' · ' + p.clMinAmountWan + '万' : '')
+      + (p.clRequireUltra !== false ? ' · +min30' : '');
   }
   if (strategyId === 'ultra') {
     var macdParts = [];
@@ -1586,7 +1703,7 @@ function formatSummary(strategyId) {
     if (p.ulRequireMonthMacdNegative) macdParts.push('月MACD<0');
     var amountPart = (p.ulMinAmountWan != null ? p.ulMinAmountWan : 5000) + '万';
     var sigPart = p.ulRequireCurrentBreakout ? '当前K突破' : '当日有突破';
-    return '三门全局 · ' + amountPart + ' · ' + sigPart
+    return '四门全局 · ' + amountPart + ' · ' + sigPart
       + (macdParts.length ? ' · ' + macdParts.join('+') : '');
   }
   return '';
@@ -1618,6 +1735,7 @@ module.exports = {
   gc2PrimaryPeriod: gc2PrimaryPeriod,
   dc2PrimaryPeriod: dc2PrimaryPeriod,
   cascadePrimaryPeriod: cascadePrimaryPeriod,
+  cladderPrimaryPeriod: cladderPrimaryPeriod,
   chartPrimaryPeriod: chartPrimaryPeriod
 };
 
