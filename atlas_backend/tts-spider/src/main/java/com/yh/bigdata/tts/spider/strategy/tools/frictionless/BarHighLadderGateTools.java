@@ -17,9 +17,9 @@ public final class BarHighLadderGateTools {
     }
 
     public static boolean passesPeriod(StockBase stock, PeriodTypeEnum period) {
-        Trade last = RealtimeStockCache.getLastTrade(stock, period, 1);
-        Trade prev = RealtimeStockCache.getLastTrade(stock, period, 2);
-        Trade third = RealtimeStockCache.getLastTrade(stock, period, 3);
+        Trade last = RealtimeStockCache.getLastTrade(stock, period, 0);
+        Trade prev = RealtimeStockCache.getLastTrade(stock, period, 1);
+        Trade third = RealtimeStockCache.getLastTrade(stock, period, 2);
         if (last == null || prev == null || third == null
                 || last.getHigh() == null || prev.getHigh() == null || third.getHigh() == null) {
             return false;

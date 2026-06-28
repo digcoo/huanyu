@@ -115,6 +115,15 @@ public class StockTargetScheduler {
             if (contextParam.getLongTerm() == null) {
                 contextParam.setLongTerm(com.yh.bigdata.tts.common.param.LongStrategyParams.defaults());
             }
+            if (contextParam.getFrictionlessLadder() == null) {
+                contextParam.setFrictionlessLadder(com.yh.bigdata.tts.common.param.FrictionlessLadderStrategyParams.defaults());
+            }
+            if (contextParam.getCascade() == null) {
+                contextParam.setCascade(com.yh.bigdata.tts.common.param.CascadeStrategyParams.defaults());
+            }
+            if (contextParam.getLadderDip() == null) {
+                contextParam.setLadderDip(com.yh.bigdata.tts.common.param.LadderDipStrategyParams.defaults());
+            }
             final QueryContextParam evalContext = contextParam;
             int saved = 0;
             String lastDay = stockTargetMapper.selectLatestDay();

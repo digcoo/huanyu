@@ -52,19 +52,21 @@ public final class CascadeMarkersTools {
                 if (!p.isEnableMonth()) {
                     return null;
                 }
-                return CascadeBreakoutTools.findMonthTierHit(stock, p.getLookbackMonth(), p.getLookbackDay());
+                return CascadeBreakoutTools.findMonthTierHit(
+                        stock, p.getLookbackMonth(), p.getLookbackDay(), p.isEnableAltBreakout());
             case WEEK:
                 if (!p.isEnableWeek()) {
                     return null;
                 }
                 return CascadeBreakoutTools.findWeekTierHit(
-                        stock, p.getLookbackWeek(), p.getLookbackMonth(), p.getLookbackDay());
+                        stock, p.getLookbackWeek(), p.getLookbackMonth(), p.getLookbackDay(), p.isEnableAltBreakout());
             case DAY:
             default:
                 if (!p.isEnableDay()) {
                     return null;
                 }
-                return CascadeBreakoutTools.findDayTierHit(stock, p.getLookbackDay(), p.getLookbackWeek());
+                return CascadeBreakoutTools.findDayTierHit(
+                        stock, p.getLookbackDay(), p.getLookbackWeek(), p.isEnableAltBreakout());
         }
     }
 

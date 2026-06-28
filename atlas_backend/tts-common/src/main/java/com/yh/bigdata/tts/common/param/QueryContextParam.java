@@ -63,8 +63,8 @@ public class QueryContextParam extends PageQuery {
     /** 级联交叉突破策略自定义参数 */
     private CascadeStrategyParams cascade;
 
-    /** 级联梯子突破策略自定义参数 */
-    private CascadeLadderStrategyParams cascadeLadder;
+    /** 级联梯子探底回升策略自定义参数 */
+    private LadderDipStrategyParams ladderDip;
 
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
@@ -84,7 +84,7 @@ public class QueryContextParam extends PageQuery {
                 .frictionlessLadder(FrictionlessLadderStrategyParams.defaults())
                 .pillar(PillarStrategyParams.defaults())
                 .cascade(CascadeStrategyParams.defaults())
-                .cascadeLadder(CascadeLadderStrategyParams.defaults())
+                .ladderDip(LadderDipStrategyParams.defaults())
                 .build();
     }
 	

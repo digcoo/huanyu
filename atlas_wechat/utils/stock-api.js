@@ -30,9 +30,9 @@ function buildStrategyQueryParams(strategyId) {
   );
   if (strategyId === 'nrf') {
     Object.assign(params, strategyParams.toApiParams('ultra'));
-  } else if (strategyId === 'cladder') {
-    var clParams = strategyParams.load('cladder');
-    if (clParams.clRequireUltra !== false) {
+  } else if (strategyId === 'ldip') {
+    var ldParams = strategyParams.load('ldip');
+    if (ldParams.ldRequireUltra) {
       Object.assign(params, strategyParams.toApiParams('ultra'));
     }
   }
@@ -242,9 +242,9 @@ function fetchCascadeMarkers(code, period) {
   });
 }
 
-/** 级联梯子突破 · 基准 K / 触发 K 标记 */
-function fetchCladderMarkers(code, period) {
-  return api.get('/stock/' + encodePath(code) + '/cladder/markers', {
+/** 级联梯子探底回升 · 基准 K / 回升 K 标记 */
+function fetchLdipMarkers(code, period) {
+  return api.get('/stock/' + encodePath(code) + '/ldip/markers', {
     period: period || 'day'
   }).then(function (res) {
     if (!res.ok || !res.data) return null;
@@ -350,7 +350,7 @@ module.exports = {
   fetchRetestMarkers: fetchRetestMarkers,
   fetchGc2Markers: fetchGc2Markers,
   fetchCascadeMarkers: fetchCascadeMarkers,
-  fetchCladderMarkers: fetchCladderMarkers,
+  fetchLdipMarkers: fetchLdipMarkers,
   fetchNrfMarkers: fetchNrfMarkers,
   fetchDc2Markers: fetchDc2Markers,
   fetchSummary: fetchSummary,

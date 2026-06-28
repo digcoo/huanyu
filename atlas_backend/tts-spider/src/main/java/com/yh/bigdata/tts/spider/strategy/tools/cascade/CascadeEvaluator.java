@@ -33,14 +33,16 @@ public final class CascadeEvaluator {
         CascadeBreakoutTools.TierHit monthHit = null;
 
         if (p.isEnableDay()) {
-            dayHit = CascadeBreakoutTools.findDayTierHit(stock, p.getLookbackDay(), p.getLookbackWeek());
+            dayHit = CascadeBreakoutTools.findDayTierHit(
+                    stock, p.getLookbackDay(), p.getLookbackWeek(), p.isEnableAltBreakout());
         }
         if (p.isEnableWeek()) {
             weekHit = CascadeBreakoutTools.findWeekTierHit(
-                    stock, p.getLookbackWeek(), p.getLookbackMonth(), p.getLookbackDay());
+                    stock, p.getLookbackWeek(), p.getLookbackMonth(), p.getLookbackDay(), p.isEnableAltBreakout());
         }
         if (p.isEnableMonth()) {
-            monthHit = CascadeBreakoutTools.findMonthTierHit(stock, p.getLookbackMonth(), p.getLookbackDay());
+            monthHit = CascadeBreakoutTools.findMonthTierHit(
+                    stock, p.getLookbackMonth(), p.getLookbackDay(), p.isEnableAltBreakout());
         }
         if (dayHit == null && weekHit == null && monthHit == null) {
             return CascadeEvaluation.miss();

@@ -231,12 +231,12 @@ public class AtlasStockController {
         }
     }
 
-    @GetMapping("/{code}/cladder/markers")
-    public Response<AtlasGc2MarkersVo> getCladderMarkers(
+    @GetMapping("/{code}/ldip/markers")
+    public Response<AtlasGc2MarkersVo> getLdipMarkers(
             @PathVariable("code") String code,
             @RequestParam(value = "period", defaultValue = "day") String period) {
         try {
-            AtlasGc2MarkersVo markers = atlasStockApiService.getCladderMarkers(code, period);
+            AtlasGc2MarkersVo markers = atlasStockApiService.getLdipMarkers(code, period);
             if (markers == null) {
                 return ResponseUtil.fail(ResponseUtil.NO_DATA);
             }

@@ -11,7 +11,7 @@ const STRATEGY_API = {
   long: { strategy: 'long', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
   nrf: { strategy: 'nrf', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
   cascade: { strategy: 'cascade', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  cladder: { strategy: 'cladder', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' }
+  ldip: { strategy: 'ldip', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' }
 };
 
 function normalizeStrategyId(strategyId) {
@@ -398,8 +398,8 @@ function buildNrfSummary(item) {
   return parseUnilateralTrendLabel(item.trendMessage) || '';
 }
 
-function buildCladderTags(item) {
-  var tags = ['级联梯子'];
+function buildLdipTags(item) {
+  var tags = ['级联梯子探底'];
   var text = [item.trendMessage, item.signalMessage].join('|');
   if (/period=day|日K/.test(text)) tags.push('日');
   if (/period=week|周K/.test(text)) tags.push('周');
@@ -412,7 +412,7 @@ function buildCladderTags(item) {
   return tags;
 }
 
-function buildCladderSummary(item) {
+function buildLdipSummary(item) {
   var signal = item.signalMessage || '';
   if (signal) return signal.split(',')[0];
   return parseUnilateralTrendLabel(item.trendMessage) || '';
@@ -466,8 +466,8 @@ function mapRecommendation(item, strategyId) {
     tags = tags.concat(buildNrfTags(item));
   } else if (strategyId === 'cascade') {
     tags = tags.concat(buildCascadeTags(item));
-  } else if (strategyId === 'cladder') {
-    tags = tags.concat(buildCladderTags(item));
+  } else if (strategyId === 'ldip') {
+    tags = tags.concat(buildLdipTags(item));
   } else if (strategyId === 'ultra') {
     tags = tags.concat(buildUltraTags(item));
   } else {
@@ -488,8 +488,8 @@ function mapRecommendation(item, strategyId) {
     ? [buildNrfSummary(item), item.mainBusiness, item.summary]
     : strategyId === 'cascade'
     ? [buildCascadeSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'cladder'
-    ? [buildCladderSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'ldip'
+    ? [buildLdipSummary(item), item.mainBusiness, item.summary]
     : strategyId === 'ultra'
     ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
     : strategyId === 'retest'

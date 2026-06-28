@@ -17,8 +17,14 @@ import java.util.List;
 public final class CascadeBreakoutTools {
 
     private static final double HIGH_EPS = 1e-6;
+    private static final double LOW_EPS = 1e-6;
 
     private CascadeBreakoutTools() {
+    }
+
+    public enum BreakoutPath {
+        REF_HIGH,
+        PREV_HIGH_LOW
     }
 
     @Getter
@@ -27,13 +33,15 @@ public final class CascadeBreakoutTools {
         private final MacdCrossStructureTools.CrossBar crossBar;
         private final Trade todayDayBar;
         private final Trade prevDayBar;
+        private final BreakoutPath breakoutPath;
 
         TierHit(PeriodTypeEnum signalTier, MacdCrossStructureTools.CrossBar crossBar,
-                Trade todayDayBar, Trade prevDayBar) {
+                Trade todayDayBar, Trade prevDayBar, BreakoutPath breakoutPath) {
             this.signalTier = signalTier;
             this.crossBar = crossBar;
             this.todayDayBar = todayDayBar;
             this.prevDayBar = prevDayBar;
+            this.breakoutPath = breakoutPath != null ? breakoutPath : BreakoutPath.REF_HIGH;
         }
 
         public Trade getReferenceBar() {
@@ -45,20 +53,25 @@ public final class CascadeBreakoutTools {
         }
     }
 
-    public static TierHit findDayTierHit(StockBase stock, int lookbackDay, int lookbackWeek) {
-        return findTierHit(stock, PeriodTypeEnum.DAY, lookbackDay, PeriodTypeEnum.WEEK, lookbackWeek, 0);
+    public static TierHit findDayTierHit(StockBase stock, int lookbackDay, int lookbackWeek, boolean enableAltBreakout) {
+        return findTierHit(stock, PeriodTypeEnum.DAY, lookbackDay, PeriodTypeEnum.WEEK, lookbackWeek, 0,
+                enableAltBreakout);
     }
 
-    public static TierHit findWeekTierHit(StockBase stock, int lookbackWeek, int lookbackMonth, int lookbackDay) {
-        return findTierHit(stock, PeriodTypeEnum.WEEK, lookbackWeek, PeriodTypeEnum.MONTH, lookbackMonth, lookbackDay);
+    public static TierHit findWeekTierHit(StockBase stock, int lookbackWeek, int lookbackMonth, int lookbackDay,
+                                          boolean enableAltBreakout) {
+        return findTierHit(stock, PeriodTypeEnum.WEEK, lookbackWeek, PeriodTypeEnum.MONTH, lookbackMonth, lookbackDay,
+                enableAltBreakout);
     }
 
-    public static TierHit findMonthTierHit(StockBase stock, int lookbackMonth, int lookbackDay) {
-        return findTierHit(stock, PeriodTypeEnum.MONTH, lookbackMonth, null, 0, lookbackDay);
+    public static TierHit findMonthTierHit(StockBase stock, int lookbackMonth, int lookbackDay,
+                                           boolean enableAltBreakout) {
+        return findTierHit(stock, PeriodTypeEnum.MONTH, lookbackMonth, null, 0, lookbackDay, enableAltBreakout);
     }
 
     private static TierHit findTierHit(StockBase stock, PeriodTypeEnum refPeriod, int refLookback,
-                                       PeriodTypeEnum cascadePeriod, int cascadeLookback, int lookbackDay) {
+                                       PeriodTypeEnum cascadePeriod, int cascadeLookback, int lookbackDay,
+                                       boolean enableAltBreakout) {
         if (stock == null || refPeriod == null || refLookback < 1) {
             return null;
         }
@@ -71,14 +84,11 @@ public final class CascadeBreakoutTools {
         if (edge == null) {
             return null;
         }
-        double refHigh = ref.getHigh();
-        if (edge.prevClose > refHigh + HIGH_EPS) {
-            return null;
-        }
-        if (edge.todayClose <= refHigh + HIGH_EPS) {
-            return null;
-        }
         if (sameBar(ref, edge.todayDayBar)) {
+            return null;
+        }
+        BreakoutPath path = resolveBreakoutPath(stock, refPeriod, refLookback, ref, edge, enableAltBreakout);
+        if (path == null) {
             return null;
         }
         if (cascadePeriod != null) {
@@ -91,7 +101,84 @@ public final class CascadeBreakoutTools {
                 return null;
             }
         }
-        return new TierHit(refPeriod, cross, edge.todayDayBar, edge.prevDayBar);
+        return new TierHit(refPeriod, cross, edge.todayDayBar, edge.prevDayBar, path);
+    }
+
+    /**
+     * 突破路径并集：基准 high 边沿，或（本档前 K high 边沿 + 日 K low/high 约束）
+     */
+    private static BreakoutPath resolveBreakoutPath(StockBase stock, PeriodTypeEnum refPeriod, int refLookback,
+                                                    Trade ref, DayEdge edge, boolean enableAltBreakout) {
+        if (passesRefHighEdge(edge, ref)) {
+            return BreakoutPath.REF_HIGH;
+        }
+        if (enableAltBreakout
+                && passesPrevBarHighEdge(stock, refPeriod, refLookback, edge)
+                && passesAltPathDayCloseRules(edge, ref)) {
+            return BreakoutPath.PREV_HIGH_LOW;
+        }
+        return null;
+    }
+
+    private static boolean passesRefHighEdge(DayEdge edge, Trade ref) {
+        if (edge == null || ref == null || ref.getHigh() == null) {
+            return false;
+        }
+        double refHigh = ref.getHigh();
+        return edge.prevClose <= refHigh + HIGH_EPS && edge.todayClose > refHigh + HIGH_EPS;
+    }
+
+    private static boolean passesPrevBarHighEdge(StockBase stock, PeriodTypeEnum refPeriod, int refLookback,
+                                                 DayEdge edge) {
+        if (stock == null || refPeriod == null || edge == null) {
+            return false;
+        }
+        if (refPeriod == PeriodTypeEnum.DAY) {
+            return passesDayCloseEdgeCrossPrevDayHigh(edge);
+        }
+        return passesDayCloseEdgeCrossPeriodBarBeforeLast(stock, refPeriod, refLookback, edge);
+    }
+
+    /** 日档：日 K 边沿突破前一根日 K high */
+    private static boolean passesDayCloseEdgeCrossPrevDayHigh(DayEdge edge) {
+        Trade prevDay = edge.prevDayBar;
+        if (prevDay == null || prevDay.getHigh() == null) {
+            return false;
+        }
+        double prevHigh = prevDay.getHigh();
+        return edge.prevClose <= prevHigh + HIGH_EPS && edge.todayClose > prevHigh + HIGH_EPS;
+    }
+
+    /**
+     * 周/月档：日 K 边沿突破「本周期最后一根 K 的前一根」high
+     */
+    private static boolean passesDayCloseEdgeCrossPeriodBarBeforeLast(StockBase stock, PeriodTypeEnum period,
+                                                                      int lookback, DayEdge edge) {
+        int fetchBars = Math.max(lookback + 3, period == PeriodTypeEnum.MONTH ? 40 : 80);
+        List<Trade> periodBars = RealtimeStockCache.getLastTrades(stock, period, fetchBars);
+        if (CollectionUtils.isEmpty(periodBars) || periodBars.size() < 2) {
+            return false;
+        }
+        Trade anchor = periodBars.get(periodBars.size() - 2);
+        if (anchor.getHigh() == null) {
+            return false;
+        }
+        double anchorHigh = anchor.getHigh();
+        return edge.prevClose <= anchorHigh + HIGH_EPS && edge.todayClose > anchorHigh + HIGH_EPS;
+    }
+
+    /**
+     * 路径 B 附加：最后一根日 K close &gt; 本档 MACD 基准 low，且倒数第二根日 K close &lt;= 基准 high
+     */
+    private static boolean passesAltPathDayCloseRules(DayEdge edge, Trade ref) {
+        if (edge == null || ref == null) {
+            return false;
+        }
+        if (ref.getLow() == null || ref.getHigh() == null) {
+            return false;
+        }
+        return edge.todayClose > ref.getLow() + LOW_EPS
+                && edge.prevClose <= ref.getHigh() + HIGH_EPS;
     }
 
     /** 周/月档须日 close 已站上日基准 high，过滤纯大周期反弹 */

@@ -376,14 +376,18 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getCaLookbackMonth()),
                 String.valueOf(pageQuery.getCaRequireUltra()),
                 String.valueOf(pageQuery.getCaMinAmountWan()),
-                String.valueOf(pageQuery.getClEnableDualLowGate()),
-                String.valueOf(pageQuery.getClEnableMacdGate()),
-                String.valueOf(pageQuery.getClEnableCrossLowGate()),
-                String.valueOf(pageQuery.getClLookbackDay()),
-                String.valueOf(pageQuery.getClLookbackWeek()),
-                String.valueOf(pageQuery.getClLookbackMonth()),
-                String.valueOf(pageQuery.getClRequireUltra()),
-                String.valueOf(pageQuery.getClMinAmountWan()));
+                String.valueOf(pageQuery.getLdEnableDualLowGate()),
+                String.valueOf(pageQuery.getLdEnableMacdGate()),
+                String.valueOf(pageQuery.getLdEnableCrossLowGate()),
+                String.valueOf(pageQuery.getLdEnableBarHighGate()),
+                String.valueOf(pageQuery.getLdEnableDay()),
+                String.valueOf(pageQuery.getLdEnableWeek()),
+                String.valueOf(pageQuery.getLdEnableMonth()),
+                String.valueOf(pageQuery.getLdLookbackDay()),
+                String.valueOf(pageQuery.getLdLookbackWeek()),
+                String.valueOf(pageQuery.getLdLookbackMonth()),
+                String.valueOf(pageQuery.getLdRequireUltra()),
+                String.valueOf(pageQuery.getLdMinAmountWan()));
     }
 
     public void clearRecommendCache() {
@@ -425,7 +429,7 @@ public class StockBaseController {
                 .frictionlessLadder(stockPageQuery.toFrictionlessParams())
                 .pillar(stockPageQuery.toPillarParams())
                 .cascade(stockPageQuery.toCascadeParams())
-                .cascadeLadder(stockPageQuery.toCascadeLadderParams())
+                .ladderDip(stockPageQuery.toLadderDipParams())
                 .build();
 
     }

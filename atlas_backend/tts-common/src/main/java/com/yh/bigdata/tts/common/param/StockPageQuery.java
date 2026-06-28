@@ -239,29 +239,37 @@ public class StockPageQuery extends PageQuery {
     private Integer caLookbackWeek;
     /** 级联交叉突破 · 月 K lookback */
     private Integer caLookbackMonth;
+    /** 级联交叉突破 · 备选突破路径（前 K high 边沿 + 当前档 close &gt; 基准 low，与基准 high 并集） */
+    private Boolean caEnableAltBreakout;
     /** 级联交叉突破 · 须 min30 跨日桶突破 */
     private Boolean caRequireUltra;
     /** 级联交叉突破 · 最低成交额（万） */
     private Integer caMinAmountWan;
 
-    /** 级联梯子突破 · 双低支撑门 */
-    private Boolean clEnableDualLowGate;
-    /** 级联梯子突破 · 无阻力 MACD 门 */
-    private Boolean clEnableMacdGate;
-    /** 级联梯子突破 · MACD 交叉 low 门 */
-    private Boolean clEnableCrossLowGate;
-    /** 级联梯子突破 · 高点递进门 */
-    private Boolean clEnableBarHighGate;
-    /** 级联梯子突破 · 日 K lookback */
-    private Integer clLookbackDay;
-    /** 级联梯子突破 · 周 K lookback */
-    private Integer clLookbackWeek;
-    /** 级联梯子突破 · 月 K lookback */
-    private Integer clLookbackMonth;
-    /** 级联梯子突破 · 须 min30 跨日桶突破 */
-    private Boolean clRequireUltra;
-    /** 级联梯子突破 · 最低成交额（万） */
-    private Integer clMinAmountWan;
+    /** 级联梯子探底回升 · 双低支撑门 */
+    private Boolean ldEnableDualLowGate;
+    /** 级联梯子探底回升 · 无阻力 MACD 门 */
+    private Boolean ldEnableMacdGate;
+    /** 级联梯子探底回升 · MACD 交叉 low 门 */
+    private Boolean ldEnableCrossLowGate;
+    /** 级联梯子探底回升 · 高点递进门 */
+    private Boolean ldEnableBarHighGate;
+    /** 级联梯子探底回升 · 日档 */
+    private Boolean ldEnableDay;
+    /** 级联梯子探底回升 · 周档 */
+    private Boolean ldEnableWeek;
+    /** 级联梯子探底回升 · 月档 */
+    private Boolean ldEnableMonth;
+    /** 级联梯子探底回升 · 日 K lookback */
+    private Integer ldLookbackDay;
+    /** 级联梯子探底回升 · 周 K lookback */
+    private Integer ldLookbackWeek;
+    /** 级联梯子探底回升 · 月 K lookback */
+    private Integer ldLookbackMonth;
+    /** 级联梯子探底回升 · 须 min30 跨日桶突破 */
+    private Boolean ldRequireUltra;
+    /** 级联梯子探底回升 · 最低成交额（万） */
+    private Integer ldMinAmountWan;
 
     public StockPageQuery(Integer page, Integer size) {
 		super(page, size);
@@ -703,6 +711,9 @@ public class StockPageQuery extends PageQuery {
         if (caLookbackMonth != null && caLookbackMonth >= 6) {
             b.lookbackMonth(caLookbackMonth);
         }
+        if (caEnableAltBreakout != null) {
+            b.enableAltBreakout(caEnableAltBreakout);
+        }
         if (caRequireUltra != null) {
             b.requireUltra(caRequireUltra);
         }
@@ -712,36 +723,45 @@ public class StockPageQuery extends PageQuery {
         return CascadeStrategyParams.merge(b.build());
     }
 
-    public CascadeLadderStrategyParams toCascadeLadderParams() {
-        CascadeLadderStrategyParams.CascadeLadderStrategyParamsBuilder b = CascadeLadderStrategyParams.builder();
-        if (clEnableDualLowGate != null) {
-            b.enableDualLowGate(clEnableDualLowGate);
+    public LadderDipStrategyParams toLadderDipParams() {
+        LadderDipStrategyParams.LadderDipStrategyParamsBuilder b = LadderDipStrategyParams.builder();
+        if (ldEnableDualLowGate != null) {
+            b.enableDualLowGate(ldEnableDualLowGate);
         }
-        if (clEnableMacdGate != null) {
-            b.enableMacdGate(clEnableMacdGate);
+        if (ldEnableMacdGate != null) {
+            b.enableMacdGate(ldEnableMacdGate);
         }
-        if (clEnableCrossLowGate != null) {
-            b.enableCrossLowGate(clEnableCrossLowGate);
+        if (ldEnableCrossLowGate != null) {
+            b.enableCrossLowGate(ldEnableCrossLowGate);
         }
-        if (clEnableBarHighGate != null) {
-            b.enableBarHighGate(clEnableBarHighGate);
+        if (ldEnableBarHighGate != null) {
+            b.enableBarHighGate(ldEnableBarHighGate);
         }
-        if (clLookbackDay != null && clLookbackDay >= 10) {
-            b.lookbackDay(clLookbackDay);
+        if (ldEnableDay != null) {
+            b.enableDay(ldEnableDay);
         }
-        if (clLookbackWeek != null && clLookbackWeek >= 10) {
-            b.lookbackWeek(clLookbackWeek);
+        if (ldEnableWeek != null) {
+            b.enableWeek(ldEnableWeek);
         }
-        if (clLookbackMonth != null && clLookbackMonth >= 6) {
-            b.lookbackMonth(clLookbackMonth);
+        if (ldEnableMonth != null) {
+            b.enableMonth(ldEnableMonth);
         }
-        if (clRequireUltra != null) {
-            b.requireUltra(clRequireUltra);
+        if (ldLookbackDay != null && ldLookbackDay >= 10) {
+            b.lookbackDay(ldLookbackDay);
         }
-        if (clMinAmountWan != null && clMinAmountWan >= 0) {
-            b.minAvgAmount(clMinAmountWan * 10_000D);
+        if (ldLookbackWeek != null && ldLookbackWeek >= 10) {
+            b.lookbackWeek(ldLookbackWeek);
         }
-        return CascadeLadderStrategyParams.merge(b.build());
+        if (ldLookbackMonth != null && ldLookbackMonth >= 6) {
+            b.lookbackMonth(ldLookbackMonth);
+        }
+        if (ldRequireUltra != null) {
+            b.requireUltra(ldRequireUltra);
+        }
+        if (ldMinAmountWan != null && ldMinAmountWan >= 0) {
+            b.minAvgAmount(ldMinAmountWan * 10_000D);
+        }
+        return LadderDipStrategyParams.merge(b.build());
     }
 
 }

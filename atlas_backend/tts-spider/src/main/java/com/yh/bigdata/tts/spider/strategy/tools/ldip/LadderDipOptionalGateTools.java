@@ -1,20 +1,20 @@
-package com.yh.bigdata.tts.spider.strategy.tools.cladder;
+package com.yh.bigdata.tts.spider.strategy.tools.ldip;
 
 import com.yh.bigdata.tts.common.model.StockBase;
-import com.yh.bigdata.tts.common.param.CascadeLadderStrategyParams;
+import com.yh.bigdata.tts.common.param.LadderDipStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.BarHighLadderGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.DualLowSupportGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.FrictionlessMacdGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.MacdCrossLowGateTools;
 
-public final class CascadeLadderOptionalGateTools {
+public final class LadderDipOptionalGateTools {
 
-    private CascadeLadderOptionalGateTools() {
+    private LadderDipOptionalGateTools() {
     }
 
-    public static boolean passGate(StockBase stock, CheckResult checkResult, CascadeLadderStrategyParams params) {
-        CascadeLadderStrategyParams p = params != null ? params : CascadeLadderStrategyParams.defaults();
+    public static boolean passGate(StockBase stock, CheckResult checkResult, LadderDipStrategyParams params) {
+        LadderDipStrategyParams p = params != null ? params : LadderDipStrategyParams.defaults();
         if (p.isEnableDualLowGate()
                 && !DualLowSupportGateTools.passesAll(stock, checkResult)) {
             return false;

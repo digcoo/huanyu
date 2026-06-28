@@ -8,7 +8,7 @@ module.exports = markerUtils.createRefSigMarkerModule({
   shouldShowPeriod: function (strategyId, period) {
     strategyId = require('./adapter').normalizeStrategyId(strategyId);
     if (period !== 'min30') return false;
-    return strategyId === 'ultra' || strategyId === 'nrf' || strategyId === 'cascade' || strategyId === 'cladder';
+    return strategyId === 'ultra' || strategyId === 'nrf' || strategyId === 'cascade' || strategyId === 'ldip';
   },
   fetchMarkers: function (code, period, uiStrategyId) {
     return stockApi.fetchUltraMarkers(code, period, uiStrategyId);

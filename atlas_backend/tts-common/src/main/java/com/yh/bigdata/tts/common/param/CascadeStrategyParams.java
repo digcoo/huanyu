@@ -52,6 +52,12 @@ public class CascadeStrategyParams {
     @Builder.Default
     private int lookbackMonth = DEFAULT_LOOKBACK_MONTH;
 
+    /**
+     * 开启后突破路径取并集：基准 high 边沿突破，或（本档前 K high 边沿突破 + 日 K close 对基准 low/high）
+     */
+    @Builder.Default
+    private boolean enableAltBreakout = false;
+
     /** 须同时满足 30m 跨日桶柱内突破 */
     @Builder.Default
     private boolean requireUltra = false;
@@ -85,6 +91,7 @@ public class CascadeStrategyParams {
         if (incoming.lookbackMonth >= 6) {
             d.lookbackMonth = incoming.lookbackMonth;
         }
+        d.enableAltBreakout = incoming.enableAltBreakout;
         d.requireUltra = incoming.requireUltra;
         if (incoming.minAvgAmount >= 0) {
             d.minAvgAmount = incoming.minAvgAmount;

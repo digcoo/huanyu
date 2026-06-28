@@ -22,10 +22,12 @@ public enum StrategyTypeEnum {
     PILLAR_BREAKOUT("pillar", "柱子内上移", 7),
     /** 级联交叉突破 */
     CASCADE_BREAKOUT("cascade", "级联交叉突破", 8),
-    /** 级联梯子突破 */
-    CASCADE_LADDER("cladder", "级联梯子突破", 9),
+    /** 级联梯子探底回升 */
+    LADDER_DIP("ldip", "级联梯子探底回升", 10),
 
     // --- v1 已下线，保留枚举供历史 stock_target 数据兼容 ---
+    /** @deprecated 级联梯子突破已下线 */
+    CASCADE_LADDER("cladder", "级联梯子突破", 9),
     /** @deprecated 突破 MACD 交叉已下线 */
     BOGO_BREAKOUT("bogo", "突破MACD交叉", 6),
     /** @deprecated 三周期交叉上破已下线 */
@@ -47,7 +49,7 @@ public enum StrategyTypeEnum {
     public boolean isActive() {
         return this == ULTRA_SHORT || this == TREND_V2 || this == MEDIUM || this == LONG
                 || this == FRICTIONLESS_LADDER || this == PILLAR_BREAKOUT || this == CASCADE_BREAKOUT
-                || this == CASCADE_LADDER;
+                || this == LADDER_DIP;
     }
 
 	public static StrategyTypeEnum getByCode(String code){

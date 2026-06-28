@@ -18,7 +18,7 @@ import com.yh.bigdata.tts.spider.service.AtlasDetailComputeService;
 import com.yh.bigdata.tts.spider.service.AtlasIndustryChainService;
 import com.yh.bigdata.tts.spider.service.AtlasStockApiService;
 import com.yh.bigdata.tts.spider.service.StockService;
-import com.yh.bigdata.tts.common.param.CascadeLadderStrategyParams;
+import com.yh.bigdata.tts.common.param.LadderDipStrategyParams;
 import com.yh.bigdata.tts.common.param.CascadeStrategyParams;
 import com.yh.bigdata.tts.common.param.Dc2StrategyParams;
 import com.yh.bigdata.tts.common.param.Gc2StrategyParams;
@@ -29,7 +29,7 @@ import com.yh.bigdata.tts.common.param.MediumStrategyParams;
 import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.strategy.tools.cascade.CascadeMarkersTools;
-import com.yh.bigdata.tts.spider.strategy.tools.cladder.CascadeLadderMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.ldip.LadderDipMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.dc2.Dc2MarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.NrfMarkersTools;
 import com.yh.bigdata.tts.common.param.FrictionlessLadderStrategyParams;
@@ -246,13 +246,13 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
     }
 
     @Override
-    public AtlasGc2MarkersVo getCladderMarkers(String code, String period) {
+    public AtlasGc2MarkersVo getLdipMarkers(String code, String period) {
         StockBase stock = requireStock(code);
         PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
         if (periodType == null) {
             periodType = PeriodTypeEnum.DAY;
         }
-        return CascadeLadderMarkersTools.resolve(stock, periodType, CascadeLadderStrategyParams.defaults());
+        return LadderDipMarkersTools.resolve(stock, periodType, LadderDipStrategyParams.defaults());
     }
 
     @Override

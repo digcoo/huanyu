@@ -19,14 +19,14 @@ const ACTIVE_STRATEGIES = [
   { id: 'ultra', name: '超短线', icon: '⚡' },
   { id: 'nrf', name: '跨周期内梯子上移', icon: '🛤' },
   { id: 'cascade', name: '级联交叉', icon: '🔗' },
-  { id: 'cladder', name: '级联梯子', icon: '🪜' }
+  { id: 'ldip', name: '级联梯子探底', icon: '📉' }
 ];
 
 const STRATEGY_TITLES = {
   ultra: '超短线策略',
   nrf: '跨周期内梯子上移',
   cascade: '级联交叉突破',
-  cladder: '级联梯子突破'
+  ldip: '级联梯子探底回升'
 };
 
 const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
@@ -396,7 +396,7 @@ Page({
         patch.activePeriod = nrfPeriod;
         wx.setStorageSync('activePeriod', nrfPeriod);
       }
-    } else if (strategyId === 'cascade' || strategyId === 'cladder') {
+    } else if (strategyId === 'cascade' || strategyId === 'ldip') {
       var periodParams = strategyParams.load(strategyId);
       var nextPeriod = strategyParams.chartPrimaryPeriod(strategyId, periodParams);
       if (nextPeriod) {

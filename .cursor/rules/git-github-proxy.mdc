@@ -13,13 +13,21 @@ alwaysApply: true
    ```powershell
    .\scripts\setup-git-proxy.ps1
    ```
-2. 在**同一条 shell 命令**里为 `git push` / `git pull` / `git fetch` / `gh` 设置环境变量：
+   脚本会将 `http.proxy` **直接写入** `.git/config`（不仅依赖 `include.path`，避免 Agent 沙箱读不到 `.gitconfig.proxy`）。
+
+2. 若仍失败，或需运行 `gh`，用包装脚本显式带代理环境变量：
+   ```powershell
+   .\scripts\with-proxy.ps1 git push
+   .\scripts\with-proxy.ps1 gh pr list
+   ```
+   或在**同一条 shell 命令**里设置：
    ```powershell
    $env:HTTP_PROXY='http://127.0.0.1:8890'; $env:HTTPS_PROXY='http://127.0.0.1:8890'; git push ...
    ```
 
 ## 说明
 
-- 仓库根目录 `.gitconfig.proxy` 通过 `include.path` 注入到 `.git/config`，Agent 沙箱不依赖全局 `~/.gitconfig`。
-- `gh` CLI 只认 `HTTP_PROXY` / `HTTPS_PROXY`，不认 Git 的 `http.proxy`。
-- 代理软件需保持运行；若端口不是 8890，改 `.gitconfig.proxy` 后重新执行 setup 脚本。
+- 仓库根目录 `.gitconfig.proxy` 为模板；`setup-git-proxy.ps1` 会同步到 `.git/config` 的 `http.proxy` / `https.proxy`。
+- `include.path` 仅作双保险；**Agent 终端以 `.git/config` 内直连配置为准**。
+- `gh` CLI 只认 `HTTP_PROXY` / `HTTPS_PROXY`，不认 Git 的 `http.proxy`；用 `with-proxy.ps1` 或 setup 脚本设置的用户级环境变量。
+- 代理软件需保持运行；若端口不是 8890，执行 `.\scripts\setup-git-proxy.ps1 http://127.0.0.1:你的端口`。

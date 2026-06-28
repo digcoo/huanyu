@@ -67,11 +67,12 @@ public final class CascadeScoreCalculator {
         Trade today = hit.getTodayDayBar();
         Trade prev = hit.getPrevDayBar();
         return String.format(
-                "级联交叉突破,crossType=%s,signalTier=%s,refPeriod=%s,refDay=%s,refHigh=%.2f,"
+                "级联交叉突破,crossType=%s,signalTier=%s,refPeriod=%s,breakPath=%s,refDay=%s,refHigh=%.2f,"
                         + "sigDay=%s,sigClose=%.2f,prevDay=%s,prevClose=%.2f",
                 crossTypeCode(hit.getCrossKind()),
                 hit.getSignalTier().getCode(),
                 hit.getSignalTier().getCode(),
+                hit.getBreakoutPath().name(),
                 dayOf(ref),
                 ref.getHigh() != null ? ref.getHigh() : 0,
                 dayOf(today),

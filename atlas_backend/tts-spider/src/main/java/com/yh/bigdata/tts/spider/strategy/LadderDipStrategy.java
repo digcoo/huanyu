@@ -5,11 +5,12 @@ import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.constants.StrategyTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
-import com.yh.bigdata.tts.common.param.CascadeLadderStrategyParams;
+import com.yh.bigdata.tts.common.param.LadderDipStrategyParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
-import com.yh.bigdata.tts.spider.strategy.tools.cladder.CascadeLadderEvaluator;
+import com.yh.bigdata.tts.spider.strategy.tools.ldip.LadderDipEvaluator;
+import com.yh.bigdata.tts.spider.strategy.tools.ldip.LadderDipScoreCalculator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +19,11 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class CascadeLadderBreakoutStrategy extends AbstractStrategy {
+public class LadderDipStrategy extends AbstractStrategy {
 
     @Override
     public StrategyTypeEnum getStrategy() {
-        return StrategyTypeEnum.CASCADE_LADDER;
+        return StrategyTypeEnum.LADDER_DIP;
     }
 
     @Override
@@ -40,17 +41,17 @@ public class CascadeLadderBreakoutStrategy extends AbstractStrategy {
                              PeriodTypeEnum opPeriodType, QueryContextParam queryContextParam) {
         CheckResult checkResult = new CheckResult(stockBase.getCode(), stockBase.getChangeRate());
         try {
-            CascadeLadderStrategyParams params = resolveParams(queryContextParam);
+            LadderDipStrategyParams params = resolveParams(queryContextParam);
             UltraShortStrategyParams ultraParams = resolveUltraParams(queryContextParam);
-            CascadeLadderEvaluator.CascadeLadderEvaluation eval =
-                    CascadeLadderEvaluator.evaluate(stockBase, checkResult, params, ultraParams);
+            LadderDipEvaluator.LadderDipEvaluation eval =
+                    LadderDipEvaluator.evaluate(stockBase, checkResult, params, ultraParams);
             if (!eval.isHit()) {
                 return checkResult;
             }
             checkResult.setHasTrend(true);
             checkResult.setHasSignal(true);
             checkResult.setSortValue(eval.getScore());
-            checkResult.setTrendPeriodType(PeriodTypeEnum.MONTH);
+            checkResult.setTrendPeriodType(LadderDipScoreCalculator.primaryPeriod(eval));
             checkResult.setOpPeriodType(PeriodTypeEnum.DAY);
         } catch (Exception ex) {
             log.error("{} - check exception : stock = {}", getClass().getName(), stockBase.getCode(), ex);
@@ -60,11 +61,11 @@ public class CascadeLadderBreakoutStrategy extends AbstractStrategy {
         return checkResult;
     }
 
-    private CascadeLadderStrategyParams resolveParams(QueryContextParam queryContextParam) {
-        if (queryContextParam == null || queryContextParam.getCascadeLadder() == null) {
-            return CascadeLadderStrategyParams.defaults();
+    private LadderDipStrategyParams resolveParams(QueryContextParam queryContextParam) {
+        if (queryContextParam == null || queryContextParam.getLadderDip() == null) {
+            return LadderDipStrategyParams.defaults();
         }
-        return CascadeLadderStrategyParams.merge(queryContextParam.getCascadeLadder());
+        return LadderDipStrategyParams.merge(queryContextParam.getLadderDip());
     }
 
     private UltraShortStrategyParams resolveUltraParams(QueryContextParam queryContextParam) {
