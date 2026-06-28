@@ -61,7 +61,7 @@ public class DayAllSpiderScheduler {
 //			if (!SinaHttpUtils.isTradeOfCurrentDay()) {
 //				return;
 //			}
-            String code = "";
+            String code = "sz301051";
             if (StringUtils.isEmpty(code)) {
                 stockBaseCrawler.run();
                 stockDayCrawler.run(null, 2);
