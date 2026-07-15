@@ -28,4 +28,8 @@ public interface StockDayMapper {
   
   List<StockDay> selectAll(@Param("codes")List<String> codes);
 
+  List<StockDay> selectUpToDay(@Param("code") String code, @Param("asOfDay") String asOfDay);
+
+  List<String> selectDistinctCodes();
+
 }

@@ -11,12 +11,44 @@ const STRATEGY_API = {
   long: { strategy: 'long', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
   nrf: { strategy: 'nrf', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
   cascade: { strategy: 'cascade', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  ldip: { strategy: 'ldip', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' }
+  macedge: { strategy: 'macedge', trendPeriodTypes: 'year,month,week,day,min30', opPeriodType: 'day' },
+  cascadewaveconvex: { strategy: 'cascadewaveconvex', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  cascadewaveconcave: { strategy: 'cascadewaveconcave', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  cascadewaveconvexday: { strategy: 'cascadewaveconvexday', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  cascadewaveconcaveday: { strategy: 'cascadewaveconcaveday', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  cascadewaveShort: { strategy: 'cascadewaveShort', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  cascadewaveMedium: { strategy: 'cascadewaveMedium', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
+  cascadewaveLong: { strategy: 'cascadewaveLong', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
+  macdgc: { strategy: 'macdgc', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  macdgcShort: { strategy: 'macdgc', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  macdgcMedium: { strategy: 'macdgc', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
+  macdgcLong: { strategy: 'macdgc', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
+  macdgcwh: { strategy: 'macdgcwh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  macdgcwhShort: { strategy: 'macdgcwh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  macdgcwhMedium: { strategy: 'macdgcwh', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
+  macdgcwhLong: { strategy: 'macdgcwh', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
+  macdgcwhr: { strategy: 'macdgcwhr', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  macdgcwhrShort: { strategy: 'macdgcwhr', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  macdgcwhrMedium: { strategy: 'macdgcwhr', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
+  macdgcwhrLong: { strategy: 'macdgcwhr', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
+  macdgcwhu: { strategy: 'macdgcwhu', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  macdgcwhuShort: { strategy: 'macdgcwhu', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  macdgcwhuMedium: { strategy: 'macdgcwhu', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
+  macdgcwhuLong: { strategy: 'macdgcwhu', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
+  macddcb: { strategy: 'macddcb', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  macddcbShort: { strategy: 'macddcb', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  macddcbMedium: { strategy: 'macddcb', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
+  macddcbLong: { strategy: 'macddcb', trendPeriodTypes: 'year,month', opPeriodType: 'month' }
 };
 
 function normalizeStrategyId(strategyId) {
   if (!strategyId) return strategyId;
   if (strategyId === 'ultraLow' || strategyId === 'ladder') return 'nrf';
+  if (strategyId === 'macdgc') return 'macdgcShort';
+  if (strategyId === 'macdgcwh') return 'macdgcwhShort';
+  if (strategyId === 'macdgcwhr') return 'macdgcwhrShort';
+  if (strategyId === 'macdgcwhu') return 'macdgcwhuShort';
+  if (strategyId === 'macddcb') return 'macddcbShort';
   return strategyId;
 }
 
@@ -113,8 +145,14 @@ function appendGlobalGateTags(item, tags) {
   if (/日周月无阻力MACD门|无阻力MACD门/.test(text)) {
     tags.push('无阻力门');
   }
+  if (/日周月MACD死叉高门|MACD死叉高门/.test(text)) {
+    tags.push('死叉高门');
+  }
   if (/日周月MACD交叉low门|MACD交叉low门/.test(text)) {
     tags.push('交叉low门');
+  }
+  if (/日周月年全阳门|日周月全阳门|全阳门/.test(text)) {
+    tags.push('全阳门');
   }
 }
 
@@ -398,12 +436,16 @@ function buildNrfSummary(item) {
   return parseUnilateralTrendLabel(item.trendMessage) || '';
 }
 
-function buildLdipTags(item) {
-  var tags = ['级联梯子探底'];
+function buildMacdEdgeTags(item) {
+  var tags = ['MACD边沿'];
   var text = [item.trendMessage, item.signalMessage].join('|');
-  if (/period=day|日K/.test(text)) tags.push('日');
-  if (/period=week|周K/.test(text)) tags.push('周');
-  if (/period=month|月K/.test(text)) tags.push('月');
+  if (/signalTier=min30|refPeriod=min30|Min30基准/.test(text)) tags.push('Min30');
+  if (/signalTier=day|refPeriod=day|日K基准/.test(text)) tags.push('日基准');
+  if (/signalTier=week|refPeriod=week|周K基准/.test(text)) tags.push('周基准');
+  if (/signalTier=month|refPeriod=month|月K基准/.test(text)) tags.push('月基准');
+  if (/signalTier=year|refPeriod=year|年K基准/.test(text)) tags.push('年基准');
+  if (/crossType=GC/.test(text)) tags.push('金叉K');
+  if (/crossType=DC/.test(text)) tags.push('死叉K');
   appendGlobalGateTags(item, tags);
   var label = parseUnilateralTrendLabel(item.trendMessage);
   if (label && tags.indexOf(label) < 0 && label.length <= 14) {
@@ -412,7 +454,89 @@ function buildLdipTags(item) {
   return tags;
 }
 
-function buildLdipSummary(item) {
+function buildMacdEdgeSummary(item) {
+  var signal = item.signalMessage || '';
+  if (signal) return signal.split(',')[0];
+  return parseUnilateralTrendLabel(item.trendMessage) || '';
+}
+
+function buildCascadewaveconvexTags(item) {
+  var tags = ['级联凸'];
+  var text = [item.trendMessage, item.signalMessage].join('|');
+  if (/signalTier=day|refPeriod=day|日K级联凸/.test(text)) tags.push('日波段');
+  if (/signalTier=week|refPeriod=week|周K级联凸/.test(text)) tags.push('周波段');
+  if (/signalTier=month|refPeriod=month|月K级联凸/.test(text)) tags.push('月波段');
+  if (/breakPath=PREV_BAND_HIGH/.test(text)) tags.push('前波段顶');
+  if (/breakPath=LAST_BAND_HIGH/.test(text)) tags.push('末波段顶');
+  appendGlobalGateTags(item, tags);
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (label && tags.indexOf(label) < 0 && label.length <= 14) {
+    tags.push(label);
+  }
+  return tags;
+}
+
+function buildCascadewaveconvexSummary(item) {
+  var signal = item.signalMessage || '';
+  if (signal) return signal.split(',')[0];
+  return parseUnilateralTrendLabel(item.trendMessage) || '';
+}
+
+function buildCascadewaveconcaveTags(item) {
+  var tags = ['级联凹'];
+  var text = [item.trendMessage, item.signalMessage].join('|');
+  if (/signalTier=day|refPeriod=day|日K级联凹/.test(text)) tags.push('日波段');
+  if (/signalTier=week|refPeriod=week|周K级联凹/.test(text)) tags.push('周波段');
+  if (/signalTier=month|refPeriod=month|月K级联凹/.test(text)) tags.push('月波段');
+  if (/breakPath=PREV_BAND_HIGH/.test(text)) tags.push('前波段顶');
+  if (/breakPath=LAST_BAND_HIGH/.test(text)) tags.push('末波段顶');
+  appendGlobalGateTags(item, tags);
+  var label = parseUnilateralTrendLabel(item.trendMessage);
+  if (label && tags.indexOf(label) < 0 && label.length <= 14) {
+    tags.push(label);
+  }
+  return tags;
+}
+
+function buildCascadewaveconcaveSummary(item) {
+  var signal = item.signalMessage || '';
+  if (signal) return signal.split(',')[0];
+  return parseUnilateralTrendLabel(item.trendMessage) || '';
+}
+
+function buildCascadewaveconvexdayTags(item) {
+  var tags = ['级联凸日'];
+  var text = [item.trendMessage, item.signalMessage].join('|');
+  if (/signalTier=day|日K级联凸日/.test(text)) tags.push('日波段');
+  if (/signalTier=week|周K级联凸日/.test(text)) tags.push('周波段');
+  if (/signalTier=month|月K级联凸日/.test(text)) tags.push('月波段');
+  if (/edgeMode=DAY|refPeriod=day/.test(text)) tags.push('日边沿');
+  if (/breakPath=PREV_BAND_HIGH/.test(text)) tags.push('前波段顶');
+  if (/breakPath=LAST_BAND_HIGH/.test(text)) tags.push('末波段顶');
+  appendGlobalGateTags(item, tags);
+  return tags;
+}
+
+function buildCascadewaveconvexdaySummary(item) {
+  var signal = item.signalMessage || '';
+  if (signal) return signal.split(',')[0];
+  return parseUnilateralTrendLabel(item.trendMessage) || '';
+}
+
+function buildCascadewaveconcavedayTags(item) {
+  var tags = ['级联凹日'];
+  var text = [item.trendMessage, item.signalMessage].join('|');
+  if (/signalTier=day|日K级联凹日/.test(text)) tags.push('日波段');
+  if (/signalTier=week|周K级联凹日/.test(text)) tags.push('周波段');
+  if (/signalTier=month|月K级联凹日/.test(text)) tags.push('月波段');
+  if (/edgeMode=DAY|refPeriod=day/.test(text)) tags.push('日边沿');
+  if (/breakPath=PREV_BAND_HIGH/.test(text)) tags.push('前波段顶');
+  if (/breakPath=LAST_BAND_HIGH/.test(text)) tags.push('末波段顶');
+  appendGlobalGateTags(item, tags);
+  return tags;
+}
+
+function buildCascadewaveconcavedaySummary(item) {
   var signal = item.signalMessage || '';
   if (signal) return signal.split(',')[0];
   return parseUnilateralTrendLabel(item.trendMessage) || '';
@@ -466,8 +590,43 @@ function mapRecommendation(item, strategyId) {
     tags = tags.concat(buildNrfTags(item));
   } else if (strategyId === 'cascade') {
     tags = tags.concat(buildCascadeTags(item));
-  } else if (strategyId === 'ldip') {
-    tags = tags.concat(buildLdipTags(item));
+  } else if (strategyId === 'macedge') {
+    tags = tags.concat(buildMacdEdgeTags(item));
+  } else if (strategyId === 'cascadewaveconvex') {
+    tags = tags.concat(buildCascadewaveconvexTags(item));
+  } else if (strategyId === 'cascadewaveconcave') {
+    tags = tags.concat(buildCascadewaveconcaveTags(item));
+  } else if (strategyId === 'cascadewaveconvexday') {
+    tags = tags.concat(buildCascadewaveconvexdayTags(item));
+  } else if (strategyId === 'cascadewaveconcaveday') {
+    tags = tags.concat(buildCascadewaveconcavedayTags(item));
+  } else if (strategyId === 'macdgc' || strategyId === 'macdgcShort'
+      || strategyId === 'macdgcMedium' || strategyId === 'macdgcLong') {
+    tags = tags.concat(['MACD金叉']);
+  } else if (strategyId === 'macdgcwh' || strategyId === 'macdgcwhShort'
+      || strategyId === 'macdgcwhMedium' || strategyId === 'macdgcwhLong') {
+    tags = tags.concat(['MACD金叉波段']);
+  } else if (strategyId === 'macdgcwhr' || strategyId === 'macdgcwhrShort'
+      || strategyId === 'macdgcwhrMedium' || strategyId === 'macdgcwhrLong') {
+    tags = tags.concat(['MACD金叉回踩']);
+  } else if (strategyId === 'macdgcwhu' || strategyId === 'macdgcwhuShort'
+      || strategyId === 'macdgcwhuMedium' || strategyId === 'macdgcwhuLong') {
+    tags = tags.concat(['MACD金叉上移']);
+  } else if (strategyId === 'macddcb' || strategyId === 'macddcbShort'
+      || strategyId === 'macddcbMedium' || strategyId === 'macddcbLong') {
+    tags = tags.concat(['MACD死叉突破']);
+  } else if (strategyId === 'cascadewaveShort' || strategyId === 'cascadewaveMedium'
+      || strategyId === 'cascadewaveLong') {
+    var hitSource = item.cascadeHitSource || strategyId;
+    if (hitSource === 'cascadewaveconcave') {
+      tags = tags.concat(buildCascadewaveconcaveTags(item));
+    } else if (hitSource === 'cascadewaveconvexday') {
+      tags = tags.concat(buildCascadewaveconvexdayTags(item));
+    } else if (hitSource === 'cascadewaveconcaveday') {
+      tags = tags.concat(buildCascadewaveconcavedayTags(item));
+    } else {
+      tags = tags.concat(buildCascadewaveconvexTags(item));
+    }
   } else if (strategyId === 'ultra') {
     tags = tags.concat(buildUltraTags(item));
   } else {
@@ -488,8 +647,40 @@ function mapRecommendation(item, strategyId) {
     ? [buildNrfSummary(item), item.mainBusiness, item.summary]
     : strategyId === 'cascade'
     ? [buildCascadeSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'ldip'
-    ? [buildLdipSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'macedge'
+    ? [buildMacdEdgeSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'cascadewaveconvex'
+    ? [buildCascadewaveconvexSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'cascadewaveconcave'
+    ? [buildCascadewaveconcaveSummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'cascadewaveconvexday'
+    ? [buildCascadewaveconvexdaySummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'cascadewaveconcaveday'
+    ? [buildCascadewaveconcavedaySummary(item), item.mainBusiness, item.summary]
+    : strategyId === 'macdgc' || strategyId === 'macdgcShort'
+      || strategyId === 'macdgcMedium' || strategyId === 'macdgcLong'
+    ? [item.trendMessage, item.signalMessage, item.mainBusiness, item.summary]
+    : strategyId === 'macdgcwh' || strategyId === 'macdgcwhShort'
+      || strategyId === 'macdgcwhMedium' || strategyId === 'macdgcwhLong'
+    ? [item.trendMessage, item.signalMessage, item.mainBusiness, item.summary]
+    : strategyId === 'macdgcwhr' || strategyId === 'macdgcwhrShort'
+      || strategyId === 'macdgcwhrMedium' || strategyId === 'macdgcwhrLong'
+    ? [item.trendMessage, item.signalMessage, item.mainBusiness, item.summary]
+    : strategyId === 'macdgcwhu' || strategyId === 'macdgcwhuShort'
+      || strategyId === 'macdgcwhuMedium' || strategyId === 'macdgcwhuLong'
+    ? [item.trendMessage, item.signalMessage, item.mainBusiness, item.summary]
+    : strategyId === 'macddcb' || strategyId === 'macddcbShort'
+      || strategyId === 'macddcbMedium' || strategyId === 'macddcbLong'
+    ? [item.trendMessage, item.signalMessage, item.mainBusiness, item.summary]
+    : strategyId === 'cascadewaveShort' || strategyId === 'cascadewaveMedium'
+      || strategyId === 'cascadewaveLong'
+    ? [(item.cascadeHitSource === 'cascadewaveconcave'
+        ? buildCascadewaveconcaveSummary(item)
+        : item.cascadeHitSource === 'cascadewaveconvexday'
+        ? buildCascadewaveconvexdaySummary(item)
+        : item.cascadeHitSource === 'cascadewaveconcaveday'
+        ? buildCascadewaveconcavedaySummary(item)
+        : buildCascadewaveconvexSummary(item)), item.mainBusiness, item.summary]
     : strategyId === 'ultra'
     ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
     : strategyId === 'retest'

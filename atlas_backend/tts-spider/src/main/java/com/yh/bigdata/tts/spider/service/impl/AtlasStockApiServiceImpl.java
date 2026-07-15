@@ -19,6 +19,25 @@ import com.yh.bigdata.tts.spider.service.AtlasIndustryChainService;
 import com.yh.bigdata.tts.spider.service.AtlasStockApiService;
 import com.yh.bigdata.tts.spider.service.StockService;
 import com.yh.bigdata.tts.common.param.LadderDipStrategyParams;
+import com.yh.bigdata.tts.common.param.MacdEdgeStrategyParams;
+import com.yh.bigdata.tts.common.param.CascadeWaveConcaveDayStrategyParams;
+import com.yh.bigdata.tts.common.param.CascadeWaveConvexDayStrategyParams;
+import com.yh.bigdata.tts.common.param.CascadeWaveConcaveStrategyParams;
+import com.yh.bigdata.tts.common.param.CascadeWaveConvexStrategyParams;
+import com.yh.bigdata.tts.common.param.WaveBandStrategyParams;
+import com.yh.bigdata.tts.common.param.WaveConvexStrategyParams;
+import com.yh.bigdata.tts.common.param.WaveConcaveStrategyParams;
+import com.yh.bigdata.tts.common.param.WaveConvexDayStrategyParams;
+import com.yh.bigdata.tts.common.param.WaveConcaveDayStrategyParams;
+import com.yh.bigdata.tts.spider.strategy.tools.cascadewaveconcaveday.CascadeWaveConcaveDayMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.cascadewaveconvexday.CascadeWaveConvexDayMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.cascadewaveconcave.CascadeWaveConcaveMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.cascadewaveconvex.CascadeWaveConvexMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.waveband.WaveBandMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.waveconvex.WaveConvexMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.waveconcave.WaveConcaveMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.waveconvexday.WaveConvexDayMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.waveconcaveday.WaveConcaveDayMarkersTools;
 import com.yh.bigdata.tts.common.param.CascadeStrategyParams;
 import com.yh.bigdata.tts.common.param.Dc2StrategyParams;
 import com.yh.bigdata.tts.common.param.Gc2StrategyParams;
@@ -30,6 +49,7 @@ import com.yh.bigdata.tts.common.param.TrendV2StrategyParams;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.strategy.tools.cascade.CascadeMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.ldip.LadderDipMarkersTools;
+import com.yh.bigdata.tts.spider.strategy.tools.macedge.MacdEdgeMarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.dc2.Dc2MarkersTools;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.NrfMarkersTools;
 import com.yh.bigdata.tts.common.param.FrictionlessLadderStrategyParams;
@@ -253,6 +273,106 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
             periodType = PeriodTypeEnum.DAY;
         }
         return LadderDipMarkersTools.resolve(stock, periodType, LadderDipStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getMacdEdgeMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return MacdEdgeMarkersTools.resolve(stock, periodType, MacdEdgeStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getWaveconvexMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return WaveConvexMarkersTools.resolve(stock, periodType, WaveConvexStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getWaveconcaveMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return WaveConcaveMarkersTools.resolve(stock, periodType, WaveConcaveStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getWaveconvexdayMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return WaveConvexDayMarkersTools.resolve(stock, periodType, WaveConvexDayStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getWaveconcavedayMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return WaveConcaveDayMarkersTools.resolve(stock, periodType, WaveConcaveDayStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getCascadewaveconvexMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return CascadeWaveConvexMarkersTools.resolve(stock, periodType, CascadeWaveConvexStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getCascadewaveconcaveMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return CascadeWaveConcaveMarkersTools.resolve(stock, periodType, CascadeWaveConcaveStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getCascadewaveconvexdayMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return CascadeWaveConvexDayMarkersTools.resolve(stock, periodType, CascadeWaveConvexDayStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getCascadewaveconcavedayMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return CascadeWaveConcaveDayMarkersTools.resolve(stock, periodType, CascadeWaveConcaveDayStrategyParams.defaults());
+    }
+
+    @Override
+    public AtlasGc2MarkersVo getWavebandMarkers(String code, String period) {
+        StockBase stock = requireStock(code);
+        PeriodTypeEnum periodType = PeriodTypeEnum.getByCode(period);
+        if (periodType == null) {
+            periodType = PeriodTypeEnum.DAY;
+        }
+        return WaveBandMarkersTools.resolve(stock, periodType);
     }
 
     @Override

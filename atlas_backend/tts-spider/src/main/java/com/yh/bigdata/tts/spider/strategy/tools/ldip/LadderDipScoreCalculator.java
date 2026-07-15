@@ -44,9 +44,10 @@ public final class LadderDipScoreCalculator {
                                            LadderDipStrategyParams params) {
         StringBuilder sb = new StringBuilder("[LDIP]级联梯子探底回升");
         LadderDipStrategyParams p = params != null ? params : LadderDipStrategyParams.defaults();
-        if (p.isEnableDualLowGate() || p.isEnableMacdGate() || p.isEnableCrossLowGate()
-                || p.isEnableBarHighGate()) {
-            sb.append("|可选四门");
+        if (p.isEnableDualLowGate() || p.isEnableMacdGate() || p.isEnableMacdDcHighGate()
+                || p.isEnableCrossLowGate()
+                || p.isEnableBarHighGate() || p.isEnableAllYangGate()) {
+            sb.append("|可选六门");
         }
         appendTierTrendLabel(sb, eval.getMonthHit());
         appendTierTrendLabel(sb, eval.getWeekHit());

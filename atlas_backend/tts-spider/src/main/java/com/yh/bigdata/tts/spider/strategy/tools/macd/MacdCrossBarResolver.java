@@ -42,8 +42,27 @@ public final class MacdCrossBarResolver {
         }
     }
 
+    public static Trade findLatestDeathCrossBar(StockBase stock, PeriodTypeEnum period) {
+        if (stock == null || period == null) {
+            return null;
+        }
+        MacdSeries series = loadSeries(stock, period);
+        if (series == null) {
+            return null;
+        }
+        return MacdCrossStructureTools.findLatestDeathCrossBar(
+                series.getTrades(), series.getPoints(), gateLookbackFor(period));
+    }
+
     public static MacdCrossStructureTools.CrossBar findLatestCrossBar(StockBase stock, PeriodTypeEnum period,
                                                                       int lookback) {
+        return findLatestCrossBar(stock, period, lookback, true, true);
+    }
+
+    public static MacdCrossStructureTools.CrossBar findLatestCrossBar(StockBase stock, PeriodTypeEnum period,
+                                                                      int lookback,
+                                                                      boolean enableGoldenCross,
+                                                                      boolean enableDeathCross) {
         if (stock == null || period == null || lookback < 1) {
             return null;
         }
@@ -51,7 +70,8 @@ public final class MacdCrossBarResolver {
         if (series == null) {
             return null;
         }
-        return MacdCrossStructureTools.findLatestCrossBar(series.getTrades(), series.getPoints(), lookback);
+        return MacdCrossStructureTools.findLatestCrossBar(
+                series.getTrades(), series.getPoints(), lookback, enableGoldenCross, enableDeathCross);
     }
 
     public static MacdCrossStructureTools.CrossBar findLatestCrossBar(List<Trade> trades, int lookback) {

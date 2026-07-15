@@ -160,5 +160,18 @@
 	   	</if>
    	</where>
   </select>
-  
+
+  <select id="selectUpToDay" resultMap="BaseResultMap">
+    select
+      <include refid="Base_Column_List"/>
+    from dayk
+    where code = #{code}
+    <![CDATA[ and day <= #{asOfDay} ]]>
+    order by day asc
+  </select>
+
+  <select id="selectDistinctCodes" resultType="java.lang.String">
+    select distinct code from dayk order by code
+  </select>
+
 </mapper>

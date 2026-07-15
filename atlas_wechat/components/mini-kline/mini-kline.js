@@ -72,6 +72,11 @@ Component({
       type: Array,
       value: []
     },
+    /** [{ price, label, type: 'break' }] 突破价水平线 */
+    priceLines: {
+      type: Array,
+      value: []
+    },
     markerEpoch: {
       type: Number,
       value: 0
@@ -95,6 +100,7 @@ Component({
     markerLeft: null,
     markerPositions: [],
     markerLegend: [],
+    priceLineMarks: [],
     hasMarkerLegend: false
   },
 
@@ -118,6 +124,9 @@ Component({
       this.render(this.properties.klines);
     },
     barMarkers() {
+      this.render(this.properties.klines);
+    },
+    priceLines() {
       this.render(this.properties.klines);
     },
     markerEpoch() {
@@ -157,6 +166,7 @@ Component({
           markerLeft: null,
           markerPositions: [],
           markerLegend: [],
+          priceLineMarks: [],
           hasMarkerLegend: false
         });
         return;
@@ -165,6 +175,7 @@ Component({
       const markerLabel = this.properties.markerLabel;
       const markerAt = this.properties.markerAt;
       const barMarkers = this.properties.barMarkers || [];
+      const priceLines = this.properties.priceLines || [];
       const activePeriod = this.properties.activePeriod || 'week';
       const isCard = size === 'card' || size === 'wide';
       const limit = maxBars > 0 ? maxBars : 50;
@@ -258,6 +269,20 @@ Component({
         ? ((markerIndex) * slotW + slotW / 2).toFixed(2)
         : null;
 
+      const priceLineMarks = priceLines.map(function (line, idx) {
+        if (!line || line.price == null || isNaN(line.price)) return null;
+        return {
+          key: (line.type || 'break') + '-' + idx + '-' + line.price,
+          top: ((max - line.price) / span * 100).toFixed(2),
+          label: line.label || String(line.price),
+          type: line.type || 'break'
+        };
+      }).filter(function (line) { return line != null; });
+
+      priceLineMarks.forEach(function (line) {
+        markerLegend.push({ type: line.type, label: line.label });
+      });
+
       const showMA = isCard && count >= 5;
       const showMacd = isCard && this.properties.showMacd && count >= 10;
       this._maBuild = showMA ? { sliced: sliced, range: range } : null;
@@ -278,7 +303,8 @@ Component({
         markerLeft: markerLeft,
         markerPositions: markerPositions,
         markerLegend: markerLegend,
-        hasMarkerLegend: markerLegend.length > 0,
+        hasMarkerLegend: markerLegend.length > 0 || priceLineMarks.length > 0,
+        priceLineMarks: priceLineMarks,
         maLegend: showMA,
         macdLegend: showMacd,
         macdBars: macdBars,

@@ -80,6 +80,7 @@
           resonance="{{detail.resonance}}"
           activePeriod="{{activePeriod}}"
           barMarkers="{{barMarkers}}"
+          priceLines="{{priceLines}}"
           markerEpoch="{{markerEpoch}}"
         />
       </view>

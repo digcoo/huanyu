@@ -61,11 +61,12 @@ public class DayAllSpiderScheduler {
 //			if (!SinaHttpUtils.isTradeOfCurrentDay()) {
 //				return;
 //			}
-            String code = "sz301051";
+            String code = "";
+            int days = 5;
             if (StringUtils.isEmpty(code)) {
                 stockBaseCrawler.run();
-                stockDayCrawler.run(null, 2);
-                stockMin30Crawler.run(null, 16);
+                stockDayCrawler.run(null, days);
+                stockMin30Crawler.run(null, days * 8);
                 stockWeekCrawler.run(null, 2);
                 stockMonthCrawler.run(null, 2);
                 stockQuarterCrawler.run(null, 2);

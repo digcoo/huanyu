@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.BacktestDaykMapper">
+
+  <resultMap id="BaseResultMap" type="com.yh.bigdata.tts.common.model.StockDay">
+    <result column="day" property="day" jdbcType="DATE"/>
+    <result column="code" property="code" jdbcType="VARCHAR"/>
+    <result column="name" property="name" jdbcType="VARCHAR"/>
+    <result column="open" property="open" jdbcType="DOUBLE"/>
+    <result column="high" property="high" jdbcType="DOUBLE"/>
+    <result column="low" property="low" jdbcType="DOUBLE"/>
+    <result column="close" property="close" jdbcType="DOUBLE"/>
+    <result column="prev_close" property="prevClose" jdbcType="DOUBLE"/>
+    <result column="volume" property="volume" jdbcType="BIGINT"/>
+    <result column="amount" property="amount" jdbcType="DOUBLE"/>
+    <result column="ma5" property="ma5" jdbcType="DOUBLE"/>
+    <result column="ma10" property="ma10" jdbcType="DOUBLE"/>
+    <result column="ma20" property="ma20" jdbcType="DOUBLE"/>
+    <result column="ma30" property="ma30" jdbcType="DOUBLE"/>
+    <result column="ma60" property="ma60" jdbcType="DOUBLE"/>
+    <result column="ma120" property="ma120" jdbcType="DOUBLE"/>
+    <result column="cross_params" property="crossParams" jdbcType="VARCHAR"/>
+    <result column="turnover_rate" property="turnoverRate" jdbcType="DOUBLE"/>
+    <result column="percent" property="percent" jdbcType="DOUBLE"/>
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    code, day, name, open, high, low, `close`, prev_close, percent, volume, amount, turnover_rate,
+    ma5, ma10, ma20, ma30, ma60, ma120, cross_params
+  </sql>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/> from backtest_dayk where code = #{code} and day = #{day}
+  </select>
+
+  <insert id="insert" parameterType="com.yh.bigdata.tts.common.model.StockDay">
+    insert into backtest_dayk
+      (code, day, name, open, high, low, `close`, prev_close, percent, volume, amount, turnover_rate,
+       ma5, ma10, ma20, ma30, ma60, ma120, cross_params, create_time, update_time)
+    values
+      (#{code}, #{day}, #{name}, #{open}, #{high}, #{low}, #{close}, #{prevClose}, #{percent}, #{volume}, #{amount},
+       #{turnoverRate}, #{ma5}, #{ma10}, #{ma20}, #{ma30}, #{ma60}, #{ma120}, #{crossParams}, now(), now())
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.yh.bigdata.tts.common.model.StockDay">
+    update backtest_dayk set update_time = now()
+      <if test="name != null">, name = #{name}</if>
+      <if test="open != null">, open = #{open}</if>
+      <if test="high != null">, high = #{high}</if>
+      <if test="low != null">, low = #{low}</if>
+      <if test="close != null">, `close` = #{close}</if>
+      <if test="prevClose != null">, prev_close = #{prevClose}</if>
+      <if test="percent != null">, percent = #{percent}</if>
+      <if test="volume != null">, volume = #{volume}</if>
+      <if test="amount != null">, amount = #{amount}</if>
+      <if test="turnoverRate != null">, turnover_rate = #{turnoverRate}</if>
+      <if test="ma5 != null">, ma5 = #{ma5}</if>
+      <if test="ma10 != null">, ma10 = #{ma10}</if>
+      <if test="ma20 != null">, ma20 = #{ma20}</if>
+      <if test="ma30 != null">, ma30 = #{ma30}</if>
+      <if test="ma60 != null">, ma60 = #{ma60}</if>
+      <if test="ma120 != null">, ma120 = #{ma120}</if>
+      <if test="crossParams != null">, cross_params = #{crossParams}</if>
+    where code = #{code} and day = #{day}
+  </update>
+
+  <select id="selectUpToDay" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List"/>
+    from backtest_dayk
+    where code = #{code}
+    <![CDATA[ and day <= #{asOfDay} ]]>
+    order by day asc
+  </select>
+
+  <select id="selectDistinctCodes" resultType="java.lang.String">
+    select distinct code from backtest_dayk order by code
+  </select>
+
+  <select id="selectDistinctTradingDays" resultType="java.lang.String">
+    select distinct day from backtest_dayk
+    <where>
+      <if test="fromDay != null and fromDay != ''">
+        <![CDATA[ and day >= #{fromDay} ]]>
+      </if>
+      <if test="toDay != null and toDay != ''">
+        <![CDATA[ and day <= #{toDay} ]]>
+      </if>
+    </where>
+    order by day asc
+  </select>
+
+  <select id="selectMaxTradingDay" resultType="java.lang.String">
+    select max(day) from backtest_dayk
+  </select>
+
+  <select id="selectMinDayByCode" resultType="java.lang.String">
+    select min(day) from backtest_dayk where code = #{code}
+  </select>
+
+  <select id="selectMaxDayByCode" resultType="java.lang.String">
+    select max(day) from backtest_dayk where code = #{code}
+  </select>
+
+  <select id="countByCode" resultType="int">
+    select count(*) from backtest_dayk where code = #{code}
+  </select>
+
+</mapper>

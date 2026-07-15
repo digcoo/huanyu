@@ -26,10 +26,16 @@ public class LadderDipStrategyParams {
     private boolean enableMacdGate = false;
 
     @Builder.Default
+    private boolean enableMacdDcHighGate = true;
+
+    @Builder.Default
     private boolean enableCrossLowGate = false;
 
     @Builder.Default
     private boolean enableBarHighGate = false;
+
+    @Builder.Default
+    private boolean enableAllYangGate = true;
 
     @Builder.Default
     private boolean enableDay = true;
@@ -66,8 +72,10 @@ public class LadderDipStrategyParams {
         LadderDipStrategyParams d = defaults();
         d.enableDualLowGate = incoming.enableDualLowGate;
         d.enableMacdGate = incoming.enableMacdGate;
+        d.enableMacdDcHighGate = incoming.enableMacdDcHighGate;
         d.enableCrossLowGate = incoming.enableCrossLowGate;
         d.enableBarHighGate = incoming.enableBarHighGate;
+        d.enableAllYangGate = incoming.enableAllYangGate;
         d.enableDay = incoming.enableDay;
         d.enableWeek = incoming.enableWeek;
         d.enableMonth = incoming.enableMonth;

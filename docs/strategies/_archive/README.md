@@ -22,5 +22,6 @@
 | 2.短：梯子内上移.md | trend · 短档已并入 nrf 日K 跨周桶 |
 | 3.中：梯子内上移.md | medium · 中档已并入 nrf 周K 跨月桶 |
 | 4.长：梯子内上移.md | long · 长档已并入 nrf 月K 跨年桶 |
+| 4.级联梯子探底回升.md | ldip · 小程序前端已下线，2026-07 归档；后端 API 仍保留 |
 
 当前有效文档见上级目录：`docs/strategies/README.md`。

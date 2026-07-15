@@ -34,6 +34,7 @@ public final class LadderDipEvaluator {
         if (dayHitQualified != null
                 && (!LadderDipBreakoutTools.passesHitCloseAboveRefLow(dayHitQualified)
                 || !LadderDipBreakoutTools.passesDayCrossWeekConfirm(stock, p.getLookbackWeek())
+                || !LadderDipBreakoutTools.passesDayCrossMonthConfirm(stock, p.getLookbackMonth())
                 || !LadderDipBreakoutTools.passesDayCloseCrossPrevDayHigh(stock)
                 || !LadderDipBreakoutTools.passesSecondDayCloseBelowRefHigh(
                         stock, dayHitQualified.getReferenceBar()))) {
@@ -47,7 +48,7 @@ public final class LadderDipEvaluator {
             weekHit = LadderDipBreakoutTools.findWeekHit(stock, p.getLookbackWeek());
             if (weekHit != null
                     && (!LadderDipBreakoutTools.passesHitCloseAboveRefLow(weekHit)
-                    || !LadderDipBreakoutTools.passesDayLowConfirm(stock, p.getLookbackDay())
+                    || !LadderDipBreakoutTools.passesWeekCrossDayConfirm(stock, p.getLookbackDay())
                     || !LadderDipBreakoutTools.passesWeekCrossMonthConfirm(stock, p.getLookbackMonth())
                     || !LadderDipBreakoutTools.passesDayCloseEdgeCrossPrevWeekHigh(stock, p.getLookbackWeek())
                     || !LadderDipBreakoutTools.passesSecondDayCloseBelowRefHigh(
@@ -59,7 +60,8 @@ public final class LadderDipEvaluator {
             monthHit = LadderDipBreakoutTools.findMonthHit(stock, p.getLookbackMonth());
             if (monthHit != null
                     && (!LadderDipBreakoutTools.passesHitCloseAboveRefLow(monthHit)
-                    || !LadderDipBreakoutTools.passesDayLowConfirm(stock, p.getLookbackDay())
+                    || !LadderDipBreakoutTools.passesMonthCrossDayConfirm(stock, p.getLookbackDay())
+                    || !LadderDipBreakoutTools.passesMonthCrossWeekConfirm(stock, p.getLookbackWeek())
                     || !LadderDipBreakoutTools.passesDayCloseEdgeCrossPrevMonthHigh(stock, p.getLookbackMonth())
                     || !LadderDipBreakoutTools.passesSecondDayCloseBelowRefHigh(
                             stock, monthHit.getReferenceBar()))) {

@@ -63,6 +63,15 @@
         ></view>
       </view>
       <view
+        wx:for="{{priceLineMarks}}"
+        wx:key="key"
+        class="price-line marker-{{item.type}}"
+        style="top: {{item.top}}%;"
+      >
+        <view class="price-line-h"></view>
+        <text class="price-line-label">{{item.label}}</text>
+      </view>
+      <view
         wx:if="{{markerLeft}}"
         class="add-marker marker-signal"
         style="left: {{markerLeft}}%;"

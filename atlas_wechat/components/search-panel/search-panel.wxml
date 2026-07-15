@@ -8,6 +8,7 @@
           value="{{keyword}}"
           placeholder="股票名称或代码"
           placeholder-class="search-placeholder"
+          cursor-color="#00d4ff"
           focus="{{visible}}"
           confirm-type="search"
           bindinput="onInput"

@@ -46,10 +46,9 @@ Component({
       if (this._locked !== 'h') return;
 
       const maxOffset = 120;
-      const clamped = Math.max(-maxOffset, Math.min(maxOffset, dx));
+      const clamped = dx < 0 ? 0 : Math.min(maxOffset, dx);
       let hint = '';
       if (clamped > 40) hint = 'watchlist';
-      else if (clamped < -40) hint = 'ignore';
 
       this.setData({ offsetX: clamped, actionHint: hint });
     },
@@ -66,10 +65,6 @@ Component({
         this.triggerEvent('watchlist', { item });
         wx.vibrateShort({ type: 'light' });
         wx.showToast({ title: '已加入自选', icon: 'success', duration: 1200 });
-      } else if (actionHint === 'ignore' && offsetX < -60) {
-        this.triggerEvent('ignore', { item });
-        wx.vibrateShort({ type: 'light' });
-        wx.showToast({ title: '已忽略', icon: 'none', duration: 1200 });
       }
 
       this.setData({ offsetX: 0, swiping: false, actionHint: '' });

@@ -7,6 +7,8 @@ import com.yh.bigdata.tts.common.utils.DateUtil;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * 截至 asOfDay，从日 K 派生进行中的周/月/季/年 K（与 weekk/monthk 锚点 day 规则一致）。
@@ -51,6 +53,48 @@ public final class PeriodBarAsOfTools {
         return merged;
     }
 
+    /**
+     * 纯日 K 回放：聚合截至 asOfDay 的完整周/月/年序列（含进行中 bar）。
+     */
+    public static List<Trade> buildPeriodSeriesFromDayBars(List<Trade> dayBarsUpToAsOf,
+                                                           String asOfDay,
+                                                           PeriodTypeEnum period) {
+        if (dayBarsUpToAsOf == null || dayBarsUpToAsOf.isEmpty() || period == null
+                || period == PeriodTypeEnum.DAY || period == PeriodTypeEnum.MIN30) {
+            return new ArrayList<>();
+        }
+        Map<String, List<Trade>> buckets = new TreeMap<>();
+        for (Trade bar : dayBarsUpToAsOf) {
+            if (bar == null || bar.getDay() == null) {
+                continue;
+            }
+            String day = normalizeDay(bar.getDay());
+            if (day.compareTo(asOfDay) > 0) {
+                continue;
+            }
+            String anchor = anchorDayFor(day, period);
+            if (anchor == null) {
+                continue;
+            }
+            buckets.computeIfAbsent(anchor, k -> new ArrayList<>()).add(bar);
+        }
+        List<Trade> out = new ArrayList<>();
+        for (Map.Entry<String, List<Trade>> entry : buckets.entrySet()) {
+            Trade aggregated = aggregateBucket(entry.getValue(), entry.getKey());
+            if (aggregated != null) {
+                out.add(aggregated);
+            }
+        }
+        return out;
+    }
+
+    public static boolean isInProgressBar(String asOfDay, String barDay, PeriodTypeEnum period) {
+        String currentAnchor = anchorDayFor(asOfDay, period);
+        return currentAnchor != null
+                && currentAnchor.equals(barDay)
+                && asOfDay.compareTo(barDay) < 0;
+    }
+
     static Trade deriveFromDayBars(List<Trade> dayBarsUpToAsOf,
                                    String asOfDay,
                                    String anchorDay,
@@ -60,7 +104,7 @@ public final class PeriodBarAsOfTools {
             if (bar == null || bar.getDay() == null) {
                 continue;
             }
-            String day = bar.getDay().length() >= 10 ? bar.getDay().substring(0, 10) : bar.getDay();
+            String day = normalizeDay(bar.getDay());
             if (day.compareTo(asOfDay) > 0) {
                 continue;
             }
@@ -72,7 +116,14 @@ public final class PeriodBarAsOfTools {
         if (bucket.isEmpty()) {
             return null;
         }
-        bucket.sort((a, b) -> a.getDay().compareTo(b.getDay()));
+        return aggregateBucket(bucket, anchorDay);
+    }
+
+    static Trade aggregateBucket(List<Trade> bucket, String anchorDay) {
+        if (bucket == null || bucket.isEmpty()) {
+            return null;
+        }
+        bucket.sort((a, b) -> normalizeDay(a.getDay()).compareTo(normalizeDay(b.getDay())));
 
         Trade first = bucket.get(0);
         Trade last = bucket.get(bucket.size() - 1);
@@ -116,6 +167,10 @@ public final class PeriodBarAsOfTools {
             out.setAmount(amount);
         }
         return out;
+    }
+
+    static String normalizeDay(String day) {
+        return day.length() >= 10 ? day.substring(0, 10) : day;
     }
 
     static String anchorDayFor(String someDay, PeriodTypeEnum period) {

@@ -12,6 +12,25 @@ import java.util.List;
 public class PeriodBarAsOfToolsTest {
 
     @Test
+    public void buildWeekSeriesPurelyFromDayBars() {
+        List<Trade> dayBars = Arrays.asList(
+                day("sh600000", "2026-06-02", 10.0, 10.5, 10.8, 9.9),
+                day("sh600000", "2026-06-03", 10.5, 10.2, 10.6, 10.0),
+                day("sh600000", "2026-06-04", 10.2, 10.9, 11.0, 10.1)
+        );
+
+        List<Trade> weekSeries = PeriodBarAsOfTools.buildPeriodSeriesFromDayBars(
+                dayBars, "2026-06-04", PeriodTypeEnum.WEEK);
+
+        Assert.assertEquals(1, weekSeries.size());
+        Trade derived = weekSeries.get(0);
+        Assert.assertEquals("2026-06-05", derived.getDay());
+        Assert.assertTrue(PeriodBarAsOfTools.isInProgressBar("2026-06-04", "2026-06-05", PeriodTypeEnum.WEEK));
+        Assert.assertEquals(10.0, derived.getOpen(), 1e-6);
+        Assert.assertEquals(10.9, derived.getClose(), 1e-6);
+    }
+
+    @Test
     public void deriveInProgressWeekFromDayBars() {
         List<Trade> dayBars = Arrays.asList(
                 day("sh600000", "2026-06-02", 10.0, 10.5, 10.8, 9.9),

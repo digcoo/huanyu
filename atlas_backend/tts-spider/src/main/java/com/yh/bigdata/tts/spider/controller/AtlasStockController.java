@@ -246,6 +246,156 @@ public class AtlasStockController {
         }
     }
 
+    @GetMapping("/{code}/macedge/markers")
+    public Response<AtlasGc2MarkersVo> getMacdEdgeMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getMacdEdgeMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/waveconvex/markers")
+    public Response<AtlasGc2MarkersVo> getWaveconvexMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getWaveconvexMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/waveconcave/markers")
+    public Response<AtlasGc2MarkersVo> getWaveconcaveMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getWaveconcaveMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/waveconvexday/markers")
+    public Response<AtlasGc2MarkersVo> getWaveconvexdayMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getWaveconvexdayMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/waveconcaveday/markers")
+    public Response<AtlasGc2MarkersVo> getWaveconcavedayMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getWaveconcavedayMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/cascadewaveconvex/markers")
+    public Response<AtlasGc2MarkersVo> getCascadewaveconvexMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getCascadewaveconvexMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/cascadewaveconcave/markers")
+    public Response<AtlasGc2MarkersVo> getCascadewaveconcaveMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getCascadewaveconcaveMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/waveband/markers")
+    public Response<AtlasGc2MarkersVo> getWavebandMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getWavebandMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/cascadewaveconvexday/markers")
+    public Response<AtlasGc2MarkersVo> getCascadewaveconvexdayMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getCascadewaveconvexdayMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
+    @GetMapping("/{code}/cascadewaveconcaveday/markers")
+    public Response<AtlasGc2MarkersVo> getCascadewaveconcavedayMarkers(
+            @PathVariable("code") String code,
+            @RequestParam(value = "period", defaultValue = "day") String period) {
+        try {
+            AtlasGc2MarkersVo markers = atlasStockApiService.getCascadewaveconcavedayMarkers(code, period);
+            if (markers == null) {
+                return ResponseUtil.fail(ResponseUtil.NO_DATA);
+            }
+            return ResponseUtil.success(markers);
+        } catch (NoSuchElementException ex) {
+            return ResponseUtil.fail(ResponseUtil.NO_DATA);
+        }
+    }
+
     @GetMapping("/{code}/nrf/markers")
     public Response<AtlasGc2MarkersVo> getNrfMarkers(
             @PathVariable("code") String code,

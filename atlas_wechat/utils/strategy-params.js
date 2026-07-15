@@ -72,8 +72,10 @@ var DC2_DEFAULTS = {
 var CASCADE_DEFAULTS = {
   caEnableDualLowGate: false,
   caEnableMacdGate: false,
+  caEnableMacdDcHighGate: true,
   caEnableCrossLowGate: false,
   caEnableBarHighGate: false,
+  caEnableAllYangGate: true,
   caEnableDay: true,
   caEnableWeek: false,
   caEnableMonth: false,
@@ -85,20 +87,525 @@ var CASCADE_DEFAULTS = {
   caEnableAltBreakout: false
 };
 
-var LDIP_DEFAULTS = {
-  ldEnableDualLowGate: false,
-  ldEnableMacdGate: false,
-  ldEnableCrossLowGate: false,
-  ldEnableBarHighGate: false,
-  ldEnableDay: true,
-  ldEnableWeek: false,
-  ldEnableMonth: false,
-  ldLookbackDay: 60,
-  ldLookbackWeek: 52,
-  ldLookbackMonth: 36,
-  ldMinAmountWan: 3000,
-  ldRequireUltra: false
+var MACEDGE_DEFAULTS = {
+  meEnableDualLowGate: false,
+  meEnableMacdGate: false,
+  meEnableMacdDcHighGate: true,
+  meEnableCrossLowGate: false,
+  meEnableBarHighGate: false,
+  meEnableAllYangGate: true,
+  meEnableMin30: false,
+  meEnableDay: true,
+  meEnableWeek: false,
+  meEnableMonth: false,
+  meEnableYear: false,
+  meLookbackMin30: 50,
+  meLookbackDay: 60,
+  meLookbackWeek: 52,
+  meLookbackMonth: 36,
+  meLookbackYear: 20,
+  meMinAmountWan: 3000
 };
+
+var WAVECONVEX_DEFAULTS = {
+  wcvEnableAllYangGate: false,
+  wcvEnableMin30Gate: false,
+  wcvEnableLastHighBreak: false,
+  wcvEnableLastMedianBreak: false,
+  wcvEnableLastLowBreak: false,
+  wcvEnableDay: true,
+  wcvEnableWeek: false,
+  wcvEnableMonth: false,
+  wcvLookbackDay: 60,
+  wcvLookbackWeek: 52,
+  wcvLookbackMonth: 36,
+  wcvMinAmountWan: 0
+};
+
+var WAVECONCAVE_DEFAULTS = {
+  wccEnableAllYangGate: false,
+  wccEnableMin30Gate: false,
+  wccEnableLastHighBreak: false,
+  wccEnableLastMedianBreak: false,
+  wccEnableLastLowBreak: false,
+  wccEnableDay: true,
+  wccEnableWeek: false,
+  wccEnableMonth: false,
+  wccLookbackDay: 60,
+  wccLookbackWeek: 52,
+  wccLookbackMonth: 36,
+  wccMinAmountWan: 0
+};
+
+var WAVECONVEXDAY_DEFAULTS = {
+  wcvdEnableAllYangGate: false,
+  wcvdEnableMin30Gate: false,
+  wcvdEnableLastHighBreak: false,
+  wcvdEnableLastMedianBreak: false,
+  wcvdEnableLastLowBreak: false,
+  wcvdEnableDay: true,
+  wcvdEnableWeek: false,
+  wcvdEnableMonth: false,
+  wcvdLookbackDay: 60,
+  wcvdLookbackWeek: 52,
+  wcvdLookbackMonth: 36,
+  wcvdMinAmountWan: 0
+};
+
+var WAVECONCAVEDAY_DEFAULTS = {
+  wccdEnableAllYangGate: false,
+  wccdEnableMin30Gate: false,
+  wccdEnableLastHighBreak: false,
+  wccdEnableLastMedianBreak: false,
+  wccdEnableLastLowBreak: false,
+  wccdEnableDay: true,
+  wccdEnableWeek: false,
+  wccdEnableMonth: false,
+  wccdLookbackDay: 60,
+  wccdLookbackWeek: 52,
+  wccdLookbackMonth: 36,
+  wccdMinAmountWan: 0
+};
+
+var CASCADEWAVECONVEX_DEFAULTS = {
+  cwcvEnableAllYangGate: false,
+  cwcvEnableMin30Gate: false,
+  cwcvEnableBandLastYangLowGate: true,
+  cwcvEnableYangBandTrendGate: false,
+  cwcvEnablePrevBandBreak: false,
+  cwcvEnableDay: true,
+  cwcvEnableWeek: false,
+  cwcvEnableMonth: false,
+  cwcvLookbackDay: 60,
+  cwcvLookbackWeek: 52,
+  cwcvLookbackMonth: 36,
+  cwcvLookbackYear: 20,
+  cwcvMinAmountWan: 0
+};
+
+var CASCADEWAVECONCAVE_DEFAULTS = {
+  cwcavEnableAllYangGate: false,
+  cwcavEnableMin30Gate: false,
+  cwcavEnableBandLastYangLowGate: true,
+  cwcavEnableYangBandTrendGate: false,
+  cwcavEnablePrevBandBreak: false,
+  cwcavEnableDay: true,
+  cwcavEnableWeek: false,
+  cwcavEnableMonth: false,
+  cwcavLookbackDay: 60,
+  cwcavLookbackWeek: 52,
+  cwcavLookbackMonth: 36,
+  cwcavLookbackYear: 20,
+  cwcavMinAmountWan: 0
+};
+
+var CASCADEWAVECONVEXDAY_DEFAULTS = {
+  cwcvdEnableAllYangGate: false,
+  cwcvdEnableMin30Gate: false,
+  cwcvdEnableBandLastYangLowGate: true,
+  cwcvdEnableYangBandTrendGate: false,
+  cwcvdEnablePrevBandBreak: false,
+  cwcvdEnableDay: true,
+  cwcvdEnableWeek: false,
+  cwcvdEnableMonth: false,
+  cwcvdLookbackDay: 60,
+  cwcvdLookbackWeek: 52,
+  cwcvdLookbackMonth: 36,
+  cwcvdLookbackYear: 20,
+  cwcvdMinAmountWan: 0
+};
+
+var CASCADEWAVECONCAVEDAY_DEFAULTS = {
+  cwcadEnableAllYangGate: false,
+  cwcadEnableMin30Gate: false,
+  cwcadEnableBandLastYangLowGate: true,
+  cwcadEnableYangBandTrendGate: false,
+  cwcadEnablePrevBandBreak: false,
+  cwcadEnableDay: true,
+  cwcadEnableWeek: false,
+  cwcadEnableMonth: false,
+  cwcadLookbackDay: 60,
+  cwcadLookbackWeek: 52,
+  cwcadLookbackMonth: 36,
+  cwcadLookbackYear: 20,
+  cwcadMinAmountWan: 0
+};
+
+var CASCADEWAVE_BUNDLE_DEFAULTS = {
+  cwbEnableAllYangGate: false,
+  cwbEnableMin30Gate: false,
+  cwbEnableBandLastYangLowGate: true,
+  cwbEnableYangBandTrendGate: false,
+  cwbEnablePrevBandBreak: false,
+  cwbLookbackDay: 60,
+  cwbLookbackWeek: 52,
+  cwbLookbackMonth: 36,
+  cwbLookbackYear: 20,
+  cwbMinAmountWan: 0
+};
+
+var CASCADEWAVE_BUNDLE_COMMON_SCHEMA = [
+  {
+    type: 'section',
+    label: '全局门控',
+    hint: '末阳低门默认开启；全阳门/Min30 默认关闭'
+  },
+  {
+    key: 'cwbEnableBandLastYangLowGate',
+    label: '末阳低门',
+    hint: '日、周、月收盘价须全部 > 各档末完整波段末阳 K 的 low',
+    type: 'switch'
+  },
+  {
+    key: 'cwbEnableYangBandTrendGate',
+    label: '趋势门',
+    hint: '按信号档：peak收盘抬升时现价>次末peak高，否则现价>末peak高',
+    type: 'switch'
+  },
+  {
+    key: 'cwbEnableAllYangGate',
+    label: '全阳门',
+    hint: '日、周、月最后一根K均为阳线',
+    type: 'switch'
+  },
+  {
+    key: 'cwbEnableMin30Gate',
+    label: 'Min30 突破门',
+    type: 'switch'
+  },
+  {
+    key: 'cwbMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）；0=不启用',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: '突破线',
+    hint: '凸=次波段末阳顶，凹=末波段末阳顶（按子策略形态固定）'
+  },
+  {
+    key: 'cwbEnablePrevBandBreak',
+    label: '前波段末阳顶',
+    hint: '已固定按形态突破，此开关不再生效',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '波段回溯'
+  },
+  {
+    key: 'cwbLookbackDay',
+    label: '日 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 120,
+    step: 5,
+    unit: '根'
+  },
+  {
+    key: 'cwbLookbackWeek',
+    label: '周 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 104,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'cwbLookbackMonth',
+    label: '月 K lookback',
+    type: 'slider',
+    min: 12,
+    max: 60,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'cwbLookbackYear',
+    label: '年 K lookback',
+    hint: '级联MACD月→年档回溯',
+    type: 'slider',
+    min: 8,
+    max: 40,
+    step: 2,
+    unit: '根'
+  }
+];
+
+var CASCADEWAVE_SHORT_SCHEMA = [
+  {
+    type: 'section',
+    label: '突破模式',
+    hint: '级联凹凸同档日档突破（凸+凹并集）'
+  }
+].concat(CASCADEWAVE_BUNDLE_COMMON_SCHEMA);
+
+var CASCADEWAVE_MEDIUM_SCHEMA = [
+  {
+    type: 'section',
+    label: '突破模式',
+    hint: '级联凹凸同档周档突破（凸+凹并集）'
+  }
+].concat(CASCADEWAVE_BUNDLE_COMMON_SCHEMA);
+
+var CASCADEWAVE_LONG_SCHEMA = [
+  {
+    type: 'section',
+    label: '突破模式',
+    hint: '级联凹凸同档月档突破（凸+凹并集）'
+  }
+].concat(CASCADEWAVE_BUNDLE_COMMON_SCHEMA);
+
+var MGC_DEFAULTS = {
+  mgcEnableMinAmountFilter: true,
+  mgcMinAmountWan: 3000,
+  mgcEnableSignalRiseGate: true,
+  mgcSignalRisePct: 3,
+  mgcEnableHistoryRiseGate: true,
+  mgcHistoryLookbackBars: 5,
+  mgcHistoryRisePct: 3
+};
+
+var MGC_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '末 K MACD 金叉；以下三门均为可选，默认开启'
+  },
+  {
+    key: 'mgcEnableMinAmountFilter',
+    label: '成交额门',
+    hint: '近6日日均成交额（不含当日K）',
+    type: 'switch'
+  },
+  {
+    key: 'mgcMinAmountWan',
+    label: '最低日均成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'mgcEnableSignalRiseGate',
+    label: '末K涨幅门',
+    hint: '末 K 上涨率须大于阈值',
+    type: 'switch'
+  },
+  {
+    key: 'mgcSignalRisePct',
+    label: '末K涨幅阈值',
+    hint: '上涨率 = (收盘-前收)/前收',
+    type: 'slider',
+    min: 1,
+    max: 15,
+    step: 0.5,
+    unit: '%'
+  },
+  {
+    key: 'mgcEnableHistoryRiseGate',
+    label: '近N根涨幅门',
+    hint: '末K之前 N 根中至少一根涨幅达标',
+    type: 'switch'
+  },
+  {
+    key: 'mgcHistoryLookbackBars',
+    label: '向前检视K数',
+    hint: '不含末 K',
+    type: 'slider',
+    min: 1,
+    max: 20,
+    step: 1,
+    unit: '根'
+  },
+  {
+    key: 'mgcHistoryRisePct',
+    label: '历史涨幅阈值',
+    hint: '单根上涨率须大于该值',
+    type: 'slider',
+    min: 1,
+    max: 15,
+    step: 0.5,
+    unit: '%'
+  }
+];
+
+var MGCWH_DEFAULTS = {
+  mgcwhEnableMinAmountFilter: true,
+  mgcwhMinAmountWan: 3000,
+  mgcwhEnableSignalRiseGate: true,
+  mgcwhSignalRisePct: 3
+};
+
+var MGCWH_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '最近金叉K定基准波段，同档边沿破波段High；以下两门可选，默认开启'
+  },
+  {
+    key: 'mgcwhEnableMinAmountFilter',
+    label: '成交额门',
+    hint: '近6日日均成交额（不含当日K）',
+    type: 'switch'
+  },
+  {
+    key: 'mgcwhMinAmountWan',
+    label: '最低日均成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'mgcwhEnableSignalRiseGate',
+    label: '末K涨幅门',
+    hint: '末 K 上涨率须大于阈值',
+    type: 'switch'
+  },
+  {
+    key: 'mgcwhSignalRisePct',
+    label: '末K涨幅阈值',
+    hint: '上涨率 = (收盘-前收)/前收',
+    type: 'slider',
+    min: 1,
+    max: 15,
+    step: 0.5,
+    unit: '%'
+  }
+];
+
+var MGCWHR_DEFAULTS = {
+  mgcwhrEnableMinAmountFilter: true,
+  mgcwhrMinAmountWan: 3000
+};
+
+var MGCWHR_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: 'MACD>0、价在金叉基准波段High上、末K振幅≤1%；成交额门可选'
+  },
+  {
+    key: 'mgcwhrEnableMinAmountFilter',
+    label: '成交额门',
+    hint: '近6日日均成交额（不含当日K）',
+    type: 'switch'
+  },
+  {
+    key: 'mgcwhrMinAmountWan',
+    label: '最低日均成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  }
+];
+
+var MGCWHU_DEFAULTS = {
+  mgcwhuEnableMinAmountFilter: true,
+  mgcwhuMinAmountWan: 3000,
+  mgcwhuEnableSignalRiseGate: true,
+  mgcwhuSignalRisePct: 3
+};
+
+var MGCWHU_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: 'MACD>0、价在波段High/金叉K high上、首次上移前K high'
+  },
+  {
+    key: 'mgcwhuEnableMinAmountFilter',
+    label: '成交额门',
+    hint: '近6日日均成交额（不含当日K）',
+    type: 'switch'
+  },
+  {
+    key: 'mgcwhuMinAmountWan',
+    label: '最低日均成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'mgcwhuEnableSignalRiseGate',
+    label: '末K涨幅门',
+    hint: '末 K 上涨率须大于阈值',
+    type: 'switch'
+  },
+  {
+    key: 'mgcwhuSignalRisePct',
+    label: '末K涨幅阈值',
+    hint: '上涨率 = (收盘-前收)/前收',
+    type: 'slider',
+    min: 1,
+    max: 15,
+    step: 0.5,
+    unit: '%'
+  }
+];
+
+var MDCB_DEFAULTS = {
+  mdcbEnableMinAmountFilter: true,
+  mdcbMinAmountWan: 3000,
+  mdcbEnableSignalRiseGate: true,
+  mdcbSignalRisePct: 3
+};
+
+var MDCB_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: 'MACD<0、最近交叉为死叉、边沿突破死叉K前一根K high'
+  },
+  {
+    key: 'mdcbEnableMinAmountFilter',
+    label: '成交额门',
+    hint: '近6日日均成交额（不含当日K）',
+    type: 'switch'
+  },
+  {
+    key: 'mdcbMinAmountWan',
+    label: '最低日均成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'mdcbEnableSignalRiseGate',
+    label: '末K涨幅门',
+    hint: '末 K 上涨率须大于阈值',
+    type: 'switch'
+  },
+  {
+    key: 'mdcbSignalRisePct',
+    label: '末K涨幅阈值',
+    hint: '上涨率 = (收盘-前收)/前收',
+    type: 'slider',
+    min: 1,
+    max: 15,
+    step: 0.5,
+    unit: '%'
+  }
+];
 
 var ULTRA_DEFAULTS = {
   ulMinAmountWan: 5000,
@@ -493,8 +1000,8 @@ var DC2_SCHEMA = [
 var CASCADE_SCHEMA = [
   {
     type: 'section',
-    label: '可选四门',
-    hint: '默认均关闭；开启后日/周/月须全部满足对应门控'
+    label: '可选六门',
+    hint: '死叉高门、全阳门默认开；其余默认关；开启后日/周/月须全部满足对应门控'
   },
   {
     key: 'caEnableDualLowGate',
@@ -507,6 +1014,12 @@ var CASCADE_SCHEMA = [
     type: 'switch'
   },
   {
+    key: 'caEnableMacdDcHighGate',
+    label: 'MACD 死叉高门',
+    hint: 'MACD>0，或 MACD≤0 且本档 close>最近 MACD 死叉 K.high；日/周/月须全部满足',
+    type: 'switch'
+  },
+  {
     key: 'caEnableCrossLowGate',
     label: 'MACD 交叉 low 门',
     type: 'switch'
@@ -514,6 +1027,12 @@ var CASCADE_SCHEMA = [
   {
     key: 'caEnableBarHighGate',
     label: '高点递进门',
+    type: 'switch'
+  },
+  {
+    key: 'caEnableAllYangGate',
+    label: '全阳门',
+    hint: '日、周、月、年最后一根K均为阳线（close>open），须全部满足',
     type: 'switch'
   },
   {
@@ -596,34 +1115,46 @@ var CASCADE_SCHEMA = [
   }
 ];
 
-var LDIP_SCHEMA = [
+var MACEDGE_SCHEMA = [
   {
     type: 'section',
-    label: '可选四门',
-    hint: '默认均关闭；开启后日/周/月须全部满足对应门控'
+    label: '可选六门',
+    hint: '死叉高门、全阳门默认开；其余默认关；开启后日/周/月/年须全部满足对应门控'
   },
   {
-    key: 'ldEnableDualLowGate',
+    key: 'meEnableDualLowGate',
     label: '双低支撑门',
     type: 'switch'
   },
   {
-    key: 'ldEnableMacdGate',
+    key: 'meEnableMacdGate',
     label: '无阻力 MACD 门',
     type: 'switch'
   },
   {
-    key: 'ldEnableCrossLowGate',
+    key: 'meEnableMacdDcHighGate',
+    label: 'MACD 死叉高门',
+    hint: 'MACD>0，或 MACD≤0 且本档 close>最近 MACD 死叉 K.high；日/周/月须全部满足',
+    type: 'switch'
+  },
+  {
+    key: 'meEnableCrossLowGate',
     label: 'MACD 交叉 low 门',
     type: 'switch'
   },
   {
-    key: 'ldEnableBarHighGate',
+    key: 'meEnableBarHighGate',
     label: '高点递进门',
     type: 'switch'
   },
   {
-    key: 'ldMinAmountWan',
+    key: 'meEnableAllYangGate',
+    label: '全阳门',
+    hint: '日、周、月、年最后一根K均为阳线（close>open），须全部满足',
+    type: 'switch'
+  },
+  {
+    key: 'meMinAmountWan',
     label: '最低成交额',
     hint: '近6日日均成交额（万）；0=不启用',
     type: 'slider',
@@ -634,31 +1165,50 @@ var LDIP_SCHEMA = [
   },
   {
     type: 'section',
-    label: '探底档位',
-    hint: '日/周/月各自独立判定；多档勾选取并集'
+    label: '边沿突破档位',
+    hint: '各档 MACD 交叉 K 为基准；同档最后一根 K 边沿破基准 high；多档并集'
   },
   {
-    key: 'ldEnableDay',
-    label: '日 K 探底回升',
+    key: 'meEnableMin30',
+    label: 'Min30 基准',
     type: 'switch'
   },
   {
-    key: 'ldEnableWeek',
-    label: '周 K 探底回升',
+    key: 'meEnableDay',
+    label: '日 K 基准',
     type: 'switch'
   },
   {
-    key: 'ldEnableMonth',
-    label: '月 K 探底回升',
+    key: 'meEnableWeek',
+    label: '周 K 基准',
+    type: 'switch'
+  },
+  {
+    key: 'meEnableMonth',
+    label: '月 K 基准',
+    type: 'switch'
+  },
+  {
+    key: 'meEnableYear',
+    label: '年 K 基准',
     type: 'switch'
   },
   {
     type: 'section',
-    label: '基准 K 回溯',
-    hint: '各周期向前搜索合格大阳柱基准的最大 K 数'
+    label: '交叉 K 回溯',
+    hint: '各周期向前搜索 MACD 金叉/死叉的最大 K 数'
   },
   {
-    key: 'ldLookbackDay',
+    key: 'meLookbackMin30',
+    label: 'Min30 lookback',
+    type: 'slider',
+    min: 20,
+    max: 120,
+    step: 5,
+    unit: '根'
+  },
+  {
+    key: 'meLookbackDay',
     label: '日 K lookback',
     type: 'slider',
     min: 20,
@@ -667,7 +1217,7 @@ var LDIP_SCHEMA = [
     unit: '根'
   },
   {
-    key: 'ldLookbackWeek',
+    key: 'meLookbackWeek',
     label: '周 K lookback',
     type: 'slider',
     min: 20,
@@ -676,7 +1226,7 @@ var LDIP_SCHEMA = [
     unit: '根'
   },
   {
-    key: 'ldLookbackMonth',
+    key: 'meLookbackMonth',
     label: '月 K lookback',
     type: 'slider',
     min: 12,
@@ -685,14 +1235,13 @@ var LDIP_SCHEMA = [
     unit: '根'
   },
   {
-    type: 'section',
-    label: '超短叠加',
-    hint: '开启后须同时满足 30m 跨日桶柱内突破；ul* 参数沿用「超短」Tab 设置'
-  },
-  {
-    key: 'ldRequireUltra',
-    label: '须满足超短 Min30 突破',
-    type: 'switch'
+    key: 'meLookbackYear',
+    label: '年 K lookback',
+    type: 'slider',
+    min: 8,
+    max: 40,
+    step: 2,
+    unit: '根'
   }
 ];
 
@@ -840,6 +1389,684 @@ var LONG_SCHEMA = [
   }
 ];
 
+var WAVECONVEX_SCHEMA = [
+  {
+    type: 'section',
+    label: '全局门控',
+    hint: '默认均关闭；开启后须全部满足'
+  },
+  {
+    key: 'wcvEnableAllYangGate',
+    label: '全阳门',
+    hint: '日、周、月最后一根K均为阳线（close>open），须全部满足',
+    type: 'switch'
+  },
+  {
+    key: 'wcvEnableMin30Gate',
+    label: 'Min30 突破门',
+    hint: '须满足 30m 跨日桶柱内突破（超短引擎默认参数）',
+    type: 'switch'
+  },
+  {
+    key: 'wcvMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）；0=不启用',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: '突破线',
+    hint: '均未开启时用形态默认（凸=末阳中位，凹=末阳顶）；多开时优先 底>中位>顶'
+  },
+  {
+    key: 'wcvEnableLastHighBreak',
+    label: '末阳顶突破',
+    type: 'switch'
+  },
+  {
+    key: 'wcvEnableLastMedianBreak',
+    label: '末阳中位突破',
+    type: 'switch'
+  },
+  {
+    key: 'wcvEnableLastLowBreak',
+    label: '末阳底突破',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '凸波段档位',
+    hint: '末两波段：末阳high>前波段末阳high；同档K边沿突破'
+  },
+  {
+    key: 'wcvEnableDay',
+    label: '日 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'wcvEnableWeek',
+    label: '周 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'wcvEnableMonth',
+    label: '月 K 波段',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '波段回溯',
+    hint: '各周期向前扫描完整阳波段的最大 K 数'
+  },
+  {
+    key: 'wcvLookbackDay',
+    label: '日 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 120,
+    step: 5,
+    unit: '根'
+  },
+  {
+    key: 'wcvLookbackWeek',
+    label: '周 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 104,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'wcvLookbackMonth',
+    label: '月 K lookback',
+    type: 'slider',
+    min: 12,
+    max: 60,
+    step: 4,
+    unit: '根'
+  }
+];
+
+var WAVECONCAVE_SCHEMA = [
+  {
+    type: 'section',
+    label: '全局门控',
+    hint: '默认均关闭；开启后须全部满足'
+  },
+  {
+    key: 'wccEnableAllYangGate',
+    label: '全阳门',
+    hint: '日、周、月最后一根K均为阳线（close>open），须全部满足',
+    type: 'switch'
+  },
+  {
+    key: 'wccEnableMin30Gate',
+    label: 'Min30 突破门',
+    hint: '须满足 30m 跨日桶柱内突破（超短引擎默认参数）',
+    type: 'switch'
+  },
+  {
+    key: 'wccMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）；0=不启用',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: '突破线',
+    hint: '均未开启时用形态默认（凸=末阳中位，凹=末阳顶）；多开时优先 底>中位>顶'
+  },
+  {
+    key: 'wccEnableLastHighBreak',
+    label: '末阳顶突破',
+    type: 'switch'
+  },
+  {
+    key: 'wccEnableLastMedianBreak',
+    label: '末阳中位突破',
+    type: 'switch'
+  },
+  {
+    key: 'wccEnableLastLowBreak',
+    label: '末阳底突破',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '凹波段档位',
+    hint: '末两波段：末阳high≤前波段末阳high；同档K边沿突破'
+  },
+  {
+    key: 'wccEnableDay',
+    label: '日 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'wccEnableWeek',
+    label: '周 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'wccEnableMonth',
+    label: '月 K 波段',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '波段回溯',
+    hint: '各周期向前扫描完整阳波段的最大 K 数'
+  },
+  {
+    key: 'wccLookbackDay',
+    label: '日 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 120,
+    step: 5,
+    unit: '根'
+  },
+  {
+    key: 'wccLookbackWeek',
+    label: '周 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 104,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'wccLookbackMonth',
+    label: '月 K lookback',
+    type: 'slider',
+    min: 12,
+    max: 60,
+    step: 4,
+    unit: '根'
+  }
+];
+
+var WAVECONVEXDAY_SCHEMA = [
+  {
+    type: 'section',
+    label: '全局门控',
+    hint: '默认均关闭；开启后须全部满足'
+  },
+  {
+    key: 'wcvdEnableAllYangGate',
+    label: '全阳门',
+    hint: '日、周、月最后一根K均为阳线（close>open），须全部满足',
+    type: 'switch'
+  },
+  {
+    key: 'wcvdEnableMin30Gate',
+    label: 'Min30 突破门',
+    hint: '须满足 30m 跨日桶柱内突破（超短引擎默认参数）',
+    type: 'switch'
+  },
+  {
+    key: 'wcvdMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）；0=不启用',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: '突破线',
+    hint: '均未开启时用形态默认（凸=末阳中位，凹=末阳顶）；多开时优先 底>中位>顶'
+  },
+  {
+    key: 'wcvdEnableLastHighBreak',
+    label: '末阳顶突破',
+    type: 'switch'
+  },
+  {
+    key: 'wcvdEnableLastMedianBreak',
+    label: '末阳中位突破',
+    type: 'switch'
+  },
+  {
+    key: 'wcvdEnableLastLowBreak',
+    label: '末阳底突破',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '凸波段档位',
+    hint: '末两波段：末阳high>前波段末阳high；统一日K边沿突破'
+  },
+  {
+    key: 'wcvdEnableDay',
+    label: '日 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'wcvdEnableWeek',
+    label: '周 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'wcvdEnableMonth',
+    label: '月 K 波段',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '波段回溯',
+    hint: '各周期向前扫描完整阳波段的最大 K 数'
+  },
+  {
+    key: 'wcvdLookbackDay',
+    label: '日 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 120,
+    step: 5,
+    unit: '根'
+  },
+  {
+    key: 'wcvdLookbackWeek',
+    label: '周 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 104,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'wcvdLookbackMonth',
+    label: '月 K lookback',
+    type: 'slider',
+    min: 12,
+    max: 60,
+    step: 4,
+    unit: '根'
+  }
+];
+
+var WAVECONCAVEDAY_SCHEMA = [
+  {
+    type: 'section',
+    label: '全局门控',
+    hint: '默认均关闭；开启后须全部满足'
+  },
+  {
+    key: 'wccdEnableAllYangGate',
+    label: '全阳门',
+    hint: '日、周、月最后一根K均为阳线（close>open），须全部满足',
+    type: 'switch'
+  },
+  {
+    key: 'wccdEnableMin30Gate',
+    label: 'Min30 突破门',
+    hint: '须满足 30m 跨日桶柱内突破（超短引擎默认参数）',
+    type: 'switch'
+  },
+  {
+    key: 'wccdMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）；0=不启用',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: '突破线',
+    hint: '均未开启时用形态默认（凸=末阳中位，凹=末阳顶）；多开时优先 底>中位>顶'
+  },
+  {
+    key: 'wccdEnableLastHighBreak',
+    label: '末阳顶突破',
+    type: 'switch'
+  },
+  {
+    key: 'wccdEnableLastMedianBreak',
+    label: '末阳中位突破',
+    type: 'switch'
+  },
+  {
+    key: 'wccdEnableLastLowBreak',
+    label: '末阳底突破',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '凹波段档位',
+    hint: '末两波段：末阳high≤前波段末阳high；统一日K边沿突破'
+  },
+  {
+    key: 'wccdEnableDay',
+    label: '日 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'wccdEnableWeek',
+    label: '周 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'wccdEnableMonth',
+    label: '月 K 波段',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '波段回溯',
+    hint: '各周期向前扫描完整阳波段的最大 K 数'
+  },
+  {
+    key: 'wccdLookbackDay',
+    label: '日 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 120,
+    step: 5,
+    unit: '根'
+  },
+  {
+    key: 'wccdLookbackWeek',
+    label: '周 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 104,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'wccdLookbackMonth',
+    label: '月 K lookback',
+    type: 'slider',
+    min: 12,
+    max: 60,
+    step: 4,
+    unit: '根'
+  }
+];
+
+var CASCADEWAVECONVEX_SCHEMA = [
+  {
+    type: 'section',
+    label: '全局门控',
+    hint: '末阳低门默认开启；全阳门/Min30 默认关闭'
+  },
+  {
+    key: 'cwcvEnableBandLastYangLowGate',
+    label: '末阳低门',
+    hint: '日、周、月收盘价须全部 > 各档末完整波段末阳 K 的 low',
+    type: 'switch'
+  },
+  {
+    key: 'cwcvEnableYangBandTrendGate',
+    label: '趋势门',
+    hint: '按信号档：peak收盘抬升时现价>次末peak高，否则现价>末peak高',
+    type: 'switch'
+  },
+  {
+    key: 'cwcvEnableAllYangGate',
+    label: '全阳门',
+    hint: '日、周、月最后一根K均为阳线（close>open），须全部满足',
+    type: 'switch'
+  },
+  {
+    key: 'cwcvEnableMin30Gate',
+    label: 'Min30 突破门',
+    hint: '须满足 30m 跨日桶柱内突破（超短引擎默认参数）',
+    type: 'switch'
+  },
+  {
+    key: 'cwcvMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）；0=不启用',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: '突破线',
+    hint: '凸=次波段末阳顶，凹=末波段末阳顶（按子策略形态固定）'
+  },
+  {
+    key: 'cwcvEnablePrevBandBreak',
+    label: '前波段末阳顶',
+    hint: '开启后突破线可取倒数第2波段末阳high（已固定按形态，不再生效）',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '级联凸波段档位',
+    hint: '末两波段凸形态 + 级联MACD柱>0；同档K边沿突破'
+  },
+  {
+    key: 'cwcvEnableDay',
+    label: '日 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'cwcvEnableWeek',
+    label: '周 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'cwcvEnableMonth',
+    label: '月 K 波段',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '波段回溯',
+    hint: '各周期向前扫描完整阳波段的最大 K 数'
+  },
+  {
+    key: 'cwcvLookbackDay',
+    label: '日 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 120,
+    step: 5,
+    unit: '根'
+  },
+  {
+    key: 'cwcvLookbackWeek',
+    label: '周 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 104,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'cwcvLookbackMonth',
+    label: '月 K lookback',
+    type: 'slider',
+    min: 12,
+    max: 60,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'cwcvLookbackYear',
+    label: '年 K lookback',
+    hint: '级联MACD月→年档回溯',
+    type: 'slider',
+    min: 8,
+    max: 40,
+    step: 2,
+    unit: '根'
+  }
+];
+
+var CASCADEWAVECONCAVE_SCHEMA = [
+  {
+    type: 'section',
+    label: '全局门控',
+    hint: '末阳低门默认开启；全阳门/Min30 默认关闭'
+  },
+  {
+    key: 'cwcavEnableBandLastYangLowGate',
+    label: '末阳低门',
+    hint: '日、周、月收盘价须全部 > 各档末完整波段末阳 K 的 low',
+    type: 'switch'
+  },
+  {
+    key: 'cwcavEnableYangBandTrendGate',
+    label: '趋势门',
+    hint: '按信号档：peak收盘抬升时现价>次末peak高，否则现价>末peak高',
+    type: 'switch'
+  },
+  {
+    key: 'cwcavEnableAllYangGate',
+    label: '全阳门',
+    hint: '日、周、月最后一根K均为阳线（close>open），须全部满足',
+    type: 'switch'
+  },
+  {
+    key: 'cwcavEnableMin30Gate',
+    label: 'Min30 突破门',
+    hint: '须满足 30m 跨日桶柱内突破（超短引擎默认参数）',
+    type: 'switch'
+  },
+  {
+    key: 'cwcavMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）；0=不启用',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    type: 'section',
+    label: '突破线',
+    hint: '凸=次波段末阳顶，凹=末波段末阳顶（按子策略形态固定）'
+  },
+  {
+    key: 'cwcavEnablePrevBandBreak',
+    label: '前波段末阳顶',
+    hint: '开启后突破线可取倒数第2波段末阳high（已固定按形态，不再生效）',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '级联凹波段档位',
+    hint: '末两波段凹形态 + 级联MACD柱>0；同档K边沿突破'
+  },
+  {
+    key: 'cwcavEnableDay',
+    label: '日 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'cwcavEnableWeek',
+    label: '周 K 波段',
+    type: 'switch'
+  },
+  {
+    key: 'cwcavEnableMonth',
+    label: '月 K 波段',
+    type: 'switch'
+  },
+  {
+    type: 'section',
+    label: '波段回溯',
+    hint: '各周期向前扫描完整阳波段的最大 K 数'
+  },
+  {
+    key: 'cwcavLookbackDay',
+    label: '日 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 120,
+    step: 5,
+    unit: '根'
+  },
+  {
+    key: 'cwcavLookbackWeek',
+    label: '周 K lookback',
+    type: 'slider',
+    min: 20,
+    max: 104,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'cwcavLookbackMonth',
+    label: '月 K lookback',
+    type: 'slider',
+    min: 12,
+    max: 60,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'cwcavLookbackYear',
+    label: '年 K lookback',
+    hint: '级联MACD月→年档回溯',
+    type: 'slider',
+    min: 8,
+    max: 40,
+    step: 2,
+    unit: '根'
+  }
+];
+
+var CASCADEWAVECONVEXDAY_SCHEMA = [
+  { type: 'section', label: '全局门控', hint: '末阳低门默认开启；全阳门/Min30 默认关闭' },
+  { key: 'cwcvdEnableBandLastYangLowGate', label: '末阳低门', hint: '日、周、月收盘价须全部 > 各档末完整波段末阳 K 的 low', type: 'switch' },
+  { key: 'cwcvdEnableYangBandTrendGate', label: '趋势门', hint: '按信号档：peak收盘抬升时现价>次末peak高，否则现价>末peak高', type: 'switch' },
+  { key: 'cwcvdEnableAllYangGate', label: '全阳门', hint: '日、周、月最后一根K均为阳线', type: 'switch' },
+  { key: 'cwcvdEnableMin30Gate', label: 'Min30 突破门', type: 'switch' },
+  { key: 'cwcvdMinAmountWan', label: '最低成交额', hint: '近6日日均成交额（万）；0=不启用', type: 'slider', min: 0, max: 10000, step: 500, unit: '万' },
+  { type: 'section', label: '突破线', hint: '固定末波段末阳顶；可选 OR 前波段末阳顶' },
+  { key: 'cwcvdEnablePrevBandBreak', label: '前波段末阳顶', type: 'switch' },
+  { type: 'section', label: '级联凸波段档位', hint: '末两波段凸形态 + 级联MACD柱>0；统一日K边沿突破' },
+  { key: 'cwcvdEnableDay', label: '日 K 波段', type: 'switch' },
+  { key: 'cwcvdEnableWeek', label: '周 K 波段', type: 'switch' },
+  { key: 'cwcvdEnableMonth', label: '月 K 波段', type: 'switch' },
+  { type: 'section', label: '波段回溯' },
+  { key: 'cwcvdLookbackDay', label: '日 K lookback', type: 'slider', min: 20, max: 120, step: 5, unit: '根' },
+  { key: 'cwcvdLookbackWeek', label: '周 K lookback', type: 'slider', min: 20, max: 104, step: 4, unit: '根' },
+  { key: 'cwcvdLookbackMonth', label: '月 K lookback', type: 'slider', min: 12, max: 60, step: 4, unit: '根' },
+  { key: 'cwcvdLookbackYear', label: '年 K lookback', hint: '级联MACD月→年档回溯', type: 'slider', min: 8, max: 40, step: 2, unit: '根' }
+];
+
+var CASCADEWAVECONCAVEDAY_SCHEMA = [
+  { type: 'section', label: '全局门控', hint: '末阳低门默认开启；全阳门/Min30 默认关闭' },
+  { key: 'cwcadEnableBandLastYangLowGate', label: '末阳低门', hint: '日、周、月收盘价须全部 > 各档末完整波段末阳 K 的 low', type: 'switch' },
+  { key: 'cwcadEnableYangBandTrendGate', label: '趋势门', hint: '按信号档：peak收盘抬升时现价>次末peak高，否则现价>末peak高', type: 'switch' },
+  { key: 'cwcadEnableAllYangGate', label: '全阳门', hint: '日、周、月最后一根K均为阳线', type: 'switch' },
+  { key: 'cwcadEnableMin30Gate', label: 'Min30 突破门', type: 'switch' },
+  { key: 'cwcadMinAmountWan', label: '最低成交额', hint: '近6日日均成交额（万）；0=不启用', type: 'slider', min: 0, max: 10000, step: 500, unit: '万' },
+  { type: 'section', label: '突破线', hint: '固定末波段末阳顶；可选 OR 前波段末阳顶' },
+  { key: 'cwcadEnablePrevBandBreak', label: '前波段末阳顶', type: 'switch' },
+  { type: 'section', label: '级联凹波段档位', hint: '末两波段凹形态 + 级联MACD柱>0；统一日K边沿突破' },
+  { key: 'cwcadEnableDay', label: '日 K 波段', type: 'switch' },
+  { key: 'cwcadEnableWeek', label: '周 K 波段', type: 'switch' },
+  { key: 'cwcadEnableMonth', label: '月 K 波段', type: 'switch' },
+  { type: 'section', label: '波段回溯' },
+  { key: 'cwcadLookbackDay', label: '日 K lookback', type: 'slider', min: 20, max: 120, step: 5, unit: '根' },
+  { key: 'cwcadLookbackWeek', label: '周 K lookback', type: 'slider', min: 20, max: 104, step: 4, unit: '根' },
+  { key: 'cwcadLookbackMonth', label: '月 K lookback', type: 'slider', min: 12, max: 60, step: 4, unit: '根' },
+  { key: 'cwcadLookbackYear', label: '年 K lookback', hint: '级联MACD月→年档回溯', type: 'slider', min: 8, max: 40, step: 2, unit: '根' }
+];
+
 var SCHEMA_BY_STRATEGY = {
   ultra: ULTRA_SCHEMA,
   trend: TREND_SCHEMA,
@@ -852,7 +2079,34 @@ var SCHEMA_BY_STRATEGY = {
   gc2: GC2_SCHEMA,
   dc2: DC2_SCHEMA,
   cascade: CASCADE_SCHEMA,
-  ldip: LDIP_SCHEMA
+  macedge: MACEDGE_SCHEMA,
+  cascadewaveconvex: CASCADEWAVECONVEX_SCHEMA,
+  cascadewaveconcave: CASCADEWAVECONCAVE_SCHEMA,
+  cascadewaveconvexday: CASCADEWAVECONVEXDAY_SCHEMA,
+  cascadewaveconcaveday: CASCADEWAVECONCAVEDAY_SCHEMA,
+  cascadewaveShort: CASCADEWAVE_SHORT_SCHEMA,
+  cascadewaveMedium: CASCADEWAVE_MEDIUM_SCHEMA,
+  cascadewaveLong: CASCADEWAVE_LONG_SCHEMA,
+  macdgc: MGC_SCHEMA,
+  macdgcShort: MGC_SCHEMA,
+  macdgcMedium: MGC_SCHEMA,
+  macdgcLong: MGC_SCHEMA,
+  macdgcwh: MGCWH_SCHEMA,
+  macdgcwhShort: MGCWH_SCHEMA,
+  macdgcwhMedium: MGCWH_SCHEMA,
+  macdgcwhLong: MGCWH_SCHEMA,
+  macdgcwhr: MGCWHR_SCHEMA,
+  macdgcwhrShort: MGCWHR_SCHEMA,
+  macdgcwhrMedium: MGCWHR_SCHEMA,
+  macdgcwhrLong: MGCWHR_SCHEMA,
+  macdgcwhu: MGCWHU_SCHEMA,
+  macdgcwhuShort: MGCWHU_SCHEMA,
+  macdgcwhuMedium: MGCWHU_SCHEMA,
+  macdgcwhuLong: MGCWHU_SCHEMA,
+  macddcb: MDCB_SCHEMA,
+  macddcbShort: MDCB_SCHEMA,
+  macddcbMedium: MDCB_SCHEMA,
+  macddcbLong: MDCB_SCHEMA
 };
 
 var LADDER_TIER_SHORT = 'short';
@@ -997,8 +2251,20 @@ function getFrictionlessGateHeadSchema() {
     hint: '固定：日、周、月须同时满足 MACD>0 或 (MACD≤0 且 当前K.close>前K.high)'
   }, {
     type: 'section',
+    label: 'MACD 死叉高门',
+    hint: '固定：日、周、月须同时满足 MACD>0 或 (MACD≤0 且 本档 close>最近 MACD 死叉 K.high)'
+  }, {
+    type: 'section',
     label: 'MACD 交叉 low 门',
     hint: '固定：现价 > 最近一根 MACD 交叉 K 的 low（金叉或死叉），日、周、月须全部满足'
+  }, {
+    type: 'section',
+    label: '高点递进门',
+    hint: '固定：最后一根 high>倒数第二根 high，或倒数第二根 high>倒数第三根 high，日、周、月须全部满足'
+  }, {
+    type: 'section',
+    label: '全阳门',
+    hint: '固定：日、周、月、年最后一根K均为阳线（close>open），须全部满足'
   }];
 }
 
@@ -1165,7 +2431,9 @@ function schemaWithFrictionlessGate(strategyId, schema) {
   var body = schema || [];
   if (body[0] && body[0].label === '双低支撑门') {
     while (body[0] && (body[0].label === '双低支撑门' || body[0].label === '无阻力 MACD 门'
-        || body[0].label === 'MACD 交叉 low 门')) {
+        || body[0].label === 'MACD 死叉高门' || body[0].label === 'MACD 交叉 low 门'
+        || body[0].label === '高点递进门'
+        || body[0].label === '全阳门')) {
       body = body.slice(1);
     }
   } else if (body[0] && body[0].label === '无阻力 MACD 门') {
@@ -1237,7 +2505,34 @@ var DEFAULTS_BY_STRATEGY = {
   gc2: GC2_DEFAULTS,
   dc2: DC2_DEFAULTS,
   cascade: CASCADE_DEFAULTS,
-  ldip: LDIP_DEFAULTS
+  macedge: MACEDGE_DEFAULTS,
+  cascadewaveconvex: CASCADEWAVECONVEX_DEFAULTS,
+  cascadewaveconcave: CASCADEWAVECONCAVE_DEFAULTS,
+  cascadewaveconvexday: CASCADEWAVECONVEXDAY_DEFAULTS,
+  cascadewaveconcaveday: CASCADEWAVECONCAVEDAY_DEFAULTS,
+  cascadewaveShort: CASCADEWAVE_BUNDLE_DEFAULTS,
+  cascadewaveMedium: CASCADEWAVE_BUNDLE_DEFAULTS,
+  cascadewaveLong: CASCADEWAVE_BUNDLE_DEFAULTS,
+  macdgc: MGC_DEFAULTS,
+  macdgcShort: MGC_DEFAULTS,
+  macdgcMedium: MGC_DEFAULTS,
+  macdgcLong: MGC_DEFAULTS,
+  macdgcwh: MGCWH_DEFAULTS,
+  macdgcwhShort: MGCWH_DEFAULTS,
+  macdgcwhMedium: MGCWH_DEFAULTS,
+  macdgcwhLong: MGCWH_DEFAULTS,
+  macdgcwhr: MGCWHR_DEFAULTS,
+  macdgcwhrShort: MGCWHR_DEFAULTS,
+  macdgcwhrMedium: MGCWHR_DEFAULTS,
+  macdgcwhrLong: MGCWHR_DEFAULTS,
+  macdgcwhu: MGCWHU_DEFAULTS,
+  macdgcwhuShort: MGCWHU_DEFAULTS,
+  macdgcwhuMedium: MGCWHU_DEFAULTS,
+  macdgcwhuLong: MGCWHU_DEFAULTS,
+  macddcb: MDCB_DEFAULTS,
+  macddcbShort: MDCB_DEFAULTS,
+  macddcbMedium: MDCB_DEFAULTS,
+  macddcbLong: MDCB_DEFAULTS
 };
 
 var TIER_PICKER = null;
@@ -1261,6 +2556,21 @@ function resolveApiStrategyId(strategyId) {
   }
   if (strategyId === 'trend' || strategyId === 'medium' || strategyId === 'long') {
     return strategyId;
+  }
+  if (isMacdGoldenCrossStrategy(strategyId)) {
+    return 'macdgc';
+  }
+  if (isMacdGcWaveHighStrategy(strategyId)) {
+    return 'macdgcwh';
+  }
+  if (isMacdGcWaveHighRetestStrategy(strategyId)) {
+    return 'macdgcwhr';
+  }
+  if (isMacdGcWaveHighLiftStrategy(strategyId)) {
+    return 'macdgcwhu';
+  }
+  if (isMacdDcBreakoutStrategy(strategyId)) {
+    return 'macddcb';
   }
   return strategyId;
 }
@@ -1391,12 +2701,190 @@ function cascadePrimaryPeriod(params) {
   return 'day';
 }
 
-function ldipPrimaryPeriod(params) {
+function cascadewaveconvexPrimaryPeriod(params) {
   var p = params || {};
-  if (p.ldEnableMonth) return 'month';
-  if (p.ldEnableWeek) return 'week';
-  if (p.ldEnableDay) return 'day';
+  if (p.cwcvEnableMonth) return 'month';
+  if (p.cwcvEnableWeek) return 'week';
+  if (p.cwcvEnableDay) return 'day';
   return 'day';
+}
+
+function cascadewaveconcavePrimaryPeriod(params) {
+  var p = params || {};
+  if (p.cwcavEnableMonth) return 'month';
+  if (p.cwcavEnableWeek) return 'week';
+  if (p.cwcavEnableDay) return 'day';
+  return 'day';
+}
+
+function cascadewaveconvexdayPrimaryPeriod(params) {
+  var p = params || {};
+  if (p.cwcvdEnableMonth) return 'month';
+  if (p.cwcvdEnableWeek) return 'week';
+  if (p.cwcvdEnableDay) return 'day';
+  return 'day';
+}
+
+function cascadewaveconcavedayPrimaryPeriod(params) {
+  var p = params || {};
+  if (p.cwcadEnableMonth) return 'month';
+  if (p.cwcadEnableWeek) return 'week';
+  if (p.cwcadEnableDay) return 'day';
+  return 'day';
+}
+
+function macedgePrimaryPeriod(params) {
+  var p = params || {};
+  if (p.meEnableYear) return 'year';
+  if (p.meEnableMonth) return 'month';
+  if (p.meEnableWeek) return 'week';
+  if (p.meEnableDay) return 'day';
+  if (p.meEnableMin30) return 'min30';
+  return 'day';
+}
+
+function shortChartPrimaryPeriod() {
+  return 'day';
+}
+
+var CASCADE_TIER_STRATEGIES = {
+  cascadewaveShort: true,
+  cascadewaveMedium: true,
+  cascadewaveLong: true
+};
+
+var MACD_GOLDEN_CROSS_STRATEGIES = {
+  macdgc: true,
+  macdgcShort: true,
+  macdgcMedium: true,
+  macdgcLong: true
+};
+
+var MACD_GC_WAVE_HIGH_STRATEGIES = {
+  macdgcwh: true,
+  macdgcwhShort: true,
+  macdgcwhMedium: true,
+  macdgcwhLong: true
+};
+
+var MACD_GC_WAVE_HIGH_RETEST_STRATEGIES = {
+  macdgcwhr: true,
+  macdgcwhrShort: true,
+  macdgcwhrMedium: true,
+  macdgcwhrLong: true
+};
+
+var MACD_GC_WAVE_HIGH_LIFT_STRATEGIES = {
+  macdgcwhu: true,
+  macdgcwhuShort: true,
+  macdgcwhuMedium: true,
+  macdgcwhuLong: true
+};
+
+var MACD_DC_BREAKOUT_STRATEGIES = {
+  macddcb: true,
+  macddcbShort: true,
+  macddcbMedium: true,
+  macddcbLong: true
+};
+
+function isMacdGoldenCrossStrategy(strategyId) {
+  return !!MACD_GOLDEN_CROSS_STRATEGIES[normalizeStrategyId(strategyId)];
+}
+
+function isMacdGcWaveHighStrategy(strategyId) {
+  return !!MACD_GC_WAVE_HIGH_STRATEGIES[normalizeStrategyId(strategyId)];
+}
+
+function isMacdGcWaveHighRetestStrategy(strategyId) {
+  return !!MACD_GC_WAVE_HIGH_RETEST_STRATEGIES[normalizeStrategyId(strategyId)];
+}
+
+function isMacdGcWaveHighLiftStrategy(strategyId) {
+  return !!MACD_GC_WAVE_HIGH_LIFT_STRATEGIES[normalizeStrategyId(strategyId)];
+}
+
+function isMacdDcBreakoutStrategy(strategyId) {
+  return !!MACD_DC_BREAKOUT_STRATEGIES[normalizeStrategyId(strategyId)];
+}
+
+function mgcTierForStrategy(strategyId) {
+  strategyId = normalizeStrategyId(strategyId);
+  if (strategyId === 'macdgcMedium') return 'week';
+  if (strategyId === 'macdgcLong') return 'month';
+  return 'day';
+}
+
+function mgcPrimaryPeriod(strategyId) {
+  var tier = mgcTierForStrategy(strategyId);
+  if (tier === 'week') return 'week';
+  if (tier === 'month') return 'month';
+  return 'day';
+}
+
+function mgcwhTierForStrategy(strategyId) {
+  strategyId = normalizeStrategyId(strategyId);
+  if (strategyId === 'macdgcwhMedium') return 'week';
+  if (strategyId === 'macdgcwhLong') return 'month';
+  return 'day';
+}
+
+function mgcwhPrimaryPeriod(strategyId) {
+  var tier = mgcwhTierForStrategy(strategyId);
+  if (tier === 'week') return 'week';
+  if (tier === 'month') return 'month';
+  return 'day';
+}
+
+function mgcwhrTierForStrategy(strategyId) {
+  strategyId = normalizeStrategyId(strategyId);
+  if (strategyId === 'macdgcwhrMedium') return 'week';
+  if (strategyId === 'macdgcwhrLong') return 'month';
+  return 'day';
+}
+
+function mgcwhrPrimaryPeriod(strategyId) {
+  var tier = mgcwhrTierForStrategy(strategyId);
+  if (tier === 'week') return 'week';
+  if (tier === 'month') return 'month';
+  return 'day';
+}
+
+function mgcwhuTierForStrategy(strategyId) {
+  strategyId = normalizeStrategyId(strategyId);
+  if (strategyId === 'macdgcwhuMedium') return 'week';
+  if (strategyId === 'macdgcwhuLong') return 'month';
+  return 'day';
+}
+
+function mgcwhuPrimaryPeriod(strategyId) {
+  var tier = mgcwhuTierForStrategy(strategyId);
+  if (tier === 'week') return 'week';
+  if (tier === 'month') return 'month';
+  return 'day';
+}
+
+function mdcbTierForStrategy(strategyId) {
+  strategyId = normalizeStrategyId(strategyId);
+  if (strategyId === 'macddcbMedium') return 'week';
+  if (strategyId === 'macddcbLong') return 'month';
+  return 'day';
+}
+
+function mdcbPrimaryPeriod(strategyId) {
+  var tier = mdcbTierForStrategy(strategyId);
+  if (tier === 'week') return 'week';
+  if (tier === 'month') return 'month';
+  return 'day';
+}
+
+function isCascadeTierStrategy(strategyId) {
+  return !!CASCADE_TIER_STRATEGIES[normalizeStrategyId(strategyId)];
+}
+
+function defaultChartPeriod(strategyId) {
+  strategyId = normalizeStrategyId(strategyId);
+  return chartPrimaryPeriod(strategyId, load(strategyId)) || 'week';
 }
 
 function chartPrimaryPeriod(strategyId, params) {
@@ -1413,7 +2901,29 @@ function chartPrimaryPeriod(strategyId, params) {
   if (strategyId === 'gc2') return gc2PrimaryPeriod(params);
   if (strategyId === 'dc2') return dc2PrimaryPeriod(params);
   if (strategyId === 'cascade') return cascadePrimaryPeriod(params);
-  if (strategyId === 'ldip') return ldipPrimaryPeriod(params);
+  if (strategyId === 'macedge') return macedgePrimaryPeriod(params);
+  if (strategyId === 'cascadewaveconvex') return cascadewaveconvexPrimaryPeriod(params);
+  if (strategyId === 'cascadewaveconcave') return cascadewaveconcavePrimaryPeriod(params);
+  if (strategyId === 'cascadewaveconvexday') return cascadewaveconvexdayPrimaryPeriod(params);
+  if (strategyId === 'cascadewaveconcaveday') return cascadewaveconcavedayPrimaryPeriod(params);
+  if (strategyId === 'cascadewaveShort') return shortChartPrimaryPeriod(params);
+  if (strategyId === 'cascadewaveMedium') return 'week';
+  if (strategyId === 'cascadewaveLong') return 'month';
+  if (isMacdGoldenCrossStrategy(strategyId)) {
+    return mgcPrimaryPeriod(strategyId);
+  }
+  if (isMacdGcWaveHighStrategy(strategyId)) {
+    return mgcwhPrimaryPeriod(strategyId);
+  }
+  if (isMacdGcWaveHighRetestStrategy(strategyId)) {
+    return mgcwhrPrimaryPeriod(strategyId);
+  }
+  if (isMacdGcWaveHighLiftStrategy(strategyId)) {
+    return mgcwhuPrimaryPeriod(strategyId);
+  }
+  if (isMacdDcBreakoutStrategy(strategyId)) {
+    return mdcbPrimaryPeriod(strategyId);
+  }
   return null;
 }
 
@@ -1490,6 +3000,32 @@ function normalize(strategyId, raw) {
       out.caEnableDay = true;
     }
   }
+  if (strategyId === 'macedge') {
+    if (!out.meEnableMin30 && !out.meEnableDay && !out.meEnableWeek
+        && !out.meEnableMonth && !out.meEnableYear) {
+      out.meEnableDay = true;
+    }
+  }
+  if (strategyId === 'cascadewaveconvex') {
+    if (!out.cwcvEnableDay && !out.cwcvEnableWeek && !out.cwcvEnableMonth) {
+      out.cwcvEnableDay = true;
+    }
+  }
+  if (strategyId === 'cascadewaveconcave') {
+    if (!out.cwcavEnableDay && !out.cwcavEnableWeek && !out.cwcavEnableMonth) {
+      out.cwcavEnableDay = true;
+    }
+  }
+  if (strategyId === 'cascadewaveconvexday') {
+    if (!out.cwcvdEnableDay && !out.cwcvdEnableWeek && !out.cwcvdEnableMonth) {
+      out.cwcvdEnableDay = true;
+    }
+  }
+  if (strategyId === 'cascadewaveconcaveday') {
+    if (!out.cwcadEnableDay && !out.cwcadEnableWeek && !out.cwcadEnableMonth) {
+      out.cwcadEnableDay = true;
+    }
+  }
   if (strategyId === 'ultra') {
     if (out.ulRequireDayMacd && out.ulRequireDayMacdNegative) {
       out.ulRequireDayMacdNegative = false;
@@ -1501,6 +3037,15 @@ function normalize(strategyId, raw) {
 /** 当前参数组合可能导致零结果时的提示（供首页空态） */
 function emptyResultHint(strategyId) {
   strategyId = normalizeStrategyId(strategyId);
+  if (strategyId === 'cascadewaveShort') {
+    if (isCustomized('cascadewaveShort')) {
+      return '当前参数无匹配，可点 ⚙ 恢复默认';
+    }
+    return '';
+  }
+  if (strategyId === 'cascadewaveMedium' || strategyId === 'cascadewaveLong') {
+    return isCustomized(strategyId) ? '当前参数无匹配，可点 ⚙ 恢复默认' : '';
+  }
   if (strategyId !== 'ultra') {
     return isCustomized(strategyId) ? '当前参数无匹配，可点 ⚙ 恢复默认' : '';
   }
@@ -1583,6 +3128,60 @@ function toApiParamsFromForm(apiStrategyId, params) {
   return api;
 }
 
+var SUB_API_PREFIX = {
+  cascadewaveconvex: 'cwcv',
+  cascadewaveconcave: 'cwcav',
+  cascadewaveconvexday: 'cwcvd',
+  cascadewaveconcaveday: 'cwcad'
+};
+
+function mapBundleParamsToSubForm(subApiId, bundleParams, tierFlags) {
+  var prefix = SUB_API_PREFIX[subApiId];
+  if (!prefix || !bundleParams) return {};
+  tierFlags = tierFlags || { enableDay: false, enableWeek: false, enableMonth: false };
+  var out = {};
+  out[prefix + 'EnableAllYangGate'] = !!bundleParams.cwbEnableAllYangGate;
+  out[prefix + 'EnableMin30Gate'] = !!bundleParams.cwbEnableMin30Gate;
+  out[prefix + 'EnableBandLastYangLowGate'] = bundleParams.cwbEnableBandLastYangLowGate !== false;
+  out[prefix + 'EnableYangBandTrendGate'] = !!bundleParams.cwbEnableYangBandTrendGate;
+  out[prefix + 'EnablePrevBandBreak'] = !!bundleParams.cwbEnablePrevBandBreak;
+  out[prefix + 'MinAmountWan'] = bundleParams.cwbMinAmountWan != null
+    ? bundleParams.cwbMinAmountWan : 0;
+  out[prefix + 'LookbackDay'] = bundleParams.cwbLookbackDay != null
+    ? bundleParams.cwbLookbackDay : 60;
+  out[prefix + 'LookbackWeek'] = bundleParams.cwbLookbackWeek != null
+    ? bundleParams.cwbLookbackWeek : 52;
+  out[prefix + 'LookbackMonth'] = bundleParams.cwbLookbackMonth != null
+    ? bundleParams.cwbLookbackMonth : 36;
+  out[prefix + 'LookbackYear'] = bundleParams.cwbLookbackYear != null
+    ? bundleParams.cwbLookbackYear : 20;
+  out[prefix + 'EnableDay'] = !!tierFlags.enableDay;
+  out[prefix + 'EnableWeek'] = !!tierFlags.enableWeek;
+  out[prefix + 'EnableMonth'] = !!tierFlags.enableMonth;
+  return out;
+}
+
+function getBundleSubStrategies(virtualId, params) {
+  virtualId = normalizeStrategyId(virtualId);
+  if (virtualId === 'cascadewaveShort') {
+    return ['cascadewaveconvex', 'cascadewaveconcave'];
+  }
+  if (virtualId === 'cascadewaveMedium' || virtualId === 'cascadewaveLong') {
+    return ['cascadewaveconvex', 'cascadewaveconcave'];
+  }
+  return [];
+}
+
+/** 虚拟策略 → 子策略 API 查询参数 */
+function toSubApiParams(virtualId, subApiId) {
+  virtualId = normalizeStrategyId(virtualId);
+  subApiId = normalizeStrategyId(subApiId);
+  var bundleParams = load(virtualId);
+  var tierFlagsCw = require('./cascadewave-bundle').resolveSubTierFlags(virtualId, subApiId);
+  var subForm = normalize(subApiId, mapBundleParamsToSubForm(subApiId, bundleParams, tierFlagsCw));
+  return toApiParamsFromForm(subApiId, subForm);
+}
+
 function toApiParams(strategyId) {
   strategyId = normalizeStrategyId(strategyId);
   if (strategyId === 'nrf') {
@@ -1591,6 +3190,36 @@ function toApiParams(strategyId) {
     return Object.assign(
       { nrfActiveTier: nrfActive },
       toApiParamsFromForm(tierApiId(nrfActive), nrfBundle[nrfActive])
+    );
+  }
+  if (isMacdGoldenCrossStrategy(strategyId)) {
+    return Object.assign(
+      { mgcTier: mgcTierForStrategy(strategyId) },
+      toApiParamsFromForm('macdgc', load(strategyId))
+    );
+  }
+  if (isMacdGcWaveHighStrategy(strategyId)) {
+    return Object.assign(
+      { mgcwhTier: mgcwhTierForStrategy(strategyId) },
+      toApiParamsFromForm('macdgcwh', load(strategyId))
+    );
+  }
+  if (isMacdGcWaveHighRetestStrategy(strategyId)) {
+    return Object.assign(
+      { mgcwhrTier: mgcwhrTierForStrategy(strategyId) },
+      toApiParamsFromForm('macdgcwhr', load(strategyId))
+    );
+  }
+  if (isMacdGcWaveHighLiftStrategy(strategyId)) {
+    return Object.assign(
+      { mgcwhuTier: mgcwhuTierForStrategy(strategyId) },
+      toApiParamsFromForm('macdgcwhu', load(strategyId))
+    );
+  }
+  if (isMacdDcBreakoutStrategy(strategyId)) {
+    return Object.assign(
+      { mdcbTier: mdcbTierForStrategy(strategyId) },
+      toApiParamsFromForm('macddcb', load(strategyId))
     );
   }
   return toApiParamsFromForm(strategyId, load(strategyId));
@@ -1612,6 +3241,13 @@ function tierLabelFrom(picker, tierVal) {
     if (o.value === tierVal) label = o.label.replace(/\(.*\)/, '').trim();
   });
   return label;
+}
+
+function waveBreakLineLabel(p, prefix, convexDefault) {
+  if (p[prefix + 'EnableLastLowBreak']) return '末阳底';
+  if (p[prefix + 'EnableLastMedianBreak']) return '末阳中位';
+  if (p[prefix + 'EnableLastHighBreak']) return '末阳顶';
+  return convexDefault ? '末阳中位' : '末阳顶';
 }
 
 function formatSummary(strategyId) {
@@ -1711,28 +3347,176 @@ function formatSummary(strategyId) {
     var gateParts = [];
     if (p.caEnableDualLowGate) gateParts.push('双低');
     if (p.caEnableMacdGate) gateParts.push('无阻力');
+    if (p.caEnableMacdDcHighGate) gateParts.push('死叉高');
     if (p.caEnableCrossLowGate) gateParts.push('交叉low');
     if (p.caEnableBarHighGate) gateParts.push('高点递');
+    if (p.caEnableAllYangGate) gateParts.push('全阳');
     return (caModes.length ? caModes.join('+') : '未启用') + ' · 级联交叉突破'
       + (gateParts.length ? ' · ' + gateParts.join('+') : '')
       + (p.caMinAmountWan != null && p.caMinAmountWan > 0 ? ' · ' + p.caMinAmountWan + '万' : '')
       + (p.caRequireUltra ? ' · +min30' : '')
       + (p.caEnableAltBreakout ? ' · +前K路径' : '');
   }
-  if (strategyId === 'ldip') {
-    var ldModes = [];
-    if (p.ldEnableDay) ldModes.push('日');
-    if (p.ldEnableWeek) ldModes.push('周');
-    if (p.ldEnableMonth) ldModes.push('月');
-    var ldGateParts = [];
-    if (p.ldEnableDualLowGate) ldGateParts.push('双低');
-    if (p.ldEnableMacdGate) ldGateParts.push('无阻力');
-    if (p.ldEnableCrossLowGate) ldGateParts.push('交叉low');
-    if (p.ldEnableBarHighGate) ldGateParts.push('高点递');
-    return (ldModes.length ? ldModes.join('+') : '未启用') + ' · 级联梯子探底回升'
-      + (ldGateParts.length ? ' · ' + ldGateParts.join('+') : '')
-      + (p.ldMinAmountWan != null && p.ldMinAmountWan > 0 ? ' · ' + p.ldMinAmountWan + '万' : '')
-      + (p.ldRequireUltra ? ' · +min30' : '');
+  if (strategyId === 'macedge') {
+    var meModes = [];
+    if (p.meEnableMin30) meModes.push('Min30');
+    if (p.meEnableDay) meModes.push('日');
+    if (p.meEnableWeek) meModes.push('周');
+    if (p.meEnableMonth) meModes.push('月');
+    if (p.meEnableYear) meModes.push('年');
+    var meGateParts = [];
+    if (p.meEnableDualLowGate) meGateParts.push('双低');
+    if (p.meEnableMacdGate) meGateParts.push('无阻力');
+    if (p.meEnableMacdDcHighGate) meGateParts.push('死叉高');
+    if (p.meEnableCrossLowGate) meGateParts.push('交叉low');
+    if (p.meEnableBarHighGate) meGateParts.push('高点递');
+    if (p.meEnableAllYangGate) meGateParts.push('全阳');
+    return (meModes.length ? meModes.join('+') : '未启用') + ' · MACD交叉边沿突破'
+      + (meGateParts.length ? ' · ' + meGateParts.join('+') : '')
+      + (p.meMinAmountWan != null && p.meMinAmountWan > 0 ? ' · ' + p.meMinAmountWan + '万' : '');
+  }
+  if (strategyId === 'cascadewaveconvex') {
+    var cwcvModes = [];
+    if (p.cwcvEnableDay) cwcvModes.push('日');
+    if (p.cwcvEnableWeek) cwcvModes.push('周');
+    if (p.cwcvEnableMonth) cwcvModes.push('月');
+    var cwcvGateParts = [];
+    if (p.cwcvEnableAllYangGate) cwcvGateParts.push('全阳');
+    if (p.cwcvEnableMin30Gate) cwcvGateParts.push('Min30');
+    if (p.cwcvEnableBandLastYangLowGate !== false) cwcvGateParts.push('末阳低');
+    if (p.cwcvEnableYangBandTrendGate) cwcvGateParts.push('趋势');
+    var cwcvBreak = '次波段末阳顶';
+    return (cwcvModes.length ? cwcvModes.join('+') : '未启用') + ' · 级联凸' + cwcvBreak
+      + (cwcvGateParts.length ? ' · ' + cwcvGateParts.join('+') : '')
+      + (p.cwcvMinAmountWan != null && p.cwcvMinAmountWan > 0 ? ' · ' + p.cwcvMinAmountWan + '万' : '');
+  }
+  if (strategyId === 'cascadewaveconcave') {
+    var cwcavModes = [];
+    if (p.cwcavEnableDay) cwcavModes.push('日');
+    if (p.cwcavEnableWeek) cwcavModes.push('周');
+    if (p.cwcavEnableMonth) cwcavModes.push('月');
+    var cwcavGateParts = [];
+    if (p.cwcavEnableAllYangGate) cwcavGateParts.push('全阳');
+    if (p.cwcavEnableMin30Gate) cwcavGateParts.push('Min30');
+    if (p.cwcavEnableBandLastYangLowGate !== false) cwcavGateParts.push('末阳低');
+    if (p.cwcavEnableYangBandTrendGate) cwcavGateParts.push('趋势');
+    var cwcavBreak = '末波段末阳顶';
+    return (cwcavModes.length ? cwcavModes.join('+') : '未启用') + ' · 级联凹' + cwcavBreak
+      + (cwcavGateParts.length ? ' · ' + cwcavGateParts.join('+') : '')
+      + (p.cwcavMinAmountWan != null && p.cwcavMinAmountWan > 0 ? ' · ' + p.cwcavMinAmountWan + '万' : '');
+  }
+  if (strategyId === 'cascadewaveconvexday') {
+    var cwcvdModes = [];
+    if (p.cwcvdEnableDay) cwcvdModes.push('日');
+    if (p.cwcvdEnableWeek) cwcvdModes.push('周');
+    if (p.cwcvdEnableMonth) cwcvdModes.push('月');
+    var cwcvdGateParts = [];
+    if (p.cwcvdEnableAllYangGate) cwcvdGateParts.push('全阳');
+    if (p.cwcvdEnableMin30Gate) cwcvdGateParts.push('Min30');
+    if (p.cwcvdEnableBandLastYangLowGate !== false) cwcvdGateParts.push('末阳低');
+    if (p.cwcvdEnableYangBandTrendGate) cwcvdGateParts.push('趋势');
+    var cwcvdBreak = '次波段末阳顶';
+    return (cwcvdModes.length ? cwcvdModes.join('+') : '未启用') + ' · 级联凸日' + cwcvdBreak
+      + (cwcvdGateParts.length ? ' · ' + cwcvdGateParts.join('+') : '')
+      + (p.cwcvdMinAmountWan != null && p.cwcvdMinAmountWan > 0 ? ' · ' + p.cwcvdMinAmountWan + '万' : '');
+  }
+  if (strategyId === 'cascadewaveconcaveday') {
+    var cwcadModes = [];
+    if (p.cwcadEnableDay) cwcadModes.push('日');
+    if (p.cwcadEnableWeek) cwcadModes.push('周');
+    if (p.cwcadEnableMonth) cwcadModes.push('月');
+    var cwcadGateParts = [];
+    if (p.cwcadEnableAllYangGate) cwcadGateParts.push('全阳');
+    if (p.cwcadEnableMin30Gate) cwcadGateParts.push('Min30');
+    if (p.cwcadEnableBandLastYangLowGate !== false) cwcadGateParts.push('末阳低');
+    if (p.cwcadEnableYangBandTrendGate) cwcadGateParts.push('趋势');
+    var cwcadBreak = '末波段末阳顶';
+    return (cwcadModes.length ? cwcadModes.join('+') : '未启用') + ' · 级联凹日' + cwcadBreak
+      + (cwcadGateParts.length ? ' · ' + cwcadGateParts.join('+') : '')
+      + (p.cwcadMinAmountWan != null && p.cwcadMinAmountWan > 0 ? ' · ' + p.cwcadMinAmountWan + '万' : '');
+  }
+  if (strategyId === 'cascadewaveShort' || strategyId === 'cascadewaveMedium'
+      || strategyId === 'cascadewaveLong') {
+    var cwbModes = [];
+    if (strategyId === 'cascadewaveShort') {
+      cwbModes.push('同档日');
+    } else if (strategyId === 'cascadewaveMedium') {
+      cwbModes.push('同档周');
+    } else {
+      cwbModes.push('同档月');
+    }
+    var cwbGateParts = [];
+    if (p.cwbEnableAllYangGate) cwbGateParts.push('全阳');
+    if (p.cwbEnableMin30Gate) cwbGateParts.push('Min30');
+    if (p.cwbEnableBandLastYangLowGate !== false) cwbGateParts.push('末阳低');
+    if (p.cwbEnableYangBandTrendGate) cwbGateParts.push('趋势');
+    var cwbBreak = '凸次波段/凹末波段';
+    var cwbTitle = strategyId === 'cascadewaveShort' ? '级联短线'
+      : strategyId === 'cascadewaveMedium' ? '级联中线' : '级联长线';
+    return (cwbModes.length ? cwbModes.join('+') : '未启用') + ' · ' + cwbTitle + cwbBreak
+      + (cwbGateParts.length ? ' · ' + cwbGateParts.join('+') : '')
+      + (p.cwbMinAmountWan != null && p.cwbMinAmountWan > 0 ? ' · ' + p.cwbMinAmountWan + '万' : '');
+  }
+  if (isMacdGoldenCrossStrategy(strategyId)) {
+    var mgcLabel = mgcTierForStrategy(strategyId) === 'week' ? '周档'
+      : mgcTierForStrategy(strategyId) === 'month' ? '月档' : '日档';
+    var mgcParts = [mgcLabel + 'MACD金叉'];
+    if (p.mgcEnableMinAmountFilter !== false) {
+      mgcParts.push((p.mgcMinAmountWan != null ? p.mgcMinAmountWan : 3000) + '万');
+    }
+    if (p.mgcEnableSignalRiseGate !== false) {
+      mgcParts.push('末K>' + (p.mgcSignalRisePct != null ? p.mgcSignalRisePct : 3) + '%');
+    }
+    if (p.mgcEnableHistoryRiseGate !== false) {
+      mgcParts.push('近' + (p.mgcHistoryLookbackBars != null ? p.mgcHistoryLookbackBars : 5)
+        + '根>' + (p.mgcHistoryRisePct != null ? p.mgcHistoryRisePct : 3) + '%');
+    }
+    return mgcParts.join(' · ');
+  }
+  if (isMacdGcWaveHighStrategy(strategyId)) {
+    var mgcwhLabel = mgcwhTierForStrategy(strategyId) === 'week' ? '周档'
+      : mgcwhTierForStrategy(strategyId) === 'month' ? '月档' : '日档';
+    var mgcwhParts = [mgcwhLabel + 'MACD金叉波段High突破'];
+    if (p.mgcwhEnableMinAmountFilter !== false) {
+      mgcwhParts.push((p.mgcwhMinAmountWan != null ? p.mgcwhMinAmountWan : 3000) + '万');
+    }
+    if (p.mgcwhEnableSignalRiseGate !== false) {
+      mgcwhParts.push('末K>' + (p.mgcwhSignalRisePct != null ? p.mgcwhSignalRisePct : 3) + '%');
+    }
+    return mgcwhParts.join(' · ');
+  }
+  if (isMacdGcWaveHighRetestStrategy(strategyId)) {
+    var mgcwhrLabel = mgcwhrTierForStrategy(strategyId) === 'week' ? '周档'
+      : mgcwhrTierForStrategy(strategyId) === 'month' ? '月档' : '日档';
+    var mgcwhrParts = [mgcwhrLabel + 'MACD金叉波段High回踩', '振幅≤1%'];
+    if (p.mgcwhrEnableMinAmountFilter !== false) {
+      mgcwhrParts.push((p.mgcwhrMinAmountWan != null ? p.mgcwhrMinAmountWan : 3000) + '万');
+    }
+    return mgcwhrParts.join(' · ');
+  }
+  if (isMacdGcWaveHighLiftStrategy(strategyId)) {
+    var mgcwhuLabel = mgcwhuTierForStrategy(strategyId) === 'week' ? '周档'
+      : mgcwhuTierForStrategy(strategyId) === 'month' ? '月档' : '日档';
+    var mgcwhuParts = [mgcwhuLabel + 'MACD金叉波段High上移', '首次上移前K high'];
+    if (p.mgcwhuEnableMinAmountFilter !== false) {
+      mgcwhuParts.push((p.mgcwhuMinAmountWan != null ? p.mgcwhuMinAmountWan : 3000) + '万');
+    }
+    if (p.mgcwhuEnableSignalRiseGate !== false) {
+      mgcwhuParts.push('末K>' + (p.mgcwhuSignalRisePct != null ? p.mgcwhuSignalRisePct : 3) + '%');
+    }
+    return mgcwhuParts.join(' · ');
+  }
+  if (isMacdDcBreakoutStrategy(strategyId)) {
+    var mdcbLabel = mdcbTierForStrategy(strategyId) === 'week' ? '周档'
+      : mdcbTierForStrategy(strategyId) === 'month' ? '月档' : '日档';
+    var mdcbParts = [mdcbLabel + 'MACD死叉突破', '突破死叉K前一根K high'];
+    if (p.mdcbEnableMinAmountFilter !== false) {
+      mdcbParts.push((p.mdcbMinAmountWan != null ? p.mdcbMinAmountWan : 3000) + '万');
+    }
+    if (p.mdcbEnableSignalRiseGate !== false) {
+      mdcbParts.push('末K>' + (p.mdcbSignalRisePct != null ? p.mdcbSignalRisePct : 3) + '%');
+    }
+    return mdcbParts.join(' · ');
   }
   if (strategyId === 'ultra') {
     var macdParts = [];
@@ -1742,7 +3526,7 @@ function formatSummary(strategyId) {
     if (p.ulRequireMonthMacdNegative) macdParts.push('月MACD<0');
     var amountPart = (p.ulMinAmountWan != null ? p.ulMinAmountWan : 5000) + '万';
     var sigPart = p.ulRequireCurrentBreakout ? '当前K突破' : '当日有突破';
-    return '四门全局 · ' + amountPart + ' · ' + sigPart
+    return '六门全局 · ' + amountPart + ' · ' + sigPart
       + (macdParts.length ? ' · ' + macdParts.join('+') : '');
   }
   return '';
@@ -1761,6 +3545,8 @@ module.exports = {
   save: save,
   reset: reset,
   toApiParams: toApiParams,
+  toSubApiParams: toSubApiParams,
+  getBundleSubStrategies: getBundleSubStrategies,
   isCustomized: isCustomized,
   formatSummary: formatSummary,
   emptyResultHint: emptyResultHint,
@@ -1774,7 +3560,13 @@ module.exports = {
   gc2PrimaryPeriod: gc2PrimaryPeriod,
   dc2PrimaryPeriod: dc2PrimaryPeriod,
   cascadePrimaryPeriod: cascadePrimaryPeriod,
-  ldipPrimaryPeriod: ldipPrimaryPeriod,
-  chartPrimaryPeriod: chartPrimaryPeriod
+  chartPrimaryPeriod: chartPrimaryPeriod,
+  isCascadeTierStrategy: isCascadeTierStrategy,
+  isMacdGoldenCrossStrategy: isMacdGoldenCrossStrategy,
+  isMacdGcWaveHighStrategy: isMacdGcWaveHighStrategy,
+  isMacdGcWaveHighRetestStrategy: isMacdGcWaveHighRetestStrategy,
+  isMacdGcWaveHighLiftStrategy: isMacdGcWaveHighLiftStrategy,
+  isMacdDcBreakoutStrategy: isMacdDcBreakoutStrategy,
+  defaultChartPeriod: defaultChartPeriod
 };
 

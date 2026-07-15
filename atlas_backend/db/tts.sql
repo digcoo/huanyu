@@ -428,4 +428,124 @@ CREATE TABLE `yeark` (
   PRIMARY KEY (`code`,`day`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- ----------------------------
+--  K-line as-of snapshots (方案 B)
+-- ----------------------------
+DROP TABLE IF EXISTS `day_snapshot`;
+CREATE TABLE `day_snapshot` (
+  `as_of_day` date NOT NULL COMMENT '快照截止交易日',
+  `code` varchar(10) NOT NULL,
+  `bar_day` date NOT NULL COMMENT '日K交易日',
+  `name` varchar(20) DEFAULT NULL,
+  `open` double DEFAULT NULL,
+  `high` double DEFAULT NULL,
+  `low` double DEFAULT NULL,
+  `close` double DEFAULT NULL,
+  `prev_close` double DEFAULT NULL,
+  `volume` bigint(20) DEFAULT NULL,
+  `amount` double DEFAULT NULL,
+  `percent` double DEFAULT NULL,
+  `in_progress` tinyint(1) NOT NULL DEFAULT 0,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`code`,`as_of_day`,`bar_day`),
+  KEY `idx_code_asof` (`code`,`as_of_day`),
+  KEY `idx_asof_code` (`as_of_day`,`code`),
+  KEY `idx_asof_day` (`as_of_day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='日K时点快照';
+
+DROP TABLE IF EXISTS `week_snapshot`;
+CREATE TABLE `week_snapshot` (
+  `as_of_day` date NOT NULL,
+  `code` varchar(10) NOT NULL,
+  `bar_day` date NOT NULL COMMENT '周K锚点(周五)',
+  `name` varchar(20) DEFAULT NULL,
+  `open` double DEFAULT NULL,
+  `high` double DEFAULT NULL,
+  `low` double DEFAULT NULL,
+  `close` double DEFAULT NULL,
+  `prev_close` double DEFAULT NULL,
+  `volume` bigint(20) DEFAULT NULL,
+  `amount` double DEFAULT NULL,
+  `percent` double DEFAULT NULL,
+  `in_progress` tinyint(1) NOT NULL DEFAULT 0,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`code`,`as_of_day`,`bar_day`),
+  KEY `idx_code_asof` (`code`,`as_of_day`),
+  KEY `idx_asof_code` (`as_of_day`,`code`),
+  KEY `idx_asof_day` (`as_of_day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='周K时点快照';
+
+DROP TABLE IF EXISTS `month_snapshot`;
+CREATE TABLE `month_snapshot` (
+  `as_of_day` date NOT NULL,
+  `code` varchar(10) NOT NULL,
+  `bar_day` date NOT NULL COMMENT '月K锚点(月末)',
+  `name` varchar(20) DEFAULT NULL,
+  `open` double DEFAULT NULL,
+  `high` double DEFAULT NULL,
+  `low` double DEFAULT NULL,
+  `close` double DEFAULT NULL,
+  `prev_close` double DEFAULT NULL,
+  `volume` bigint(20) DEFAULT NULL,
+  `amount` double DEFAULT NULL,
+  `percent` double DEFAULT NULL,
+  `in_progress` tinyint(1) NOT NULL DEFAULT 0,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`code`,`as_of_day`,`bar_day`),
+  KEY `idx_code_asof` (`code`,`as_of_day`),
+  KEY `idx_asof_code` (`as_of_day`,`code`),
+  KEY `idx_asof_day` (`as_of_day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='月K时点快照';
+
+DROP TABLE IF EXISTS `year_snapshot`;
+CREATE TABLE `year_snapshot` (
+  `as_of_day` date NOT NULL,
+  `code` varchar(10) NOT NULL,
+  `bar_day` date NOT NULL COMMENT '年K锚点(年末)',
+  `name` varchar(20) DEFAULT NULL,
+  `open` double DEFAULT NULL,
+  `high` double DEFAULT NULL,
+  `low` double DEFAULT NULL,
+  `close` double DEFAULT NULL,
+  `prev_close` double DEFAULT NULL,
+  `volume` bigint(20) DEFAULT NULL,
+  `amount` double DEFAULT NULL,
+  `percent` double DEFAULT NULL,
+  `in_progress` tinyint(1) NOT NULL DEFAULT 0,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`code`,`as_of_day`,`bar_day`),
+  KEY `idx_code_asof` (`code`,`as_of_day`),
+  KEY `idx_asof_code` (`as_of_day`,`code`),
+  KEY `idx_asof_day` (`as_of_day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='年K时点快照';
+
+DROP TABLE IF EXISTS `backtest_dayk`;
+CREATE TABLE `backtest_dayk` (
+  `day` date NOT NULL,
+  `code` varchar(10) NOT NULL,
+  `name` varchar(20) DEFAULT NULL,
+  `open` double DEFAULT NULL,
+  `high` double DEFAULT NULL,
+  `low` double DEFAULT NULL,
+  `close` double DEFAULT NULL,
+  `prev_close` double DEFAULT NULL,
+  `volume` bigint(20) DEFAULT NULL,
+  `amount` double DEFAULT NULL,
+  `ma5` double DEFAULT NULL,
+  `ma10` double DEFAULT NULL,
+  `ma20` double DEFAULT NULL,
+  `ma30` double DEFAULT NULL,
+  `ma60` double DEFAULT NULL,
+  `ma120` double DEFAULT NULL,
+  `cross_params` varchar(512) DEFAULT NULL,
+  `turnover_rate` double DEFAULT NULL,
+  `percent` double DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`code`,`day`),
+  KEY `idx_code` (`code`),
+  KEY `idx_day` (`day`),
+  KEY `idx_code_day` (`code`,`day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='回测专用日K(雪球)';
+
 SET FOREIGN_KEY_CHECKS = 1;

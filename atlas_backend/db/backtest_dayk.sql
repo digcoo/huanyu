@@ -1,0 +1,28 @@
+-- 回测专用日 K 表（与线上 dayk 隔离，由雪球爬虫写入）
+CREATE TABLE IF NOT EXISTS `backtest_dayk` (
+  `day` date NOT NULL,
+  `code` varchar(10) NOT NULL,
+  `name` varchar(20) DEFAULT NULL,
+  `open` double DEFAULT NULL,
+  `high` double DEFAULT NULL,
+  `low` double DEFAULT NULL,
+  `close` double DEFAULT NULL,
+  `prev_close` double DEFAULT NULL,
+  `volume` bigint(20) DEFAULT NULL,
+  `amount` double DEFAULT NULL,
+  `ma5` double DEFAULT NULL,
+  `ma10` double DEFAULT NULL,
+  `ma20` double DEFAULT NULL,
+  `ma30` double DEFAULT NULL,
+  `ma60` double DEFAULT NULL,
+  `ma120` double DEFAULT NULL,
+  `cross_params` varchar(512) DEFAULT NULL,
+  `turnover_rate` double DEFAULT NULL,
+  `percent` double DEFAULT NULL,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`code`, `day`),
+  KEY `idx_code` (`code`),
+  KEY `idx_day` (`day`),
+  KEY `idx_code_day` (`code`, `day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='回测专用日K(雪球)';

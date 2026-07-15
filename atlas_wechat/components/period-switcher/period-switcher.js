@@ -6,6 +6,13 @@ const PERIODS = [
   { id: 'min30', label: '30分' }
 ];
 
+function filterPeriods(allowed) {
+  if (!allowed || !allowed.length) return PERIODS;
+  var map = {};
+  allowed.forEach(function (id) { map[id] = true; });
+  return PERIODS.filter(function (item) { return map[item.id]; });
+}
+
 Component({
   properties: {
     activePeriod: {
@@ -15,6 +22,10 @@ Component({
     flipped: {
       type: Boolean,
       value: false
+    },
+    allowedPeriods: {
+      type: Array,
+      value: []
     }
   },
 
@@ -22,12 +33,24 @@ Component({
     periods: PERIODS
   },
 
+  observers: {
+    allowedPeriods: function (allowed) {
+      this.setData({ periods: filterPeriods(allowed) });
+    }
+  },
+
+  lifetimes: {
+    attached: function () {
+      this.setData({ periods: filterPeriods(this.properties.allowedPeriods) });
+    }
+  },
+
   methods: {
     onTap(e) {
       const id = e.currentTarget.dataset.id;
-      if (id !== this.data.activePeriod) {
-        this.triggerEvent('change', { period: id });
-      }
+      if (!id) return;
+      // 允许重复点击当前周期（如短线默认日K）以触发 K 线刷新
+      this.triggerEvent('change', { period: id });
     },
 
     onFlip() {

@@ -177,6 +177,64 @@ public class AtlasDbSchemaInitializer implements ApplicationRunner {
             + "  PRIMARY KEY (`code`,`day`)"
             + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='30分钟K线'";
 
+    private static final String CREATE_DAY_SNAPSHOT = createKlineSnapshotTable("day_snapshot", "日K时点快照", "日K恒为0");
+    private static final String CREATE_WEEK_SNAPSHOT = createKlineSnapshotTable("week_snapshot", "周K时点快照", "1=进行中周K");
+    private static final String CREATE_MONTH_SNAPSHOT = createKlineSnapshotTable("month_snapshot", "月K时点快照", "1=进行中月K");
+    private static final String CREATE_YEAR_SNAPSHOT = createKlineSnapshotTable("year_snapshot", "年K时点快照", "1=进行中年K");
+
+    private static final String CREATE_BACKTEST_DAYK = ""
+            + "CREATE TABLE IF NOT EXISTS `backtest_dayk` ("
+            + "  `day` date NOT NULL,"
+            + "  `code` varchar(10) NOT NULL,"
+            + "  `name` varchar(20) DEFAULT NULL,"
+            + "  `open` double DEFAULT NULL,"
+            + "  `high` double DEFAULT NULL,"
+            + "  `low` double DEFAULT NULL,"
+            + "  `close` double DEFAULT NULL,"
+            + "  `prev_close` double DEFAULT NULL,"
+            + "  `volume` bigint(20) DEFAULT NULL,"
+            + "  `amount` double DEFAULT NULL,"
+            + "  `ma5` double DEFAULT NULL,"
+            + "  `ma10` double DEFAULT NULL,"
+            + "  `ma20` double DEFAULT NULL,"
+            + "  `ma30` double DEFAULT NULL,"
+            + "  `ma60` double DEFAULT NULL,"
+            + "  `ma120` double DEFAULT NULL,"
+            + "  `cross_params` varchar(512) DEFAULT NULL,"
+            + "  `turnover_rate` double DEFAULT NULL,"
+            + "  `percent` double DEFAULT NULL,"
+            + "  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,"
+            + "  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
+            + "  PRIMARY KEY (`code`, `day`),"
+            + "  KEY `idx_code` (`code`),"
+            + "  KEY `idx_day` (`day`),"
+            + "  KEY `idx_code_day` (`code`, `day`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='回测专用日K(雪球)'";
+
+    private static String createKlineSnapshotTable(String table, String tableComment, String inProgressComment) {
+        return ""
+                + "CREATE TABLE IF NOT EXISTS `" + table + "` ("
+                + "  `as_of_day` date NOT NULL COMMENT '快照截止交易日',"
+                + "  `code` varchar(10) NOT NULL,"
+                + "  `bar_day` date NOT NULL COMMENT 'K线锚点日',"
+                + "  `name` varchar(20) DEFAULT NULL,"
+                + "  `open` double DEFAULT NULL,"
+                + "  `high` double DEFAULT NULL,"
+                + "  `low` double DEFAULT NULL,"
+                + "  `close` double DEFAULT NULL,"
+                + "  `prev_close` double DEFAULT NULL,"
+                + "  `volume` bigint(20) DEFAULT NULL,"
+                + "  `amount` double DEFAULT NULL,"
+                + "  `percent` double DEFAULT NULL,"
+                + "  `in_progress` tinyint(1) NOT NULL DEFAULT 0 COMMENT '" + inProgressComment + "',"
+                + "  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,"
+                + "  PRIMARY KEY (`code`, `as_of_day`, `bar_day`),"
+                + "  KEY `idx_code_asof` (`code`, `as_of_day`),"
+                + "  KEY `idx_asof_code` (`as_of_day`, `code`),"
+                + "  KEY `idx_asof_day` (`as_of_day`)"
+                + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='" + tableComment + "'";
+    }
+
     private static final String[][] BASE_COLUMNS = {
             {"industry", "varchar(64) DEFAULT NULL COMMENT '申万行业末级'"},
             {"industry_csrc", "varchar(128) DEFAULT NULL COMMENT '证监会行业'"},
@@ -218,11 +276,16 @@ public class AtlasDbSchemaInitializer implements ApplicationRunner {
             stmt.execute(CREATE_USER_WATCHLIST);
             stmt.execute(CREATE_USER_WATCH_HISTORY);
             stmt.execute(CREATE_MIN30K);
+            stmt.execute(CREATE_DAY_SNAPSHOT);
+            stmt.execute(CREATE_WEEK_SNAPSHOT);
+            stmt.execute(CREATE_MONTH_SNAPSHOT);
+            stmt.execute(CREATE_YEAR_SNAPSHOT);
+            stmt.execute(CREATE_BACKTEST_DAYK);
             migrateBaseColumns(conn);
             dropBaseMaColumns(conn);
             migrateAnnualReportUnique(conn);
             migratePriceColumnNames(conn);
-            log.info("AtlasDbSchemaInitializer: schema ready (annual, target, relation, benchmark, min30k, base columns, price columns)");
+            log.info("AtlasDbSchemaInitializer: schema ready (annual, target, relation, benchmark, min30k, kline snapshots, backtest_dayk, base columns, price columns)");
         } catch (Exception e) {
             log.error("AtlasDbSchemaInitializer failed", e);
             throw e;

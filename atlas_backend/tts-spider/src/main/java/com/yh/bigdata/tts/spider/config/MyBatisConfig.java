@@ -19,7 +19,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.TransactionManagementConfigurer;
 
-import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInterceptor;
 import com.yh.bigdata.tts.spider.datasource.CmsDataSource;
 
 @Configuration
@@ -36,14 +36,15 @@ public class MyBatisConfig implements TransactionManagementConfigurer {
 		SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
 		bean.setDataSource(this.dataSource);
 		bean.setTypeAliasesPackage("com.yh.bigdata.tts.common.model");
-		PageHelper pageHelper = new PageHelper();
+		PageInterceptor pageInterceptor = new PageInterceptor();
 		Properties props = new Properties();
 		props.setProperty("reasonable", "true");
 		props.setProperty("supportMethodsArguments", "true");
 		props.setProperty("returnPageInfo", "check");
 		props.setProperty("params", "count=countSql");
-		pageHelper.setProperties(props);
-		bean.setPlugins(new Interceptor[] { pageHelper });
+		props.setProperty("helperDialect", "mysql");
+		pageInterceptor.setProperties(props);
+		bean.setPlugins(new Interceptor[] { pageInterceptor });
 		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 		try {
 			bean.setMapperLocations(resolver.getResources("classpath:mapper/*.xml"));
@@ -64,17 +65,5 @@ public class MyBatisConfig implements TransactionManagementConfigurer {
 	public PlatformTransactionManager annotationDrivenTransactionManager() {
 		return new DataSourceTransactionManager(this.dataSource);
 	}
-	
-    @Bean
-    public PageHelper pageHelper(){
-        PageHelper pageHelper = new PageHelper();
-        Properties properties = new Properties();
-        properties.setProperty("offsetAsPageNum","true");
-        properties.setProperty("rowBoundsWithCount","true");
-        properties.setProperty("reasonable","true");
-        properties.setProperty("dialect","mysql");    //配置mysql数据库的方言
-        pageHelper.setProperties(properties);
-        return pageHelper;
-    }
-    
+
 }

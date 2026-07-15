@@ -31,6 +31,27 @@ public class XueQiuHttpUtils {
 	}
 
 
+    /** 返回 K 线 JSON 中最早一根 bar 的时间戳（毫秒），用于分页向前翻页。 */
+    public static Long extractOldestTimestampMs(String json) {
+        try {
+            JSONArray jsonArray = JSON.parseObject(json).getJSONObject("data").getJSONArray("item");
+            if (jsonArray == null || jsonArray.isEmpty()) {
+                return null;
+            }
+            long min = Long.MAX_VALUE;
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JSONArray item = jsonArray.getJSONArray(i);
+                if (item != null && !item.isEmpty()) {
+                    min = Math.min(min, item.getLong(0));
+                }
+            }
+            return min == Long.MAX_VALUE ? null : min;
+        } catch (Exception e) {
+            logger.error("extractOldestTimestampMs failed", e);
+            return null;
+        }
+    }
+
     public static <T extends Trade> List<T> parseStockTrades(String json, StockBase stockBase, Class<T> clazz) {
 
         try {

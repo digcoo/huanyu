@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.DaySnapshotMapper">
+
+  <resultMap id="BaseResultMap" type="com.yh.bigdata.tts.common.model.KlineSnapshotBar">
+    <result column="as_of_day" property="asOfDay" jdbcType="DATE"/>
+    <result column="code" property="code" jdbcType="VARCHAR"/>
+    <result column="bar_day" property="barDay" jdbcType="DATE"/>
+    <result column="name" property="name" jdbcType="VARCHAR"/>
+    <result column="open" property="open" jdbcType="DOUBLE"/>
+    <result column="high" property="high" jdbcType="DOUBLE"/>
+    <result column="low" property="low" jdbcType="DOUBLE"/>
+    <result column="close" property="close" jdbcType="DOUBLE"/>
+    <result column="prev_close" property="prevClose" jdbcType="DOUBLE"/>
+    <result column="volume" property="volume" jdbcType="BIGINT"/>
+    <result column="amount" property="amount" jdbcType="DOUBLE"/>
+    <result column="percent" property="percent" jdbcType="DOUBLE"/>
+    <result column="in_progress" property="inProgress" jdbcType="TINYINT"/>
+  </resultMap>
+
+  <delete id="deleteByCodeAndAsOfDay">
+    delete from day_snapshot where code = #{code} and as_of_day = #{asOfDay}
+  </delete>
+
+  <delete id="deleteByAsOfDay">
+    delete from day_snapshot where as_of_day = #{asOfDay}
+  </delete>
+
+  <insert id="insertBatch">
+    insert into day_snapshot
+      (as_of_day, code, bar_day, name, open, high, low, `close`, prev_close, volume, amount, percent, in_progress, create_time)
+    values
+    <foreach collection="list" item="item" separator=",">
+      (#{item.asOfDay}, #{item.code}, #{item.barDay}, #{item.name}, #{item.open}, #{item.high}, #{item.low},
+       #{item.close}, #{item.prevClose}, #{item.volume}, #{item.amount}, #{item.percent},
+       #{item.inProgress,jdbcType=TINYINT}, now())
+    </foreach>
+  </insert>
+
+  <select id="selectByCodeAndAsOfDay" resultMap="BaseResultMap">
+    select as_of_day, code, bar_day, name, open, high, low, `close`, prev_close, volume, amount, percent, in_progress
+    from day_snapshot
+    where code = #{code} and as_of_day = #{asOfDay}
+    order by bar_day asc
+  </select>
+
+  <select id="countByCodeAndAsOfDay" resultType="int">
+    select count(*) from day_snapshot where code = #{code} and as_of_day = #{asOfDay}
+  </select>
+
+</mapper>

@@ -153,6 +153,9 @@ public class StockTargetScheduler {
                     if (!checkResult.isSuccess()) {
                         continue;
                     }
+                    if (!passesRecommendDisplayFilter(stockBase)) {
+                        continue;
+                    }
                     if (!forceUpdate && lastDay != null && lastDay.equals(stockBase.getDay())) {
                         continue;
                     }
@@ -170,6 +173,21 @@ public class StockTargetScheduler {
                 }
             }
             return saved;
+    }
+
+    /** 与 StockBaseController#doQuery 展示过滤保持一致，避免 rescan 计数与 findMy 列表不一致 */
+    private static boolean passesRecommendDisplayFilter(StockBase stock) {
+        if (stock == null) {
+            return false;
+        }
+        String name = stock.getName() != null ? stock.getName() : "";
+        String code = stock.getCode() != null ? stock.getCode() : "";
+        return Boolean.TRUE.equals(stock.getIsTrade())
+                && !code.startsWith("sz1")
+                && !code.startsWith("sh688")
+                && !code.contains("bj")
+                && !name.contains("退")
+                && !name.contains("债");
     }
 
     private StockTarget buildStockTarget(StockBase stockBase, CheckResult checkResult) {

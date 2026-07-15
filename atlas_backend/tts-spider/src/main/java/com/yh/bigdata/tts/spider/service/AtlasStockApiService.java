@@ -47,6 +47,26 @@ public interface AtlasStockApiService {
 
     AtlasGc2MarkersVo getLdipMarkers(String code, String period);
 
+    AtlasGc2MarkersVo getMacdEdgeMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getWaveconvexMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getWaveconcaveMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getWaveconvexdayMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getWaveconcavedayMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getCascadewaveconvexMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getCascadewaveconcaveMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getCascadewaveconvexdayMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getCascadewaveconcavedayMarkers(String code, String period);
+
+    AtlasGc2MarkersVo getWavebandMarkers(String code, String period);
+
     AtlasGc2MarkersVo getNrfMarkers(String code, String period, FrictionlessLadderStrategyParams nrfParams,
                                       TrendV2StrategyParams trendParams, MediumStrategyParams mediumParams,
                                       LongStrategyParams longParams);

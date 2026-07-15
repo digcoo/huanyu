@@ -60,10 +60,11 @@
 
     <view class="toolbar-inner">
 
-      <strategy-tabs
-        strategies="{{strategies}}"
-        activeStrategy="{{activeStrategy}}"
-        bind:change="onStrategyChange"
+      <strategy-nav
+        activeFamily="{{activeStrategyFamily}}"
+        activeTier="{{activeCascadeTier}}"
+        bind:familychange="onStrategyFamilyChange"
+        bind:tierchange="onStrategyTierChange"
       />
 
       <view class="period-bar">
@@ -73,6 +74,8 @@
           activePeriod="{{activePeriod}}"
 
           flipped="{{klineFlipped}}"
+
+          allowedPeriods="{{allowedPeriods}}"
 
           bind:change="onPeriodChange"
 
@@ -94,7 +97,7 @@
 
       <view class="list-header-main">
         <view class="list-title-row">
-          <text class="list-subtitle">Atlas 推荐</text>
+          <text class="list-subtitle">{{strategyTitle}}</text>
           <text wx:if="{{!loading}}" class="list-total">共 {{totalCount}} 条{{recommendations.length > 0 && recommendations.length < totalCount ? ' · 已显示 ' + recommendations.length : ''}}</text>
         </view>
       </view>
@@ -123,21 +126,7 @@
       <text class="empty-text">加载推荐中…</text>
     </view>
 
-    <view wx:elif="{{recommendations.length === 0}}" class="empty-state">
-
-      <text class="empty-icon">📭</text>
-
-      <text class="empty-text">{{totalCount > 0 ? '当前可见列表为空' : '暂无推荐'}}</text>
-
-      <text class="empty-hint">{{emptyHint || (totalCount > 0 ? '可能已全部忽略，可清除忽略记录' : '切换市场查看更多标的')}}</text>
-
-      <view wx:if="{{totalCount > 0 && recommendations.length === 0}}" class="empty-action" bindtap="onClearIgnored">
-        <text>清除忽略记录</text>
-      </view>
-
-    </view>
-
-
+    <block wx:elif="{{recommendations.length > 0}}">
 
     <strategy-card
 
@@ -153,11 +142,21 @@
 
       bind:watchlist="onAddWatchlist"
 
-      bind:ignore="onIgnore"
-
       bind:cardtap="onCardTap"
 
     />
+
+    </block>
+
+    <view wx:else class="empty-state">
+
+      <text class="empty-icon">📭</text>
+
+      <text class="empty-text">{{totalCount > 0 ? '当前可见列表为空' : '暂无推荐'}}</text>
+
+      <text class="empty-hint">{{emptyHint || '切换市场查看更多标的'}}</text>
+
+    </view>
 
 
 
@@ -169,7 +168,7 @@
       <text wx:if="{{rescanning}}">重跑中…</text>
       <text wx:elif="{{loadingMore}}">加载中…</text>
       <text wx:elif="{{hasMore}}">上拉或点击加载更多（{{recommendations.length}}/{{totalCount}}）</text>
-      <text wx:else>— 左滑忽略 · 右滑自选 · 点击查看详情 —</text>
+      <text wx:else>— 右滑自选 · 点击查看详情 —</text>
 
     </view>
 

@@ -43,6 +43,18 @@ public class  Ticker {
         return DateFormatUtils.format(this.timestamp, "yyyy-MM-dd");
     }
 
+    public static Ticker from(Trade x) {
+        Ticker ticker = new Ticker();
+        ticker.setClose(x.getClose());
+        ticker.setHigh(x.getHigh());
+        ticker.setLow(x.getLow());
+        ticker.setOpen(x.getOpen());
+        ticker.setVolume(x.getVolume());
+        ticker.setAmount(x.getAmount());
+        ticker.setTimestamp(DateUtil.parseDate(x.getDay()).getTime());
+        ticker.setDay(x.getDay());
+        return ticker;
+    }
 
 	public static List<Ticker> from(List<Trade> trades) {
         return trades.stream().map(x -> {
@@ -57,7 +69,6 @@ public class  Ticker {
         	ticker.setDay(x.getDay());
         	return ticker;
         }).collect(Collectors.toList());
-        
     }
 
     public Trade toTrade() {

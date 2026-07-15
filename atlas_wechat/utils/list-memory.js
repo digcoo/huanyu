@@ -2,7 +2,6 @@
 
 var MAX_HELD_RECOMMENDATIONS = 120;
 var MAX_SEEN_RECOMMENDATION_IDS = 2000;
-var MAX_IGNORED_IDS = 500;
 
 var LIST_KLINE_LIMIT = {
   min30: 32,
@@ -23,7 +22,7 @@ function cardMaxBars(period) {
 /** 只保留当前周期 K 线，避免切换周期后多周期堆积 */
 function slimItemKlines(item, period) {
   if (!item) return item;
-  var bars = item.klines && item.klines[period] ? item.klines[period] : (item.chartKlines || []);
+  var bars = item.klines && item.klines[period] ? item.klines[period] : [];
   var klines = {};
   if (bars && bars.length) {
     klines[period] = bars;
@@ -44,13 +43,6 @@ function slimListKlines(list, period) {
 function trimHeldList(list, max) {
   max = max != null ? max : MAX_HELD_RECOMMENDATIONS;
   if (!list || list.length <= max) return list || [];
-  return list.slice(list.length - max);
-}
-
-function capIgnoredIds(ids, max) {
-  max = max != null ? max : MAX_IGNORED_IDS;
-  var list = ids || [];
-  if (list.length <= max) return list;
   return list.slice(list.length - max);
 }
 
@@ -78,13 +70,11 @@ function initSeenIds(items) {
 module.exports = {
   MAX_HELD_RECOMMENDATIONS: MAX_HELD_RECOMMENDATIONS,
   MAX_SEEN_RECOMMENDATION_IDS: MAX_SEEN_RECOMMENDATION_IDS,
-  MAX_IGNORED_IDS: MAX_IGNORED_IDS,
   klineLimitForList: klineLimitForList,
   cardMaxBars: cardMaxBars,
   slimItemKlines: slimItemKlines,
   slimListKlines: slimListKlines,
   trimHeldList: trimHeldList,
-  capIgnoredIds: capIgnoredIds,
   rememberSeenIds: rememberSeenIds,
   initSeenIds: initSeenIds
 };

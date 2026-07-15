@@ -1,0 +1,27 @@
+<view class="strategy-nav">
+  <view class="family-row">
+    <view
+      wx:for="{{families}}"
+      wx:key="id"
+      class="family-item {{activeFamily === item.id ? 'active' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="onFamilyTap"
+    >
+      <text class="family-icon">{{item.icon}}</text>
+      <text class="family-name">{{item.name}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{showTierRow}}" class="tier-row">
+    <view
+      wx:for="{{tierTabs}}"
+      wx:key="id"
+      class="tier-item {{activeTier === item.id ? 'active' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="onTierTap"
+    >
+      <text class="tier-icon">{{item.icon}}</text>
+      <text class="tier-name">{{item.name}}</text>
+    </view>
+  </view>
+</view>

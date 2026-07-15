@@ -40,9 +40,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BacktestServiceImpl implements BacktestService {
 
-    private static final Set<StrategyTypeEnum> BACKTEST_STRATEGIES = EnumSet.of(
-            StrategyTypeEnum.ULTRA_SHORT
-    );
+    private static final Set<StrategyTypeEnum> BACKTEST_STRATEGIES = Arrays.stream(StrategyTypeEnum.values())
+            .filter(StrategyTypeEnum::isActive)
+            .collect(Collectors.toCollection(() -> EnumSet.noneOf(StrategyTypeEnum.class)));
 
     private static final Pattern TIER_PATTERN = Pattern.compile("\\[([SAB])\\]");
 
@@ -254,6 +254,15 @@ public class BacktestServiceImpl implements BacktestService {
         }
         if (incoming.getLongTerm() != null) {
             base.setLongTerm(com.yh.bigdata.tts.common.param.LongStrategyParams.merge(incoming.getLongTerm()));
+        }
+        if (incoming.getWaveBandShort() != null) {
+            base.setWaveBandShort(com.yh.bigdata.tts.common.param.WaveBandStrategyParams.merge(incoming.getWaveBandShort()));
+        }
+        if (incoming.getWaveBandMedium() != null) {
+            base.setWaveBandMedium(com.yh.bigdata.tts.common.param.WaveBandStrategyParams.merge(incoming.getWaveBandMedium()));
+        }
+        if (incoming.getWavePeriodGate() != null) {
+            base.setWavePeriodGate(com.yh.bigdata.tts.common.param.WavePeriodGateStrategyParams.merge(incoming.getWavePeriodGate()));
         }
         return base;
     }

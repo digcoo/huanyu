@@ -6,10 +6,11 @@ const stockApi = require('../../utils/stock-api');
 const retestMarkers = require('../../utils/retest-markers');
 const gc2Markers = require('../../utils/gc2-markers');
 const cascadeMarkers = require('../../utils/cascade-markers');
-const ldipMarkers = require('../../utils/ldip-markers');
+const macedgeMarkers = require('../../utils/macedge-markers');
 const nrfMarkers = require('../../utils/nrf-markers');
 const dc2Markers = require('../../utils/dc2-markers');
 const strategyParams = require('../../utils/strategy-params');
+const chartPeriods = require('../../utils/chart-periods');
 const ultraMarkers = require('../../utils/ultra-markers');
 const trendMarkers = require('../../utils/trend-markers');
 const mediumMarkers = require('../../utils/medium-markers');
@@ -20,13 +21,17 @@ function mapChartKlines(detail, period) {
   return detail.klines[period] ? detail.klines[period].slice() : [];
 }
 
-function applyBarMarkers(page, markers) {
-  page.setData({ barMarkers: markers, markerEpoch: Date.now() });
-  return markers;
+function applyChartMarkers(page, barMarkers, priceLines) {
+  page.setData({
+    barMarkers: barMarkers || [],
+    priceLines: priceLines || [],
+    markerEpoch: Date.now()
+  });
+  return barMarkers || [];
 }
 
 function clearBarMarkers(page) {
-  page.setData({ barMarkers: [], markerEpoch: 0 });
+  page.setData({ barMarkers: [], priceLines: [], markerEpoch: 0 });
   return [];
 }
 
@@ -36,11 +41,11 @@ function syncRetestMarkers(page, detail, period, klines) {
     return Promise.resolve(clearBarMarkers(page));
   }
   if (config.useMock) {
-    return Promise.resolve(applyBarMarkers(page, retestMarkers.buildMockRetestMarkers(klines || page.data.chartKlines)));
+    return Promise.resolve(applyChartMarkers(page, retestMarkers.buildMockRetestMarkers(klines || page.data.chartKlines)));
   }
 
   function applyMarkerVo(m) {
-    return applyBarMarkers(page, retestMarkers.markersVoToBarMarkers(m));
+    return applyChartMarkers(page, retestMarkers.markersVoToBarMarkers(m));
   }
 
   var cached = retestMarkers.parseMarkersFromSignal(detail);
@@ -77,6 +82,9 @@ function refSigOpts(mod, detail, fetchMarkers, buildMock) {
     markersVoToBarMarkers: function (m) {
       return mod.markersVoToBarMarkers(m, detail);
     },
+    overlayFromVo: mod.overlayFromVo ? function (m) {
+      return mod.overlayFromVo(m, detail);
+    } : null,
     parseMarkersFromSignal: mod.parseMarkersFromSignal,
     fetchMarkers: fetchMarkers
   };
@@ -88,11 +96,23 @@ function syncRefSigMarkers(page, detail, period, klines, opts) {
     return Promise.resolve(clearBarMarkers(page));
   }
   if (config.useMock) {
-    return Promise.resolve(applyBarMarkers(page, opts.buildMock(klines || page.data.chartKlines)));
+    if (opts.overlayFromVo) {
+      var mockOverlay = opts.overlayFromVo({});
+      return Promise.resolve(applyChartMarkers(
+        page,
+        opts.buildMock(klines || page.data.chartKlines),
+        mockOverlay.priceLines
+      ));
+    }
+    return Promise.resolve(applyChartMarkers(page, opts.buildMock(klines || page.data.chartKlines)));
   }
 
   function applyMarkerVo(m) {
-    return applyBarMarkers(page, opts.markersVoToBarMarkers(m));
+    if (opts.overlayFromVo) {
+      var overlay = opts.overlayFromVo(m);
+      return applyChartMarkers(page, overlay.barMarkers, overlay.priceLines);
+    }
+    return applyChartMarkers(page, opts.markersVoToBarMarkers(m));
   }
 
   var cached = opts.parseMarkersFromSignal(detail);
@@ -144,14 +164,9 @@ function syncBarMarkers(page, detail, period, klines) {
     return syncRefSigMarkers(page, detail, period, klines,
       refSigOpts(cascadeMarkers, detail, stockApi.fetchCascadeMarkers));
   }
-  if (ldipMarkers.shouldShowLdipMarkers(strategyId, period)) {
-    return syncRefSigMarkers(page, detail, period, klines, {
-      shouldShow: ldipMarkers.shouldShowLdipMarkers,
-      buildMock: function (kl) { return ldipMarkers.buildMockLdipMarkers(kl, period); },
-      markersVoToBarMarkers: function (m) { return ldipMarkers.markersVoToBarMarkers(m, period); },
-      parseMarkersFromSignal: function (item) { return ldipMarkers.parseMarkersFromSignal(item, period); },
-      fetchMarkers: stockApi.fetchLdipMarkers
-    });
+  if (macedgeMarkers.shouldShowMacdEdgeMarkers(strategyId, period)) {
+    return syncRefSigMarkers(page, detail, period, klines,
+      refSigOpts(macedgeMarkers, detail, stockApi.fetchMacdEdgeMarkers));
   }
   if (gc2Markers.shouldShowGc2Markers(strategyId, period)) {
     return syncRefSigMarkers(page, detail, period, klines, {
@@ -196,6 +211,7 @@ Page({
     klineRefreshing: false,
     klineLive: false,
     barMarkers: [],
+    priceLines: [],
     markerEpoch: 0
   },
 
@@ -204,8 +220,15 @@ Page({
     const id = options.id || '';
     const strategy = adapter.extractStrategy(id);
     const savedPeriod = wx.getStorageSync('activePeriod') || 'week';
-    const initialPeriod = strategyParams.chartPrimaryPeriod(strategy, strategyParams.load(strategy))
-      || savedPeriod;
+    const primary = strategyParams.defaultChartPeriod(strategy);
+    const initialPeriod = strategyParams.isCascadeTierStrategy(strategy)
+      || strategyParams.isMacdGoldenCrossStrategy(strategy)
+      || strategyParams.isMacdGcWaveHighStrategy(strategy)
+      || strategyParams.isMacdGcWaveHighRetestStrategy(strategy)
+      || strategyParams.isMacdGcWaveHighLiftStrategy(strategy)
+      || strategyParams.isMacdDcBreakoutStrategy(strategy)
+      ? chartPeriods.normalizeChartPeriod(primary)
+      : chartPeriods.normalizeChartPeriod(savedPeriod, primary);
     const klineFlipped = !!wx.getStorageSync('klineFlipped');
     const self = this;
 

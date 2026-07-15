@@ -66,6 +66,69 @@ public class QueryContextParam extends PageQuery {
     /** 级联梯子探底回升策略自定义参数 */
     private LadderDipStrategyParams ladderDip;
 
+    /** MACD 交叉边沿突破策略自定义参数 */
+    private MacdEdgeStrategyParams macdEdge;
+
+    /** 凸波段突破策略自定义参数 */
+    private WaveConvexStrategyParams waveConvex;
+
+    /** 凹波段突破策略自定义参数 */
+    private WaveConcaveStrategyParams waveConcave;
+
+    /** 凸波段日突破策略自定义参数 */
+    private WaveConvexDayStrategyParams waveConvexDay;
+
+    /** 凹波段日突破策略自定义参数 */
+    private WaveConcaveDayStrategyParams waveConcaveDay;
+
+    /** 级联 MACD 凸波段同档突破策略自定义参数 */
+    private CascadeWaveConvexStrategyParams cascadeWaveConvex;
+
+    /** 级联 MACD 凹波段同档突破策略自定义参数 */
+    private CascadeWaveConcaveStrategyParams cascadeWaveConcave;
+
+    /** 级联 MACD 凸波段日突破策略自定义参数 */
+    private CascadeWaveConvexDayStrategyParams cascadeWaveConvexDay;
+
+    /** 级联 MACD 凹波段日突破策略自定义参数 */
+    private CascadeWaveConcaveDayStrategyParams cascadeWaveConcaveDay;
+
+    /** @deprecated 波段策略自定义参数 */
+    private WaveBandStrategyParams waveBand;
+
+    /** 波段策略短线自定义参数 */
+    private WaveBandStrategyParams waveBandShort;
+
+    /** 波段策略中线自定义参数 */
+    private WaveBandStrategyParams waveBandMedium;
+
+    /** 多周期波段形态门自定义参数 */
+    private WavePeriodGateStrategyParams wavePeriodGate;
+
+    /** 同档 MACD 交叉突破自定义参数 */
+    private MacdCrossTierStrategyParams macdCrossTier;
+
+    /** 凸波段上移自定义参数 */
+    private ConvexLiftTierStrategyParams convexLiftTier;
+
+    /** 柱子策略自定义参数 */
+    private BodyBarTierStrategyParams bodyBarTier;
+
+    /** MACD金叉自定义参数 */
+    private MacdGoldenCrossStrategyParams macdGoldenCross;
+
+    /** MACD金叉波段High突破自定义参数 */
+    private MacdGcWaveHighStrategyParams macdGcWaveHigh;
+
+    /** MACD金叉波段High回踩自定义参数 */
+    private MacdGcWaveHighRetestStrategyParams macdGcWaveHighRetest;
+
+    /** MACD金叉波段High上移自定义参数 */
+    private MacdGcWaveHighLiftStrategyParams macdGcWaveHighLift;
+
+    /** MACD死叉突破自定义参数 */
+    private MacdDcBreakoutStrategyParams macdDcBreakout;
+
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
@@ -85,6 +148,27 @@ public class QueryContextParam extends PageQuery {
                 .pillar(PillarStrategyParams.defaults())
                 .cascade(CascadeStrategyParams.defaults())
                 .ladderDip(LadderDipStrategyParams.defaults())
+                .macdEdge(MacdEdgeStrategyParams.defaults())
+                .waveConvex(WaveConvexStrategyParams.defaults())
+                .waveConcave(WaveConcaveStrategyParams.defaults())
+                .waveConvexDay(WaveConvexDayStrategyParams.defaults())
+                .waveConcaveDay(WaveConcaveDayStrategyParams.defaults())
+                .cascadeWaveConvex(CascadeWaveConvexStrategyParams.defaults())
+                .cascadeWaveConcave(CascadeWaveConcaveStrategyParams.defaults())
+                .cascadeWaveConvexDay(CascadeWaveConvexDayStrategyParams.defaults())
+                .cascadeWaveConcaveDay(CascadeWaveConcaveDayStrategyParams.defaults())
+                .waveBand(WaveBandStrategyParams.defaults())
+                .waveBandShort(WaveBandStrategyParams.defaults())
+                .waveBandMedium(WaveBandStrategyParams.defaults())
+                .wavePeriodGate(WavePeriodGateStrategyParams.defaults())
+                .macdCrossTier(MacdCrossTierStrategyParams.defaults())
+                .convexLiftTier(ConvexLiftTierStrategyParams.defaults())
+                .bodyBarTier(BodyBarTierStrategyParams.defaults())
+                .macdGoldenCross(MacdGoldenCrossStrategyParams.defaults())
+                .macdGcWaveHigh(MacdGcWaveHighStrategyParams.defaults())
+                .macdGcWaveHighRetest(MacdGcWaveHighRetestStrategyParams.defaults())
+                .macdGcWaveHighLift(MacdGcWaveHighLiftStrategyParams.defaults())
+                .macdDcBreakout(MacdDcBreakoutStrategyParams.defaults())
                 .build();
     }
 	

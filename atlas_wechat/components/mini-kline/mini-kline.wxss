@@ -59,6 +59,10 @@
   color: #00d4ff;
 }
 
+.marker-label.marker-break {
+  color: #ff6b81;
+}
+
 .label {
   font-size: 18rpx;
   color: #848e9c;
@@ -114,6 +118,40 @@
   height: 1px;
   transform-origin: 0 50%;
   opacity: 0.92;
+}
+
+.price-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.price-line-h {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 0;
+  border-top: 1rpx dashed rgba(255, 107, 129, 0.88);
+}
+
+.price-line.marker-break .price-line-h {
+  border-top-color: rgba(255, 107, 129, 0.88);
+}
+
+.price-line-label {
+  position: absolute;
+  right: 6rpx;
+  top: -20rpx;
+  font-size: 16rpx;
+  color: #ff6b81;
+  font-family: 'SF Mono', 'Menlo', monospace;
+  white-space: nowrap;
+  background: rgba(30, 32, 38, 0.82);
+  padding: 0 4rpx;
+  border-radius: 4rpx;
 }
 
 .chart-wrap {

@@ -67,19 +67,34 @@ public final class LadderDipBreakoutTools {
         return lastClose > refLow + LOW_EPS;
     }
 
-    /** 日 low 确认：最后一根日 K close &gt; 日基准 K low（§1.3） */
-    public static boolean passesDayLowConfirm(StockBase stock, int dayLookback) {
-        return passesUpperPeriodLowConfirm(stock, PeriodTypeEnum.DAY, dayLookback, REF_BODY_DAY);
-    }
-
-    /** 日档附加 · 周 low 确认：最后一根周 K close &gt; 周基准 K low */
+    /** 日档附加 · 周跨档 low：最后一根周 K close &gt; 周 §1.3 基准 low */
     public static boolean passesDayCrossWeekConfirm(StockBase stock, int weekLookback) {
         return passesUpperPeriodLowConfirm(stock, PeriodTypeEnum.WEEK, weekLookback, REF_BODY_WEEK);
     }
 
-    /** 周档附加 · 月 low 确认：最后一根月 K close &gt; 月基准 K low */
+    /** 日档附加 · 月跨档 low：最后一根月 K close &gt; 月 §1.3 基准 low */
+    public static boolean passesDayCrossMonthConfirm(StockBase stock, int monthLookback) {
+        return passesUpperPeriodLowConfirm(stock, PeriodTypeEnum.MONTH, monthLookback, REF_BODY_MONTH);
+    }
+
+    /** 周档附加 · 日跨档 low：最后一根日 K close &gt; 日 §1.3 基准 low */
+    public static boolean passesWeekCrossDayConfirm(StockBase stock, int dayLookback) {
+        return passesUpperPeriodLowConfirm(stock, PeriodTypeEnum.DAY, dayLookback, REF_BODY_DAY);
+    }
+
+    /** 周档附加 · 月跨档 low：最后一根月 K close &gt; 月 §1.3 基准 low */
     public static boolean passesWeekCrossMonthConfirm(StockBase stock, int monthLookback) {
         return passesUpperPeriodLowConfirm(stock, PeriodTypeEnum.MONTH, monthLookback, REF_BODY_MONTH);
+    }
+
+    /** 月档附加 · 日跨档 low：最后一根日 K close &gt; 日 §1.3 基准 low */
+    public static boolean passesMonthCrossDayConfirm(StockBase stock, int dayLookback) {
+        return passesUpperPeriodLowConfirm(stock, PeriodTypeEnum.DAY, dayLookback, REF_BODY_DAY);
+    }
+
+    /** 月档附加 · 周跨档 low：最后一根周 K close &gt; 周 §1.3 基准 low */
+    public static boolean passesMonthCrossWeekConfirm(StockBase stock, int weekLookback) {
+        return passesUpperPeriodLowConfirm(stock, PeriodTypeEnum.WEEK, weekLookback, REF_BODY_WEEK);
     }
 
     /** 日档附加：最后一根日 K close &gt; 前一根日 K high */

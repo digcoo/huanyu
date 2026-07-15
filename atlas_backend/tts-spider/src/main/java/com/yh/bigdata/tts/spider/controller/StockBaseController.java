@@ -155,7 +155,6 @@ public class StockBaseController {
 					&& !stock.getCode().startsWith("sh688")
 					&& !stock.getCode().contains("bj")
 					&& !stock.getName().contains("退")
-					&& !stock.getName().contains("ST")
 					&& !stock.getName().contains("债")
 	//				&& !(stock.getLastMinAmount() < 100_0000)
 					
@@ -258,7 +257,7 @@ public class StockBaseController {
         QueryContextParam contextParam = buildQueryContextParam(pageQuery);
         int saved = stockTargetScheduler.recommendSaveInternal(
                 contextParam, true, type);
-        clearRecommendCache();
+        warmRecommendCache(pageQuery);
         Map<String, Object> data = new HashMap<>();
         data.put("strategy", type.getCode());
         data.put("saved", saved);
@@ -367,6 +366,7 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getNrfActiveTier()),
                 String.valueOf(pageQuery.getCaEnableDualLowGate()),
                 String.valueOf(pageQuery.getCaEnableMacdGate()),
+                String.valueOf(pageQuery.getCaEnableMacdDcHighGate()),
                 String.valueOf(pageQuery.getCaEnableCrossLowGate()),
                 String.valueOf(pageQuery.getCaEnableDay()),
                 String.valueOf(pageQuery.getCaEnableWeek()),
@@ -378,6 +378,7 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getCaMinAmountWan()),
                 String.valueOf(pageQuery.getLdEnableDualLowGate()),
                 String.valueOf(pageQuery.getLdEnableMacdGate()),
+                String.valueOf(pageQuery.getLdEnableMacdDcHighGate()),
                 String.valueOf(pageQuery.getLdEnableCrossLowGate()),
                 String.valueOf(pageQuery.getLdEnableBarHighGate()),
                 String.valueOf(pageQuery.getLdEnableDay()),
@@ -387,7 +388,206 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getLdLookbackWeek()),
                 String.valueOf(pageQuery.getLdLookbackMonth()),
                 String.valueOf(pageQuery.getLdRequireUltra()),
-                String.valueOf(pageQuery.getLdMinAmountWan()));
+                String.valueOf(pageQuery.getLdMinAmountWan()),
+                String.valueOf(pageQuery.getMeEnableDualLowGate()),
+                String.valueOf(pageQuery.getMeEnableMacdGate()),
+                String.valueOf(pageQuery.getMeEnableMacdDcHighGate()),
+                String.valueOf(pageQuery.getMeEnableCrossLowGate()),
+                String.valueOf(pageQuery.getMeEnableBarHighGate()),
+                String.valueOf(pageQuery.getMeEnableAllYangGate()),
+                String.valueOf(pageQuery.getMeEnableMin30()),
+                String.valueOf(pageQuery.getMeEnableDay()),
+                String.valueOf(pageQuery.getMeEnableWeek()),
+                String.valueOf(pageQuery.getMeEnableMonth()),
+                String.valueOf(pageQuery.getMeEnableYear()),
+                String.valueOf(pageQuery.getMeLookbackMin30()),
+                String.valueOf(pageQuery.getMeLookbackDay()),
+                String.valueOf(pageQuery.getMeLookbackWeek()),
+                String.valueOf(pageQuery.getMeLookbackMonth()),
+                String.valueOf(pageQuery.getMeLookbackYear()),
+                String.valueOf(pageQuery.getMeMinAmountWan()),
+                String.valueOf(pageQuery.getWcvEnableAllYangGate()),
+                String.valueOf(pageQuery.getWcvEnableMin30Gate()),
+                String.valueOf(pageQuery.getWcvEnableLastHighBreak()),
+                String.valueOf(pageQuery.getWcvEnableLastMedianBreak()),
+                String.valueOf(pageQuery.getWcvEnableLastLowBreak()),
+                String.valueOf(pageQuery.getWcvEnableDay()),
+                String.valueOf(pageQuery.getWcvEnableWeek()),
+                String.valueOf(pageQuery.getWcvEnableMonth()),
+                String.valueOf(pageQuery.getWcvLookbackDay()),
+                String.valueOf(pageQuery.getWcvLookbackWeek()),
+                String.valueOf(pageQuery.getWcvLookbackMonth()),
+                String.valueOf(pageQuery.getWcvMinAmountWan()),
+                String.valueOf(pageQuery.getWccEnableAllYangGate()),
+                String.valueOf(pageQuery.getWccEnableMin30Gate()),
+                String.valueOf(pageQuery.getWccEnableLastHighBreak()),
+                String.valueOf(pageQuery.getWccEnableLastMedianBreak()),
+                String.valueOf(pageQuery.getWccEnableLastLowBreak()),
+                String.valueOf(pageQuery.getWccEnableDay()),
+                String.valueOf(pageQuery.getWccEnableWeek()),
+                String.valueOf(pageQuery.getWccEnableMonth()),
+                String.valueOf(pageQuery.getWccLookbackDay()),
+                String.valueOf(pageQuery.getWccLookbackWeek()),
+                String.valueOf(pageQuery.getWccLookbackMonth()),
+                String.valueOf(pageQuery.getWccMinAmountWan()),
+                String.valueOf(pageQuery.getWcvdEnableAllYangGate()),
+                String.valueOf(pageQuery.getWcvdEnableMin30Gate()),
+                String.valueOf(pageQuery.getWcvdEnableLastHighBreak()),
+                String.valueOf(pageQuery.getWcvdEnableLastMedianBreak()),
+                String.valueOf(pageQuery.getWcvdEnableLastLowBreak()),
+                String.valueOf(pageQuery.getWcvdEnableDay()),
+                String.valueOf(pageQuery.getWcvdEnableWeek()),
+                String.valueOf(pageQuery.getWcvdEnableMonth()),
+                String.valueOf(pageQuery.getWcvdLookbackDay()),
+                String.valueOf(pageQuery.getWcvdLookbackWeek()),
+                String.valueOf(pageQuery.getWcvdLookbackMonth()),
+                String.valueOf(pageQuery.getWcvdMinAmountWan()),
+                String.valueOf(pageQuery.getWccdEnableAllYangGate()),
+                String.valueOf(pageQuery.getWccdEnableMin30Gate()),
+                String.valueOf(pageQuery.getWccdEnableLastHighBreak()),
+                String.valueOf(pageQuery.getWccdEnableLastMedianBreak()),
+                String.valueOf(pageQuery.getWccdEnableLastLowBreak()),
+                String.valueOf(pageQuery.getWccdEnableDay()),
+                String.valueOf(pageQuery.getWccdEnableWeek()),
+                String.valueOf(pageQuery.getWccdEnableMonth()),
+                String.valueOf(pageQuery.getWccdLookbackDay()),
+                String.valueOf(pageQuery.getWccdLookbackWeek()),
+                String.valueOf(pageQuery.getWccdLookbackMonth()),
+                String.valueOf(pageQuery.getWccdMinAmountWan()),
+                String.valueOf(pageQuery.getCwcvEnableAllYangGate()),
+                String.valueOf(pageQuery.getCwcvEnableMin30Gate()),
+                String.valueOf(pageQuery.getCwcvEnableBandLastYangLowGate()),
+                String.valueOf(pageQuery.getCwcvEnableYangBandTrendGate()),
+                String.valueOf(pageQuery.getCwcvEnablePrevBandBreak()),
+                String.valueOf(pageQuery.getCwcvEnableDay()),
+                String.valueOf(pageQuery.getCwcvEnableWeek()),
+                String.valueOf(pageQuery.getCwcvEnableMonth()),
+                String.valueOf(pageQuery.getCwcvLookbackDay()),
+                String.valueOf(pageQuery.getCwcvLookbackWeek()),
+                String.valueOf(pageQuery.getCwcvLookbackMonth()),
+                String.valueOf(pageQuery.getCwcvLookbackYear()),
+                String.valueOf(pageQuery.getCwcvMinAmountWan()),
+                String.valueOf(pageQuery.getCwcavEnableAllYangGate()),
+                String.valueOf(pageQuery.getCwcavEnableMin30Gate()),
+                String.valueOf(pageQuery.getCwcavEnableBandLastYangLowGate()),
+                String.valueOf(pageQuery.getCwcavEnableYangBandTrendGate()),
+                String.valueOf(pageQuery.getCwcavEnablePrevBandBreak()),
+                String.valueOf(pageQuery.getCwcavEnableDay()),
+                String.valueOf(pageQuery.getCwcavEnableWeek()),
+                String.valueOf(pageQuery.getCwcavEnableMonth()),
+                String.valueOf(pageQuery.getCwcavLookbackDay()),
+                String.valueOf(pageQuery.getCwcavLookbackWeek()),
+                String.valueOf(pageQuery.getCwcavLookbackMonth()),
+                String.valueOf(pageQuery.getCwcavLookbackYear()),
+                String.valueOf(pageQuery.getCwcavMinAmountWan()),
+                String.valueOf(pageQuery.getCwcvdEnableAllYangGate()),
+                String.valueOf(pageQuery.getCwcvdEnableMin30Gate()),
+                String.valueOf(pageQuery.getCwcvdEnableBandLastYangLowGate()),
+                String.valueOf(pageQuery.getCwcvdEnableYangBandTrendGate()),
+                String.valueOf(pageQuery.getCwcvdEnablePrevBandBreak()),
+                String.valueOf(pageQuery.getCwcvdEnableDay()),
+                String.valueOf(pageQuery.getCwcvdEnableWeek()),
+                String.valueOf(pageQuery.getCwcvdEnableMonth()),
+                String.valueOf(pageQuery.getCwcvdLookbackDay()),
+                String.valueOf(pageQuery.getCwcvdLookbackWeek()),
+                String.valueOf(pageQuery.getCwcvdLookbackMonth()),
+                String.valueOf(pageQuery.getCwcvdLookbackYear()),
+                String.valueOf(pageQuery.getCwcvdMinAmountWan()),
+                String.valueOf(pageQuery.getCwcadEnableAllYangGate()),
+                String.valueOf(pageQuery.getCwcadEnableMin30Gate()),
+                String.valueOf(pageQuery.getCwcadEnableBandLastYangLowGate()),
+                String.valueOf(pageQuery.getCwcadEnableYangBandTrendGate()),
+                String.valueOf(pageQuery.getCwcadEnablePrevBandBreak()),
+                String.valueOf(pageQuery.getCwcadEnableDay()),
+                String.valueOf(pageQuery.getCwcadEnableWeek()),
+                String.valueOf(pageQuery.getCwcadEnableMonth()),
+                String.valueOf(pageQuery.getCwcadLookbackDay()),
+                String.valueOf(pageQuery.getCwcadLookbackWeek()),
+                String.valueOf(pageQuery.getCwcadLookbackMonth()),
+                String.valueOf(pageQuery.getCwcadLookbackYear()),
+                String.valueOf(pageQuery.getCwcadMinAmountWan()),
+                String.valueOf(pageQuery.getWbLookbackDay()),
+                String.valueOf(pageQuery.getWbLookbackWeek()),
+                String.valueOf(pageQuery.getWbLookbackMonth()),
+                String.valueOf(pageQuery.getWbMinAmountWan()),
+                String.valueOf(pageQuery.getWbsLookbackDay()),
+                String.valueOf(pageQuery.getWbsLookbackWeek()),
+                String.valueOf(pageQuery.getWbsMinAmountWan()),
+                String.valueOf(pageQuery.getWbmLookbackDay()),
+                String.valueOf(pageQuery.getWbmLookbackMonth()),
+                String.valueOf(pageQuery.getWbmMinAmountWan()),
+                String.valueOf(pageQuery.getWpgTier()),
+                String.valueOf(pageQuery.getWpgLookbackDay()),
+                String.valueOf(pageQuery.getWpgLookbackWeek()),
+                String.valueOf(pageQuery.getWpgLookbackMonth()),
+                String.valueOf(pageQuery.getWpgEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getWpgEnableMaxBandLowGate()),
+                String.valueOf(pageQuery.getWpgEnableConcaveBreakout()),
+                String.valueOf(pageQuery.getWpgEnableConvexBreakout()),
+                String.valueOf(pageQuery.getWpgMinAmountWan()),
+                String.valueOf(pageQuery.getWpgEnableUpperPeriodMinBandLowGate()),
+                String.valueOf(pageQuery.getWpgEnableTierMacdPositive()),
+                String.valueOf(pageQuery.getWpgEnableWeekMonthBandShapeGate()),
+                String.valueOf(pageQuery.getWpgEnableWeekMonthBandLowGate()),
+                String.valueOf(pageQuery.getWpgEnableYearWeekMonthYangGate()),
+                String.valueOf(pageQuery.getWpgLookbackYear()),
+                String.valueOf(pageQuery.getMctTier()),
+                String.valueOf(pageQuery.getMctLookbackDay()),
+                String.valueOf(pageQuery.getMctLookbackWeek()),
+                String.valueOf(pageQuery.getMctLookbackMonth()),
+                String.valueOf(pageQuery.getMctEnableGoldenCross()),
+                String.valueOf(pageQuery.getMctEnableDeathCross()),
+                String.valueOf(pageQuery.getMctEnableGoldenCrossRiseGate()),
+                String.valueOf(pageQuery.getCltTier()),
+                String.valueOf(pageQuery.getCltLookbackDay()),
+                String.valueOf(pageQuery.getBbtTier()),
+                String.valueOf(pageQuery.getBbtLookbackBars()),
+                String.valueOf(pageQuery.getMgcTier()),
+                String.valueOf(pageQuery.getMgcEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMgcMinAmountWan()),
+                String.valueOf(pageQuery.getMgcEnableSignalRiseGate()),
+                String.valueOf(pageQuery.getMgcSignalRisePct()),
+                String.valueOf(pageQuery.getMgcEnableHistoryRiseGate()),
+                String.valueOf(pageQuery.getMgcHistoryLookbackBars()),
+                String.valueOf(pageQuery.getMgcHistoryRisePct()),
+                String.valueOf(pageQuery.getMgcwhTier()),
+                String.valueOf(pageQuery.getMgcwhLookbackDay()),
+                String.valueOf(pageQuery.getMgcwhLookbackWeek()),
+                String.valueOf(pageQuery.getMgcwhLookbackMonth()),
+                String.valueOf(pageQuery.getMgcwhEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMgcwhMinAmountWan()),
+                String.valueOf(pageQuery.getMgcwhEnableSignalRiseGate()),
+                String.valueOf(pageQuery.getMgcwhSignalRisePct()),
+                String.valueOf(pageQuery.getMgcwhrTier()),
+                String.valueOf(pageQuery.getMgcwhrLookbackDay()),
+                String.valueOf(pageQuery.getMgcwhrLookbackWeek()),
+                String.valueOf(pageQuery.getMgcwhrLookbackMonth()),
+                String.valueOf(pageQuery.getMgcwhrEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMgcwhrMinAmountWan()),
+                String.valueOf(pageQuery.getMgcwhuTier()),
+                String.valueOf(pageQuery.getMgcwhuLookbackDay()),
+                String.valueOf(pageQuery.getMgcwhuLookbackWeek()),
+                String.valueOf(pageQuery.getMgcwhuLookbackMonth()),
+                String.valueOf(pageQuery.getMgcwhuEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMgcwhuMinAmountWan()),
+                String.valueOf(pageQuery.getMgcwhuEnableSignalRiseGate()),
+                String.valueOf(pageQuery.getMgcwhuSignalRisePct()),
+                String.valueOf(pageQuery.getMdcbTier()),
+                String.valueOf(pageQuery.getMdcbLookbackDay()),
+                String.valueOf(pageQuery.getMdcbLookbackWeek()),
+                String.valueOf(pageQuery.getMdcbLookbackMonth()),
+                String.valueOf(pageQuery.getMdcbEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMdcbMinAmountWan()),
+                String.valueOf(pageQuery.getMdcbEnableSignalRiseGate()),
+                String.valueOf(pageQuery.getMdcbSignalRisePct()));
+    }
+
+    /** 重跑后预热 findMy 缓存，避免小程序二次全市场扫描超时 */
+    private void warmRecommendCache(StockPageQuery pageQuery) {
+        List<StockTarget> items = doQuery(pageQuery);
+        recommendCache.put(buildRecommendCacheKey(pageQuery),
+                new CachedRecommendations(items, System.currentTimeMillis()));
+        log.info("recommend cache warmed, strategy={}, size={}", pageQuery.getStrategy(), items.size());
     }
 
     public void clearRecommendCache() {
@@ -430,6 +630,27 @@ public class StockBaseController {
                 .pillar(stockPageQuery.toPillarParams())
                 .cascade(stockPageQuery.toCascadeParams())
                 .ladderDip(stockPageQuery.toLadderDipParams())
+                .macdEdge(stockPageQuery.toMacdEdgeParams())
+                .waveConvex(stockPageQuery.toWaveConvexParams())
+                .waveConcave(stockPageQuery.toWaveConcaveParams())
+                .waveConvexDay(stockPageQuery.toWaveConvexDayParams())
+                .waveConcaveDay(stockPageQuery.toWaveConcaveDayParams())
+                .cascadeWaveConvex(stockPageQuery.toCascadeWaveConvexParams())
+                .cascadeWaveConcave(stockPageQuery.toCascadeWaveConcaveParams())
+                .cascadeWaveConvexDay(stockPageQuery.toCascadeWaveConvexDayParams())
+                .cascadeWaveConcaveDay(stockPageQuery.toCascadeWaveConcaveDayParams())
+                .waveBand(stockPageQuery.toWaveBandParams())
+                .waveBandShort(stockPageQuery.toWaveBandShortParams())
+                .waveBandMedium(stockPageQuery.toWaveBandMediumParams())
+                .wavePeriodGate(stockPageQuery.toWavePeriodGateParams())
+                .macdCrossTier(stockPageQuery.toMacdCrossTierParams())
+                .convexLiftTier(stockPageQuery.toConvexLiftTierParams())
+                .bodyBarTier(stockPageQuery.toBodyBarTierParams())
+                .macdGoldenCross(stockPageQuery.toMacdGoldenCrossParams())
+                .macdGcWaveHigh(stockPageQuery.toMacdGcWaveHighParams())
+                .macdGcWaveHighRetest(stockPageQuery.toMacdGcWaveHighRetestParams())
+                .macdGcWaveHighLift(stockPageQuery.toMacdGcWaveHighLiftParams())
+                .macdDcBreakout(stockPageQuery.toMacdDcBreakoutParams())
                 .build();
 
     }

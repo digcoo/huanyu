@@ -8,7 +8,8 @@ function parseRefSigFromSignal(item) {
     .filter(function (s) { return s && String(s).trim(); })
     .join('|');
   if (!text) return null;
-  var refM = text.match(/refDay=([^,|]+(?:\s[^,|]+)*)/);
+  var refM = text.match(/refDay=([^,|]+(?:\s[^,|]+)*)/)
+    || text.match(/firstYangDay=([^,|]+(?:\s[^,|]+)*)/);
   var sigM = text.match(/sigDay=([^,|]+(?:\s[^,|]+)*)/);
   if (!refM && !sigM) return null;
   return {
@@ -161,11 +162,11 @@ function createRefSigMarkerModule(opts) {
     mod.isCascadeStrategy = isStrategy;
     mod.buildMockCascadeMarkers = function (klines) { return buildMockMarkers(klines); };
     mod.enrichItemsWithCascadeMarkers = enrichItems;
-  } else if (strategyId === 'ldip') {
-    mod.shouldShowLdipMarkers = shouldShow;
-    mod.isLdipStrategy = isStrategy;
-    mod.buildMockLdipMarkers = function (klines) { return buildMockMarkers(klines); };
-    mod.enrichItemsWithLdipMarkers = enrichItems;
+  } else if (strategyId === 'macedge') {
+    mod.shouldShowMacdEdgeMarkers = shouldShow;
+    mod.isMacdEdgeStrategy = isStrategy;
+    mod.buildMockMacdEdgeMarkers = function (klines) { return buildMockMarkers(klines); };
+    mod.enrichItemsWithMacdEdgeMarkers = enrichItems;
   } else if (strategyId === 'trend') {
     mod.shouldShowTrendMarkers = shouldShow;
     mod.buildMockTrendMarkers = function (klines) { return buildMockMarkers(klines); };

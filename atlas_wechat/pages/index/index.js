@@ -9,25 +9,13 @@ const auth = require('../../utils/auth');
 const stockApi = require('../../utils/stock-api');
 const adapter = require('../../utils/adapter');
 const strategyParams = require('../../utils/strategy-params');
+const strategyNav = require('../../utils/strategy-nav');
 const barMarkers = require('../../utils/bar-markers');
 const listMemory = require('../../utils/list-memory');
+const listViewCtx = require('../../utils/list-view-context');
 
 const app = getApp();
 const DEFAULT_STRATEGY = 'ultra';
-
-const ACTIVE_STRATEGIES = [
-  { id: 'ultra', name: '超短线', icon: '⚡' },
-  { id: 'nrf', name: '跨周期内梯子上移', icon: '🛤' },
-  { id: 'cascade', name: '级联交叉', icon: '🔗' },
-  { id: 'ldip', name: '级联梯子探底', icon: '📉' }
-];
-
-const STRATEGY_TITLES = {
-  ultra: '超短线策略',
-  nrf: '跨周期内梯子上移',
-  cascade: '级联交叉突破',
-  ldip: '级联梯子探底回升'
-};
 
 const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
 
@@ -38,63 +26,42 @@ function toPageNum(v) {
 
 function mapChartKlines(list, period, strategyId) {
   return list.map(function (item) {
-    var klines = item.klines && item.klines[period] ? item.klines[period] : (item.chartKlines || []);
-    var markers = barMarkers.shouldShowBarMarkers(strategyId, period)
-      ? (item.barMarkers && item.barMarkers.length
+    var klines = item.klines && item.klines[period] ? item.klines[period] : [];
+    var barMarkersList = [];
+    var priceLines = item.priceLines || [];
+    if (barMarkers.shouldShowBarMarkers(strategyId, period)) {
+      barMarkersList = item.barMarkers && item.barMarkers.length
         ? item.barMarkers
-        : barMarkers.resolveBarMarkersForItem(item, strategyId, period, klines))
-      : [];
-    return Object.assign({}, item, { chartKlines: klines, barMarkers: markers });
+        : barMarkers.resolveBarMarkersForItem(item, strategyId, period, klines);
+    }
+    return Object.assign({}, item, {
+      chartKlines: klines,
+      barMarkers: barMarkersList,
+      priceLines: priceLines
+    });
   });
 }
 
-function applyHeldList(self, list, period, strategyId, extra) {
+function applyHeldList(page, list, ctx, extra) {
   var trimmed = listMemory.trimHeldList(list);
-  var slimmed = listMemory.slimListKlines(trimmed, period);
-  self._baseList = slimmed;
+  var slimmed = listMemory.slimListKlines(trimmed, ctx.period);
+  page._baseList = slimmed;
   var patch = Object.assign({
-    recommendations: mapChartKlines(slimmed, period, strategyId)
+    recommendations: mapChartKlines(slimmed, ctx.period, ctx.strategyId)
   }, extra || {});
   if (extra && extra.totalCount != null) {
-    patch.emptyHint = buildListEmptyHint(strategyId, extra.totalCount, slimmed.length);
+    patch.emptyHint = buildListEmptyHint(ctx.strategyId, extra.totalCount, slimmed.length);
   }
   if (trimmed.length < (list || []).length) {
     patch.listTrimmedHint = '已释放较早条目以节省内存';
   } else {
     patch.listTrimmedHint = '';
   }
-  self.setData(patch);
+  page.setData(patch);
 }
 
 function migrateSavedStrategy(strategyId) {
-  var id = strategyId || DEFAULT_STRATEGY;
-  if (id === 'ladder' || id === 'ultraLow' || id === 'pillar') {
-    var fromLadder = strategyParams.load('nrf');
-    return { strategy: 'nrf', tier: fromLadder.activeTier || 'short' };
-  }
-  if (id === 'trend') return { strategy: 'nrf', tier: 'short' };
-  if (id === 'medium') return { strategy: 'nrf', tier: 'medium' };
-  if (id === 'long') return { strategy: 'nrf', tier: 'long' };
-  var ok = ACTIVE_STRATEGIES.some(function (s) { return s.id === id; });
-  var nrfBundle = strategyParams.load('nrf');
-  return {
-    strategy: ok ? id : DEFAULT_STRATEGY,
-    tier: nrfBundle.activeTier || 'short'
-  };
-}
-
-function strategyTitleFor(strategyId, tier) {
-  if (strategyId === 'nrf') {
-    var nrfTier = tier || strategyParams.load('nrf').activeTier || 'short';
-    return '跨周期内梯子上移 · ' + strategyParams.nrfTierTitle(nrfTier);
-  }
-  return STRATEGY_TITLES[strategyId] || '策略';
-}
-
-function filterIgnored(items, ignored) {
-  return (items || []).filter(function (item) {
-    return item && item.id && ignored.indexOf(item.id) < 0;
-  });
+  return strategyNav.migrateSavedStrategy(strategyId);
 }
 
 function dedupeAppend(baseList, newItems) {
@@ -125,12 +92,13 @@ function resolvePagedHasMore(hasMore, lastPage, totalNum) {
   return false;
 }
 
-function buildSeenIdMap(list) {
-  var seen = {};
-  (list || []).forEach(function (item) {
-    if (item && item.id) seen[item.id] = true;
-  });
-  return seen;
+function resolveListHasMore(hasMore, listLength, totalNum) {
+  var total = Number(totalNum) || 0;
+  var shown = Number(listLength) || 0;
+  if (total > 0 && shown < total) {
+    return true;
+  }
+  return !!hasMore;
 }
 
 function filterNovelItems(items, seen) {
@@ -139,12 +107,9 @@ function filterNovelItems(items, seen) {
   });
 }
 
-/**
- * 拉取推荐列表，跳过已忽略项；仅当整页全部被忽略时才自动翻下一页（避免预取多页导致 loadMore 跳页/漏项）
- */
 function buildListEmptyHint(strategyId, totalNum, visibleCount) {
   if (totalNum > 0 && visibleCount === 0) {
-    return '可能已全部忽略，可清除忽略记录';
+    return '列表加载异常，请重试或点击 ↻ 重跑策略';
   }
   if (totalNum === 0) {
     var paramHint = strategyParams.emptyResultHint(strategyId);
@@ -154,57 +119,53 @@ function buildListEmptyHint(strategyId, totalNum, visibleCount) {
   return '切换市场查看更多标的';
 }
 
-function fetchVisibleRecommendations(strategyId, ignored, targetCount, startPage) {
+function fetchVisibleRecommendations(strategyId, targetCount, startPage) {
   targetCount = targetCount || RECOMMEND_PAGE_SIZE;
   startPage = toPageNum(startPage);
-  var accumulated = [];
-  var totalNum = 0;
-  var lastPage = startPage - 1;
-  var hasMore = false;
-  var seenAll = {};
 
-  function fetchPage(page) {
-    page = toPageNum(page);
-    return stockApi.fetchRecommendations(strategyId, page, RECOMMEND_PAGE_SIZE).then(function (result) {
-      totalNum = result.totalNum != null ? result.totalNum : 0;
-      hasMore = !!result.hasMore;
-      lastPage = toPageNum(result.page || page);
-      seenAll = listMemory.rememberSeenIds(seenAll, result.items || []);
-      accumulated = accumulated.concat(filterIgnored(result.items, ignored));
-      if (accumulated.length > 0 || !hasMore) {
-        return {
-          items: accumulated,
-          page: lastPage,
-          totalNum: totalNum,
-          hasMore: resolvePagedHasMore(hasMore, lastPage, totalNum),
-          seenIds: seenAll
-        };
-      }
-      return fetchPage(lastPage + 1);
-    });
-  }
-
-  return fetchPage(startPage);
+  return stockApi.fetchRecommendations(strategyId, startPage, RECOMMEND_PAGE_SIZE).then(function (result) {
+    var lastPage = toPageNum(result.page || startPage);
+    var totalNum = result.totalNum != null ? Number(result.totalNum) : 0;
+    var hasMore = !!result.hasMore;
+    var rawItems = result.items || [];
+    var seenAll = listMemory.rememberSeenIds({}, rawItems);
+    var list = rawItems.length > targetCount ? rawItems.slice(0, targetCount) : rawItems;
+    var more = resolveListHasMore(
+      resolvePagedHasMore(hasMore, lastPage, totalNum),
+      list.length,
+      totalNum
+    );
+    return {
+      items: list,
+      page: lastPage,
+      totalNum: totalNum,
+      hasMore: more,
+      seenIds: seenAll
+    };
+  });
 }
 
-/**
- * 加载更多：严格按后端页码追加，避免与首屏重复
- */
-function fetchNextRecommendationsPage(strategyId, ignored, backendPage, seenIds) {
+function fetchNextRecommendationsPage(strategyId, backendPage, seenIds) {
   var seen = seenIds || {};
   var startPage = toPageNum(backendPage) + 1;
+  var maxSkipPages = 30;
+  var pagesScanned = 0;
 
   function fetchFrom(page) {
     page = toPageNum(page);
+    pagesScanned++;
     return stockApi.fetchRecommendations(strategyId, page, RECOMMEND_PAGE_SIZE).then(function (result) {
       var pageNum = toPageNum(result.page || page);
       var totalNum = result.totalNum != null ? Number(result.totalNum) : 0;
-      var more = resolvePagedHasMore(!!result.hasMore, pageNum, totalNum);
-      var visible = filterIgnored(result.items, ignored);
-      var novel = filterNovelItems(visible, seen);
+      var apiMore = !!result.hasMore;
+      var more = resolvePagedHasMore(apiMore, pageNum, totalNum);
+      var novel = filterNovelItems(result.items, seen);
       seen = listMemory.rememberSeenIds(seen, result.items || []);
-      if (novel.length === 0 && more) {
+      if (novel.length === 0 && more && pagesScanned < maxSkipPages) {
         return fetchFrom(pageNum + 1);
+      }
+      if (novel.length === 0 && more) {
+        more = false;
       }
       return {
         items: novel,
@@ -219,41 +180,74 @@ function fetchNextRecommendationsPage(strategyId, ignored, backendPage, seenIds)
   return fetchFrom(startPage);
 }
 
-function attachKlinesInBackground(self, items, period) {
+function attachKlinesInBackground(page, items, ctx) {
   if (!items || !items.length) return Promise.resolve([]);
-  return stockApi.attachKlinesToItems(items, period, null, true).then(function (withKlines) {
-    var strategyId = self.data.activeStrategy;
-    var activePeriod = period || self.data.activePeriod;
+  var klineGen = listViewCtx.bumpKlineGen(page);
+  return stockApi.attachKlinesToItems(items, ctx.period, null, true).then(function (withKlines) {
+    if (listViewCtx.isKlineStale(page, klineGen, ctx)) {
+      return items;
+    }
     var klineById = {};
     withKlines.forEach(function (item) {
-      klineById[item.id] = listMemory.slimItemKlines(item, period);
+      klineById[item.id] = listMemory.slimItemKlines(item, ctx.period);
     });
-    var base = (self._baseList && self._baseList.length ? self._baseList : items);
+    var base = (page._baseList && page._baseList.length ? page._baseList : items);
     var merged = base.map(function (item) {
       return klineById[item.id] ? Object.assign({}, item, klineById[item.id]) : item;
     });
     if (!merged.length) return items;
-    applyHeldList(self, merged, activePeriod, strategyId, {
-      totalCount: self.data.totalCount
+    applyHeldList(page, merged, ctx, {
+      totalCount: page.data.totalCount
     });
-    return barMarkers.enrichItemsWithBarMarkers(merged, strategyId, activePeriod).then(function (enriched) {
+    barMarkers.enrichItemsWithBarMarkers(merged, ctx.strategyId, ctx.period).then(function (enriched) {
+      if (listViewCtx.isKlineStale(page, klineGen, ctx)) return;
       if (enriched && enriched.length) {
-        applyHeldList(self, enriched, activePeriod, strategyId, {
-          totalCount: self.data.totalCount
+        applyHeldList(page, enriched, ctx, {
+          totalCount: page.data.totalCount
         });
       }
-      return enriched;
-    }).catch(function () {
-      return merged;
-    });
-  }).catch(function () {
+    }).catch(function () {});
+    return merged;
+  }).catch(function (err) {
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[Atlas] attachKlines failed', listViewCtx.contextLabel(ctx), err);
+    }
     return items;
   });
 }
 
-function applyKlinesForItems(self, items, period) {
-  if (!items || !items.length) return Promise.resolve([]);
-  return attachKlinesInBackground(self, items, period);
+function refreshIndices(page, ctx) {
+  var klineGen = page._klineGen;
+  return stockApi.fetchMarketIndices('cn', ctx.period).then(function (raw) {
+    return adapter.mapMarketIndices(raw, ctx.period);
+  }).catch(function () {
+    return page.data.indices.length ? page.data.indices : (MARKET_INDICES.cn || []);
+  }).then(function (indices) {
+    if (!listViewCtx.isKlineStale(page, klineGen, ctx)) {
+      page.setData({ indices: indices });
+    }
+  });
+}
+
+function formatRescanToast(result, page) {
+  var listed = result && result.listed != null ? result.listed : 0;
+  var shown = page && page.data && page.data.recommendations
+    ? page.data.recommendations.length
+    : (result && result.visible != null ? result.visible : 0);
+  if (!result || !result.ok) {
+    return '重跑失败';
+  }
+  if (result.loadFailed) {
+    return '已扫描 ' + (result.rescanned || 0) + ' 只，列表加载失败';
+  }
+  if (listed <= 0 && shown <= 0) {
+    return '扫描完成，无匹配';
+  }
+  var total = listed > 0 ? listed : shown;
+  if (shown > 0 && total > shown) {
+    return '已重跑，共 ' + total + ' 条，首屏 ' + shown + ' 条';
+  }
+  return '已重跑，共 ' + total + ' 条';
 }
 
 Page({
@@ -263,10 +257,12 @@ Page({
     navPaddingRight: 96,
 
     markets: buildMarketsForUI(),
-    strategies: ACTIVE_STRATEGIES,
     activeStrategy: DEFAULT_STRATEGY,
-    activeLadderTier: 'short',
-    strategyTitle: strategyTitleFor(DEFAULT_STRATEGY),
+    activeStrategyFamily: strategyNav.FAMILY_ULTRA,
+    activeCascadeTier: 'short',
+    showCascadeTierRow: false,
+    allowedPeriods: listViewCtx.allowedPeriods(),
+    strategyTitle: strategyNav.strategyTitleFor(DEFAULT_STRATEGY),
 
     activeMarket: 'cn',
     indices: [],
@@ -296,39 +292,30 @@ Page({
 
     const savedPeriod = wx.getStorageSync('activePeriod') || 'week';
     const migrated = migrateSavedStrategy(wx.getStorageSync('activeStrategy'));
-    if (migrated.strategy === 'nrf' && migrated.tier) {
-      strategyParams.saveTierFormFor(
-        'nrf',
-        migrated.tier,
-        strategyParams.loadTierFormFor('nrf', migrated.tier),
-        true
-      );
-    }
     if (migrated.strategy !== wx.getStorageSync('activeStrategy')) {
       wx.setStorageSync('activeStrategy', migrated.strategy);
     }
     const savedStrategy = migrated.strategy;
-    const savedTier = migrated.tier || 'short';
-    const initialPeriod = strategyParams.chartPrimaryPeriod(savedStrategy, strategyParams.load(savedStrategy))
-      || savedPeriod;
     const klineFlipped = !!wx.getStorageSync('klineFlipped');
 
-    this.setData({
-      statusBarHeight,
-      navPaddingRight,
-      activePeriod: initialPeriod,
-      activeStrategy: savedStrategy,
-      activeLadderTier: savedTier,
-      strategyTitle: strategyTitleFor(savedStrategy, savedTier),
-      klineFlipped
+    listViewCtx.initSession(this);
+    const ctx = listViewCtx.createContext(
+      savedStrategy,
+      listViewCtx.normalizePeriod(savedStrategy, savedPeriod),
+      'cn'
+    );
+    listViewCtx.commitContext(this, ctx, {
+      statusBarHeight: statusBarHeight,
+      navPaddingRight: navPaddingRight,
+      klineFlipped: klineFlipped
     });
 
     this._allRecommendations = buildStrategyRecommendations();
-    this.refreshParamsBadge(savedStrategy);
+    this.refreshParamsBadge(ctx.strategyId);
     if (config.useMock) {
-      this.loadMarket('cn');
+      this.loadMarket(ctx);
     } else {
-      this.loadMarketFromApi('cn');
+      this.loadMarketFromApi(ctx);
     }
   },
 
@@ -366,7 +353,7 @@ Page({
   },
 
   refreshParamsBadge(strategyId) {
-    strategyId = strategyId || this.data.activeStrategy;
+    strategyId = strategyId || listViewCtx.readContext(this).strategyId;
     var show = !config.useMock && strategyParams.hasCustomParams(strategyId);
     this.setData({
       showStrategyParams: show,
@@ -384,30 +371,11 @@ Page({
 
   onParamsApply(e) {
     var detail = (e && e.detail) || {};
-    var strategyId = detail.strategyId || this.data.activeStrategy;
-    var patch = {};
-    if (strategyId === 'nrf') {
-      var nrfBundle = strategyParams.load('nrf');
-      var nrfTier = nrfBundle.activeTier || 'short';
-      patch.activeLadderTier = nrfTier;
-      patch.strategyTitle = strategyTitleFor('nrf', nrfTier);
-      var nrfPeriod = strategyParams.chartPrimaryPeriod('nrf', nrfBundle);
-      if (nrfPeriod) {
-        patch.activePeriod = nrfPeriod;
-        wx.setStorageSync('activePeriod', nrfPeriod);
-      }
-    } else if (strategyId === 'cascade' || strategyId === 'ldip') {
-      var periodParams = strategyParams.load(strategyId);
-      var nextPeriod = strategyParams.chartPrimaryPeriod(strategyId, periodParams);
-      if (nextPeriod) {
-        patch.activePeriod = nextPeriod;
-        wx.setStorageSync('activePeriod', nextPeriod);
-      }
+    var ctx = listViewCtx.readContext(this);
+    if (detail.strategyId) {
+      ctx = listViewCtx.createContext(detail.strategyId, ctx.period, ctx.marketId);
     }
-    if (Object.keys(patch).length) {
-      this.setData(patch);
-    }
-    this.refreshParamsBadge(strategyId);
+    this.refreshParamsBadge(ctx.strategyId);
 
     if (config.useMock) {
       wx.showToast({ title: 'Mock 模式参数不生效', icon: 'none' });
@@ -426,7 +394,7 @@ Page({
     }
 
     this.setData({ paramsVisible: false });
-    this.loadMarketFromApi(this.data.activeMarket).then(function () {
+    this.loadMarketFromApi(ctx).then(function () {
       wx.showToast({ title: '已按新参数预览', icon: 'none' });
     });
   },
@@ -445,7 +413,7 @@ Page({
     }
 
     var self = this;
-    var strategyId = this.data.activeStrategy;
+    var ctx = listViewCtx.readContext(this);
     var panel = this.selectComponent('#strategyParamsPanel');
     var loadingShown = false;
 
@@ -459,20 +427,40 @@ Page({
     if (panel) panel.setApplying(true);
     wx.showLoading({ title: '重跑策略中…', mask: true });
     loadingShown = true;
+    listViewCtx.bumpLoadGen(self);
 
-    return stockApi.triggerStrategyRescan(strategyId).then(function (result) {
-      return self.loadMarketFromApi(self.data.activeMarket).then(function () {
-        return result;
+    return stockApi.triggerStrategyRescan(ctx.strategyId).then(function (result) {
+      return self.loadMarketFromApi(ctx).then(function (loadMeta) {
+        return {
+          ok: result && result.ok,
+          rescanned: result && result.saved != null ? result.saved : 0,
+          listed: loadMeta && loadMeta.totalCount != null ? loadMeta.totalCount : 0,
+          visible: loadMeta && loadMeta.visibleCount != null ? loadMeta.visibleCount : 0,
+          loadFailed: false,
+          strategy: result && result.strategy
+        };
+      }).catch(function () {
+        return {
+          ok: result && result.ok,
+          rescanned: result && result.saved != null ? result.saved : 0,
+          listed: 0,
+          visible: 0,
+          loadFailed: true,
+          strategy: result && result.strategy
+        };
       });
     }).then(function (result) {
       hideRescanLoading();
       if (showToast) {
-        var saved = result && result.saved != null ? result.saved : 0;
         var ok = result && result.ok;
+        var shown = self.data.recommendations ? self.data.recommendations.length : 0;
+        var title = formatRescanToast(Object.assign({}, result, {
+          visible: shown > 0 ? shown : (result && result.visible)
+        }), self);
         wx.showToast({
-          title: ok ? '已重跑 ' + saved + ' 只' : '重跑失败',
-          icon: ok ? 'success' : 'none',
-          duration: 2000
+          title: title,
+          icon: ok && (shown > 0 || (result && result.listed > 0)) ? 'success' : 'none',
+          duration: 2500
         });
       }
       return result;
@@ -488,10 +476,6 @@ Page({
     });
   },
 
-  _fetchRecommendPage(strategyId, period, page, ignored) {
-    return fetchVisibleRecommendations(strategyId, ignored, RECOMMEND_PAGE_SIZE, page);
-  },
-
   onReachBottom() {
     if (config.useMock || this.data.activeMarket !== 'cn') return;
     this.loadMoreRecommendations();
@@ -504,115 +488,158 @@ Page({
   },
 
   loadMoreRecommendations() {
+    var totalCount = Number(this.data.totalCount) || 0;
+    var shown = (this.data.recommendations || []).length;
+    if (totalCount > 0 && shown < totalCount && !this.data.hasMore) {
+      this.setData({ hasMore: true });
+    }
     if (!this.data.hasMore || this.data.loadingMore) return;
     if (this.data.loading && (!this.data.recommendations || this.data.recommendations.length === 0)) return;
 
     const self = this;
-    const strategyId = this.data.activeStrategy;
-    const period = this.data.activePeriod;
-    const ignored = app.globalData.ignoredIds;
+    const ctx = listViewCtx.readContext(this);
+    const loadGen = this._loadGen;
     const backendPage = this._backendPage || this._loadPage || 1;
+    const nextPage = toPageNum(backendPage) + 1;
+
+    if (typeof console !== 'undefined' && console.info) {
+      console.info('[Atlas] loadMore', listViewCtx.contextLabel(ctx), {
+        nextPage: nextPage,
+        shown: shown,
+        total: totalCount
+      });
+    }
 
     this.setData({ loadingMore: true });
 
-    fetchNextRecommendationsPage(strategyId, ignored, backendPage, this._seenRecommendationIds).then(function (result) {
+    fetchNextRecommendationsPage(ctx.strategyId, backendPage, this._seenRecommendationIds).then(function (result) {
+      if (listViewCtx.isLoadStale(self, loadGen)) return;
       if (result.seenIds) {
         self._seenRecommendationIds = result.seenIds;
       }
       var merged = dedupeAppend(self._baseList, result.items);
-      self._backendPage = toPageNum(result.page);
-      self._loadPage = toPageNum(result.page);
-      applyHeldList(self, merged.list, period, strategyId, {
+      var fetchedPage = toPageNum(result.page || nextPage);
+      self._backendPage = fetchedPage;
+      self._loadPage = fetchedPage;
+      var hasMore = resolveListHasMore(result.hasMore, merged.list.length, result.totalNum);
+      applyHeldList(self, merged.list, ctx, {
         totalCount: result.totalNum,
-        hasMore: result.hasMore,
-        loadingMore: false
+        hasMore: hasMore
       });
       if (merged.appended.length) {
-        applyKlinesForItems(self, merged.appended, period);
-      } else if (result.hasMore) {
-        wx.showToast({ title: '暂无新条目，请再试', icon: 'none' });
+        attachKlinesInBackground(self, merged.appended, ctx);
+      } else if (hasMore) {
+        self.loadMoreRecommendations();
       }
     }).catch(function () {
-      self.setData({ loadingMore: false });
       wx.showToast({ title: '加载更多失败', icon: 'none' });
+    }).finally(function () {
+      if (self.data.loadingMore) {
+        self.setData({ loadingMore: false });
+      }
     });
   },
 
-  loadMarket(marketId) {
-    const strategyId = this.data.activeStrategy;
+  loadMarket(ctx) {
+    const strategyId = ctx.strategyId;
+    const period = ctx.period;
+    const marketId = ctx.marketId;
     const indices = MARKET_INDICES[marketId] || [];
     const strategyPool = this._allRecommendations[strategyId] || {};
     const all = strategyPool[marketId] || [];
-    const ignored = app.globalData.ignoredIds;
-    const period = this.data.activePeriod;
 
-    this._baseList = all.filter(function (item) {
-      return !ignored.includes(item.id);
-    });
+    this._baseList = all.slice();
 
     this.setData({
       activeMarket: marketId,
-      indices,
+      indices: indices,
       recommendations: mapChartKlines(this._baseList, period, strategyId),
       totalCount: all.length,
       loading: false
     });
   },
 
-  loadMarketFromApi(marketId) {
-    if (marketId !== 'cn') {
+  loadMarketFromApi(ctx) {
+    if (ctx.marketId !== 'cn') {
       this.setData({
-        activeMarket: marketId,
-        indices: MARKET_INDICES[marketId] || [],
+        activeMarket: ctx.marketId,
+        indices: MARKET_INDICES[ctx.marketId] || [],
         recommendations: [],
         totalCount: 0,
         loading: false
       });
-      return Promise.resolve();
+      return Promise.resolve({
+        totalCount: 0,
+        visibleCount: 0
+      });
     }
 
     const self = this;
-    const strategyId = this.data.activeStrategy;
-    const period = this.data.activePeriod;
-    const ignored = app.globalData.ignoredIds;
-    const reqId = (this._loadReqId = (this._loadReqId || 0) + 1);
+    const loadGen = listViewCtx.bumpLoadGen(this);
 
-    this.setData({ loading: true, hasMore: false, loadingMore: false, totalCount: 0 });
+    this.setData({
+      loading: true,
+      recommendations: [],
+      hasMore: false,
+      loadingMore: false,
+      totalCount: 0,
+      emptyHint: ''
+    });
     this._loadPage = 1;
     this._backendPage = 1;
     this._seenRecommendationIds = {};
 
-    return this._fetchRecommendPage(strategyId, period, 1, ignored).then(function (result) {
-      if (reqId !== self._loadReqId) return null;
+    return fetchVisibleRecommendations(ctx.strategyId, RECOMMEND_PAGE_SIZE, 1).then(function (result) {
+      if (listViewCtx.isLoadStale(self, loadGen)) return null;
       return Promise.all([
         Promise.resolve(result),
-        stockApi.fetchMarketIndices('cn', period).then(function (raw) {
-          return adapter.mapMarketIndices(raw, period);
+        stockApi.fetchMarketIndices('cn', ctx.period).then(function (raw) {
+          return adapter.mapMarketIndices(raw, ctx.period);
         }).catch(function () {
           return MARKET_INDICES.cn || [];
         })
       ]);
     }).then(function (results) {
-      if (!results || reqId !== self._loadReqId) return;
+      if (!results || listViewCtx.isLoadStale(self, loadGen)) {
+        if (!listViewCtx.isLoadStale(self, loadGen)) {
+          self.setData({ loading: false });
+        }
+        return { totalCount: 0, visibleCount: 0 };
+      }
       var pageResult = results[0];
       var indices = results[1];
+      var visibleItems = pageResult.items || [];
+      if (typeof console !== 'undefined' && console.info) {
+        console.info('[Atlas] recommend list', listViewCtx.contextLabel(ctx), {
+          totalNum: pageResult.totalNum,
+          visible: visibleItems.length,
+          page: pageResult.page
+        });
+      }
       self._loadPage = toPageNum(pageResult.page);
       self._backendPage = toPageNum(pageResult.page);
       self._seenRecommendationIds = pageResult.seenIds
         ? pageResult.seenIds
-        : listMemory.initSeenIds(pageResult.items);
-      applyHeldList(self, pageResult.items, period, strategyId, {
-        activeMarket: marketId,
+        : listMemory.initSeenIds(visibleItems);
+      applyHeldList(self, visibleItems, ctx, {
+        activeMarket: ctx.marketId,
         indices: indices,
         totalCount: pageResult.totalNum,
-        hasMore: pageResult.hasMore,
+        hasMore: resolveListHasMore(pageResult.hasMore, visibleItems.length, pageResult.totalNum),
         loading: false
       });
-      if (pageResult.items && pageResult.items.length) {
-        applyKlinesForItems(self, pageResult.items, period);
+      if (visibleItems.length) {
+        attachKlinesInBackground(self, visibleItems, ctx);
       }
-    }).catch(function () {
-      if (reqId !== self._loadReqId) return;
+      return {
+        totalCount: pageResult.totalNum != null ? pageResult.totalNum : 0,
+        visibleCount: visibleItems.length
+      };
+    }).catch(function (err) {
+      if (listViewCtx.isLoadStale(self, loadGen)) return { totalCount: 0, visibleCount: 0 };
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('[Atlas] loadMarketFromApi failed', listViewCtx.contextLabel(ctx), err);
+      }
       self.setData({
         loading: false,
         recommendations: [],
@@ -626,21 +653,15 @@ Page({
     });
   },
 
-  onClearIgnored() {
-    app.clearIgnoredIds();
-    if (config.useMock) {
-      this.loadMarket(this.data.activeMarket);
-      return;
-    }
-    this.loadMarketFromApi(this.data.activeMarket);
-  },
-
   onMarketChange(e) {
     const marketId = e.detail.marketId;
+    const cur = listViewCtx.readContext(this);
+    const ctx = listViewCtx.createContext(cur.strategyId, cur.period, marketId);
+    listViewCtx.commitContext(this, ctx);
     if (config.useMock) {
-      this.loadMarket(marketId);
+      this.loadMarket(ctx);
     } else {
-      this.loadMarketFromApi(marketId);
+      this.loadMarketFromApi(ctx);
     }
   },
 
@@ -652,61 +673,79 @@ Page({
     });
   },
 
-  onStrategyChange(e) {
-    var strategyId = e.detail && e.detail.strategyId;
-    if (!strategyId || strategyId === this.data.activeStrategy) return;
+  switchStrategy(strategyId) {
+    if (!strategyId || strategyId === listViewCtx.readContext(this).strategyId) return;
     var migrated = migrateSavedStrategy(strategyId);
-    if (migrated.strategy !== strategyId) return;
+    if (!strategyNav.isActiveStrategy(migrated.strategy)) return;
 
-    wx.setStorageSync('activeStrategy', strategyId);
-    var ladderTier = strategyId === 'nrf'
-      ? (strategyParams.load('nrf').activeTier || 'short')
-      : this.data.activeLadderTier;
-    var period = strategyParams.chartPrimaryPeriod(strategyId, strategyParams.load(strategyId))
-      || this.data.activePeriod;
-    wx.setStorageSync('activePeriod', period);
-
-    this.setData({
-      activeStrategy: strategyId,
-      activeLadderTier: ladderTier,
-      activePeriod: period,
-      strategyTitle: strategyTitleFor(strategyId, ladderTier)
-    });
-    this.refreshParamsBadge(strategyId);
+    strategyId = migrated.strategy;
+    var cur = listViewCtx.readContext(this);
+    var ctx = listViewCtx.createContext(
+      strategyId,
+      listViewCtx.periodForStrategySwitch(strategyId),
+      cur.marketId
+    );
+    listViewCtx.commitContext(this, ctx);
+    this.refreshParamsBadge(ctx.strategyId);
 
     if (config.useMock) {
-      this.loadMarket(this.data.activeMarket);
+      this.loadMarket(ctx);
     } else {
-      this.loadMarketFromApi(this.data.activeMarket);
+      this.loadMarketFromApi(ctx);
     }
   },
 
+  onStrategyFamilyChange(e) {
+    var family = e.detail && e.detail.family;
+    if (!family || family === this.data.activeStrategyFamily) return;
+    if (!strategyNav.showTierRow(family)) {
+      this.switchStrategy(strategyNav.strategyIdFor(family, 'short'));
+      return;
+    }
+    var tier = this.data.activeCascadeTier || 'short';
+    this.switchStrategy(strategyNav.strategyIdFor(family, tier));
+  },
+
+  onStrategyTierChange(e) {
+    var tier = e.detail && e.detail.tier;
+    if (!tier || tier === this.data.activeCascadeTier) return;
+    this.switchStrategy(strategyNav.strategyIdFor(this.data.activeStrategyFamily, tier));
+  },
+
+  onStrategyChange(e) {
+    var strategyId = e.detail && e.detail.strategyId;
+    this.switchStrategy(strategyId);
+  },
+
   onPeriodChange(e) {
-    const period = e.detail.period;
-    const strategyId = this.data.activeStrategy;
-    wx.setStorageSync('activePeriod', period);
+    const period = e.detail && e.detail.period;
+    if (!period) return;
+
+    const cur = listViewCtx.readContext(this);
+    const ctx = listViewCtx.createContext(cur.strategyId, period, cur.marketId);
+    const samePeriod = cur.period === ctx.period;
+
+    listViewCtx.commitContext(this, ctx);
+    listViewCtx.bumpKlineGen(this);
+
     if (config.useMock) {
       this.setData({
-        activePeriod: period,
-        recommendations: mapChartKlines(this._baseList || [], period, strategyId)
+        recommendations: mapChartKlines(this._baseList || [], ctx.period, ctx.strategyId)
       });
       return;
     }
-    const self = this;
-    const baseList = listMemory.slimListKlines(this._baseList || [], period);
-    this._baseList = baseList;
+
+    const baseList = samePeriod
+      ? (this._baseList || [])
+      : listMemory.slimListKlines(this._baseList || [], ctx.period);
+    if (!samePeriod) {
+      this._baseList = baseList;
+    }
     this.setData({
-      activePeriod: period,
-      recommendations: mapChartKlines(baseList, period, strategyId)
+      recommendations: mapChartKlines(baseList, ctx.period, ctx.strategyId)
     });
-    applyKlinesForItems(this, baseList, period);
-    stockApi.fetchMarketIndices('cn', period).then(function (raw) {
-      return adapter.mapMarketIndices(raw, period);
-    }).catch(function () {
-      return self.data.indices.length ? self.data.indices : (MARKET_INDICES.cn || []);
-    }).then(function (indices) {
-      self.setData({ indices: indices });
-    });
+    attachKlinesInBackground(this, baseList, ctx);
+    refreshIndices(this, ctx);
   },
 
   onFlipKline(e) {
@@ -738,21 +777,11 @@ Page({
   },
 
   _afterWatchlistAdd(item) {
-    const strategyId = this.data.activeStrategy;
-    const period = this.data.activePeriod;
+    const ctx = listViewCtx.readContext(this);
     this._baseList = (this._baseList || []).filter(function (r) { return r.id !== item.id; });
-    applyHeldList(this, this._baseList, period, strategyId, {
+    applyHeldList(this, this._baseList, ctx, {
       totalCount: this.data.totalCount,
       watchlistCount: app.globalData.watchlist.length
-    });
-  },
-
-  onIgnore(e) {
-    const { item } = e.detail;
-    app.ignoreItem(item.id);
-    this._baseList = (this._baseList || []).filter(function (r) { return r.id !== item.id; });
-    applyHeldList(this, this._baseList, this.data.activePeriod, this.data.activeStrategy, {
-      totalCount: this.data.totalCount
     });
   },
 

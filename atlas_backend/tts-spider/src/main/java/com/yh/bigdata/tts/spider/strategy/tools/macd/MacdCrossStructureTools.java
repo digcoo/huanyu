@@ -9,7 +9,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 /**
- * MACD 交叉 K 结构 · 最近 MACD 交叉柱（红柱金叉或绿柱死叉）
+ * MACD 交叉 K 结构 · 最近一根符合开关的交叉 K（不含最后一根）。
  */
 public final class MacdCrossStructureTools {
 
@@ -36,11 +36,45 @@ public final class MacdCrossStructureTools {
             return null;
         }
         List<MACDIndicatorUtils.MACDPoint> points = MACDIndicatorUtils.calculateMACD(Ticker.from(trades));
-        return findLatestCrossBar(trades, points, lookback);
+        return findLatestCrossBar(trades, points, lookback, true, true);
     }
 
     static CrossBar findLatestCrossBar(List<Trade> trades, List<MACDIndicatorUtils.MACDPoint> points,
                                        int lookback) {
+        return findLatestCrossBar(trades, points, lookback, true, true);
+    }
+
+    public static CrossBar findLatestCrossBar(List<Trade> trades, List<MACDIndicatorUtils.MACDPoint> points,
+                                       int lookback, boolean enableGoldenCross, boolean enableDeathCross) {
+        if (CollectionUtils.isEmpty(trades) || lookback < 1) {
+            return null;
+        }
+        if (CollectionUtils.isEmpty(points) || points.size() != trades.size()) {
+            return null;
+        }
+        if (!enableGoldenCross && !enableDeathCross) {
+            return null;
+        }
+        Trade current = trades.get(trades.size() - 1);
+        int start = Math.max(1, points.size() - lookback);
+        for (int i = points.size() - 1; i >= start; i--) {
+            MACDIndicatorUtils.MACDPoint pt = points.get(i);
+            Trade bar = trades.get(i);
+            if (sameBar(bar, current)) {
+                continue;
+            }
+            if (enableGoldenCross && pt.isIfRedGoldCross()) {
+                return new CrossBar(bar, CrossKind.GOLDEN);
+            }
+            if (enableDeathCross && pt.isIfGreenGoldCross()) {
+                return new CrossBar(bar, CrossKind.DEATH);
+            }
+        }
+        return null;
+    }
+
+    public static Trade findLatestDeathCrossBar(List<Trade> trades, List<MACDIndicatorUtils.MACDPoint> points,
+                                                int lookback) {
         if (CollectionUtils.isEmpty(trades) || lookback < 1) {
             return null;
         }
@@ -55,11 +89,8 @@ public final class MacdCrossStructureTools {
             if (sameBar(bar, current)) {
                 continue;
             }
-            if (pt.isIfRedGoldCross()) {
-                return new CrossBar(bar, CrossKind.GOLDEN);
-            }
             if (pt.isIfGreenGoldCross()) {
-                return new CrossBar(bar, CrossKind.DEATH);
+                return bar;
             }
         }
         return null;
