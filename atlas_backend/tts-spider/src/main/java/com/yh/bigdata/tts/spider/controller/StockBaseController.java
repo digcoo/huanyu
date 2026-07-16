@@ -579,7 +579,14 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getMdcbEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getMdcbMinAmountWan()),
                 String.valueOf(pageQuery.getMdcbEnableSignalRiseGate()),
-                String.valueOf(pageQuery.getMdcbSignalRisePct()));
+                String.valueOf(pageQuery.getMdcbSignalRisePct()),
+                String.valueOf(pageQuery.getMgRequireDayMacd()),
+                String.valueOf(pageQuery.getMgRequireWeekMacd()),
+                String.valueOf(pageQuery.getMgRequireMonthMacd()),
+                String.valueOf(pageQuery.getUlgcPrevDays()),
+                String.valueOf(pageQuery.getUlgcMaxBarsPerDay()),
+                String.valueOf(pageQuery.getUlgcGcLookbackBars()),
+                String.valueOf(pageQuery.getUlgcSignalRisePct()));
     }
 
     /** 重跑后预热 findMy 缓存，避免小程序二次全市场扫描超时 */
@@ -651,6 +658,8 @@ public class StockBaseController {
                 .macdGcWaveHighRetest(stockPageQuery.toMacdGcWaveHighRetestParams())
                 .macdGcWaveHighLift(stockPageQuery.toMacdGcWaveHighLiftParams())
                 .macdDcBreakout(stockPageQuery.toMacdDcBreakoutParams())
+                .macdPositiveGate(stockPageQuery.toMacdPositiveGateParams())
+                .ultraGcBreakout(stockPageQuery.toUltraGcBreakoutParams())
                 .build();
 
     }

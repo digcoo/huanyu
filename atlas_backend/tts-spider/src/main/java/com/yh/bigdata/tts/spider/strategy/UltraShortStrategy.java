@@ -3,10 +3,12 @@ package com.yh.bigdata.tts.spider.strategy;
 import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.constants.StrategyTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
+import com.yh.bigdata.tts.common.param.MacdPositiveGateParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.common.param.UltraShortStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.frictionless.StrategyGlobalGateTools;
+import com.yh.bigdata.tts.spider.strategy.tools.macd.MacdPositiveGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.UltraShortEvaluator;
 import com.yh.bigdata.tts.spider.strategy.tools.ultralow.UltraShortFilterTools;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,9 @@ public class UltraShortStrategy extends AbstractStrategy {
             if (!UltraShortFilterTools.passFilters(stockBase, checkResult, params)) {
                 return checkResult;
             }
+            if (!MacdPositiveGateTools.passGate(stockBase, checkResult, resolveMacdPositiveGate(queryContextParam))) {
+                return checkResult;
+            }
 
             UltraShortEvaluator.UltraShortEvaluation eval =
                     UltraShortEvaluator.evaluate(stockBase, checkResult, params);
@@ -76,6 +81,13 @@ public class UltraShortStrategy extends AbstractStrategy {
             return UltraShortStrategyParams.defaults();
         }
         return UltraShortStrategyParams.merge(queryContextParam.getUltraShort());
+    }
+
+    private MacdPositiveGateParams resolveMacdPositiveGate(QueryContextParam queryContextParam) {
+        if (queryContextParam == null || queryContextParam.getMacdPositiveGate() == null) {
+            return MacdPositiveGateParams.defaults();
+        }
+        return MacdPositiveGateParams.merge(queryContextParam.getMacdPositiveGate());
     }
 
     private void applyFallbackSortValue(StockBase stockBase, CheckResult checkResult) {

@@ -78,6 +78,8 @@ public enum StrategyTypeEnum {
     MACD_GC_WAVE_HIGH_LIFT("macdgcwhu", "MACD金叉波段High上移", 45),
     /** MACD死叉突破（日/周/月单档） */
     MACD_DC_BREAKOUT("macddcb", "MACD死叉突破", 46),
+    /** 超短线 · MACD金叉K突破（Min30） */
+    ULTRA_GC_BREAKOUT("ultragc", "MACD金叉K突破", 47),
     /** @deprecated 凹波分档突破 · 短线 */
     WAVE_CONCAVE_TIER_SHORT("waveconcavetierShort", "凹波突破短线", 29),
     /** 凹波分档突破 · 中线 */
@@ -126,7 +128,7 @@ public enum StrategyTypeEnum {
                 || this == CONVEX_LIFT_TIER || this == BODY_BAR_TIER
                 || this == MACD_GOLDEN_CROSS || this == MACD_GC_WAVE_HIGH
                 || this == MACD_GC_WAVE_HIGH_RETEST || this == MACD_GC_WAVE_HIGH_LIFT
-                || this == MACD_DC_BREAKOUT;
+                || this == MACD_DC_BREAKOUT || this == ULTRA_GC_BREAKOUT;
     }
 
 	public static StrategyTypeEnum getByCode(String code){

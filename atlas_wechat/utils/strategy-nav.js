@@ -11,6 +11,8 @@ var FAMILY_MACD_DC_BREAKOUT = 'macddcb';
 var TIER_SHORT = 'short';
 var TIER_MEDIUM = 'medium';
 var TIER_LONG = 'long';
+var TIER_ULTRA_BUCKET = 'bucket';
+var TIER_ULTRA_GC = 'gc';
 
 var STRATEGY_FAMILIES = [
   { id: FAMILY_ULTRA, name: '超短线', icon: '⚡' },
@@ -27,8 +29,14 @@ var WAVE_TIER_TABS = [
   { id: TIER_LONG, name: '长线', icon: '○' }
 ];
 
+var ULTRA_SUB_TABS = [
+  { id: TIER_ULTRA_BUCKET, name: '跨日桶', icon: '▣' },
+  { id: TIER_ULTRA_GC, name: '金叉K', icon: '✦' }
+];
+
 var STRATEGY_TITLES = {
-  ultra: '超短线策略',
+  ultra: '超短线·跨日桶',
+  ultragc: '超短线·金叉K突破',
   macdgcShort: 'MACD金叉·短线',
   macdgcMedium: 'MACD金叉·中线',
   macdgcLong: 'MACD金叉·长线',
@@ -111,6 +119,7 @@ var ARCHIVED_STRATEGIES = {
 
 var ACTIVE_STRATEGY_IDS = {
   ultra: true,
+  ultragc: true,
   macdgcShort: true,
   macdgcMedium: true,
   macdgcLong: true,
@@ -170,6 +179,11 @@ function macdGcWhuTierStrategyId(tier) {
   return 'macdgcwhuShort';
 }
 
+function normalizeUltraTier(tier) {
+  if (tier === TIER_ULTRA_GC) return TIER_ULTRA_GC;
+  return TIER_ULTRA_BUCKET;
+}
+
 function macdDcBreakoutTierStrategyId(tier) {
   tier = normalizeTier(tier);
   if (tier === TIER_MEDIUM) return 'macddcbMedium';
@@ -179,6 +193,9 @@ function macdDcBreakoutTierStrategyId(tier) {
 
 function strategyIdFor(family, tier) {
   family = family || FAMILY_ULTRA;
+  if (family === FAMILY_ULTRA) {
+    return normalizeUltraTier(tier) === TIER_ULTRA_GC ? 'ultragc' : 'ultra';
+  }
   tier = normalizeTier(tier);
   if (family === FAMILY_MACD_GC) {
     return macdGcTierStrategyId(tier);
@@ -245,16 +262,22 @@ function parseStrategyId(strategyId) {
   if (strategyId === 'macddcbLong') {
     return { family: FAMILY_MACD_DC_BREAKOUT, tier: TIER_LONG, strategyId: 'macddcbLong' };
   }
-  return { family: FAMILY_ULTRA, tier: TIER_SHORT, strategyId: 'ultra' };
+  if (strategyId === 'ultragc') {
+    return { family: FAMILY_ULTRA, tier: TIER_ULTRA_GC, strategyId: 'ultragc' };
+  }
+  return { family: FAMILY_ULTRA, tier: TIER_ULTRA_BUCKET, strategyId: 'ultra' };
 }
 
 function showTierRow(family) {
-  return family === FAMILY_MACD_GC || family === FAMILY_MACD_GC_WH
+  return family === FAMILY_ULTRA || family === FAMILY_MACD_GC || family === FAMILY_MACD_GC_WH
     || family === FAMILY_MACD_GC_WHR || family === FAMILY_MACD_GC_WHU
     || family === FAMILY_MACD_DC_BREAKOUT;
 }
 
 function tierTabsForFamily(family) {
+  if (family === FAMILY_ULTRA) {
+    return ULTRA_SUB_TABS;
+  }
   if (family === FAMILY_MACD_GC || family === FAMILY_MACD_GC_WH
       || family === FAMILY_MACD_GC_WHR || family === FAMILY_MACD_GC_WHU
       || family === FAMILY_MACD_DC_BREAKOUT) {
@@ -323,6 +346,9 @@ module.exports = {
   FAMILY_MACD_DC_BREAKOUT: FAMILY_MACD_DC_BREAKOUT,
   STRATEGY_FAMILIES: STRATEGY_FAMILIES,
   WAVE_TIER_TABS: WAVE_TIER_TABS,
+  ULTRA_SUB_TABS: ULTRA_SUB_TABS,
+  TIER_ULTRA_BUCKET: TIER_ULTRA_BUCKET,
+  TIER_ULTRA_GC: TIER_ULTRA_GC,
   strategyIdFor: strategyIdFor,
   parseStrategyId: parseStrategyId,
   showTierRow: showTierRow,

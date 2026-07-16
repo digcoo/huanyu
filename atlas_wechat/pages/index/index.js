@@ -259,7 +259,7 @@ Page({
     markets: buildMarketsForUI(),
     activeStrategy: DEFAULT_STRATEGY,
     activeStrategyFamily: strategyNav.FAMILY_ULTRA,
-    activeCascadeTier: 'short',
+    activeCascadeTier: strategyNav.TIER_ULTRA_BUCKET,
     showCascadeTierRow: false,
     allowedPeriods: listViewCtx.allowedPeriods(),
     strategyTitle: strategyNav.strategyTitleFor(DEFAULT_STRATEGY),

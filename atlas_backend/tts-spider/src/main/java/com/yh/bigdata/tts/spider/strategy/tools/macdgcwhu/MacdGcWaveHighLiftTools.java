@@ -19,7 +19,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 /**
- * MACD金叉波段High上移：MACD&gt;0、价在波段High（或未完成时用金叉K high）上、首次上移前K high。
+ * MACD金叉波段High上移：MACD&gt;0、价在波段High（或未完成时用金叉K high）上、前K收&gt;波段High、首次上移前K high。
  */
 public final class MacdGcWaveHighLiftTools {
 
@@ -98,6 +98,9 @@ public final class MacdGcWaveHighLiftTools {
             return null;
         }
         if (!passesCloseAboveFloor(signalBar, floor.value)) {
+            return null;
+        }
+        if (!passesCloseAboveFloor(prevBar, floor.value)) {
             return null;
         }
         if (!passesFirstPrevHighLift(signalBar, prevBar, prevPrevBar)) {

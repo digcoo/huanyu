@@ -129,6 +129,12 @@ public class QueryContextParam extends PageQuery {
     /** MACD死叉突破自定义参数 */
     private MacdDcBreakoutStrategyParams macdDcBreakout;
 
+    /** 多周期 MACD&gt;0 可选门（小程序各策略共用） */
+    private MacdPositiveGateParams macdPositiveGate;
+
+    /** 超短线 · MACD金叉K突破 */
+    private UltraGcBreakoutStrategyParams ultraGcBreakout;
+
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
@@ -169,6 +175,8 @@ public class QueryContextParam extends PageQuery {
                 .macdGcWaveHighRetest(MacdGcWaveHighRetestStrategyParams.defaults())
                 .macdGcWaveHighLift(MacdGcWaveHighLiftStrategyParams.defaults())
                 .macdDcBreakout(MacdDcBreakoutStrategyParams.defaults())
+                .macdPositiveGate(MacdPositiveGateParams.defaults())
+                .ultraGcBreakout(UltraGcBreakoutStrategyParams.defaults())
                 .build();
     }
 	

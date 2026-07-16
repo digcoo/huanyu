@@ -673,6 +673,20 @@ public class StockPageQuery extends PageQuery {
     private Boolean mdcbEnableSignalRiseGate;
     /** MACD死叉突破 · 末 K 上涨率阈值（%，如 3 表示 3%） */
     private Integer mdcbSignalRisePct;
+    /** 多周期 MACD&gt;0 门 · 日档 */
+    private Boolean mgRequireDayMacd;
+    /** 多周期 MACD&gt;0 门 · 周档 */
+    private Boolean mgRequireWeekMacd;
+    /** 多周期 MACD&gt;0 门 · 月档 */
+    private Boolean mgRequireMonthMacd;
+    /** MACD金叉K突破 · 信号日前 N 个交易日 */
+    private Integer ulgcPrevDays;
+    /** MACD金叉K突破 · 每日最多 Min30 根 */
+    private Integer ulgcMaxBarsPerDay;
+    /** MACD金叉K突破 · 金叉回溯根数 */
+    private Integer ulgcGcLookbackBars;
+    /** MACD金叉K突破 · 信号 Min30 涨幅阈值（%，如 1 表示 1%） */
+    private Integer ulgcSignalRisePct;
     /** @deprecated */
     private Boolean wpgEnableWeekGate;
     /** @deprecated */
@@ -952,15 +966,6 @@ public class StockPageQuery extends PageQuery {
         UltraShortStrategyParams.UltraShortStrategyParamsBuilder b = UltraShortStrategyParams.builder();
         if (ulMinAmountWan != null) {
             b.minAvgAmount(ulMinAmountWan * 10_000D);
-        }
-        if (ulRequireMonthMacd != null) {
-            b.requireMonthMacd(ulRequireMonthMacd);
-        }
-        if (ulRequireWeekMacd != null) {
-            b.requireWeekMacd(ulRequireWeekMacd);
-        }
-        if (ulRequireDayMacd != null) {
-            b.requireDayMacd(ulRequireDayMacd);
         }
         if (ulRequireDayMacdNegative != null) {
             b.requireDayMacdNegative(ulRequireDayMacdNegative);
@@ -1882,6 +1887,44 @@ public class StockPageQuery extends PageQuery {
             b.signalRisePct(mdcbSignalRisePct / 100D);
         }
         return MacdDcBreakoutStrategyParams.merge(b.build());
+    }
+
+    public MacdPositiveGateParams toMacdPositiveGateParams() {
+        MacdPositiveGateParams.MacdPositiveGateParamsBuilder b = MacdPositiveGateParams.builder();
+        if (mgRequireDayMacd != null) {
+            b.requireDayMacd(mgRequireDayMacd);
+        } else if (ulRequireDayMacd != null) {
+            b.requireDayMacd(ulRequireDayMacd);
+        }
+        if (mgRequireWeekMacd != null) {
+            b.requireWeekMacd(mgRequireWeekMacd);
+        } else if (ulRequireWeekMacd != null) {
+            b.requireWeekMacd(ulRequireWeekMacd);
+        }
+        if (mgRequireMonthMacd != null) {
+            b.requireMonthMacd(mgRequireMonthMacd);
+        } else if (ulRequireMonthMacd != null) {
+            b.requireMonthMacd(ulRequireMonthMacd);
+        }
+        return MacdPositiveGateParams.merge(b.build());
+    }
+
+    public UltraGcBreakoutStrategyParams toUltraGcBreakoutParams() {
+        UltraGcBreakoutStrategyParams.UltraGcBreakoutStrategyParamsBuilder b =
+                UltraGcBreakoutStrategyParams.builder();
+        if (ulgcPrevDays != null && ulgcPrevDays >= 0) {
+            b.prevDays(ulgcPrevDays);
+        }
+        if (ulgcMaxBarsPerDay != null && ulgcMaxBarsPerDay >= 1) {
+            b.maxBarsPerDay(ulgcMaxBarsPerDay);
+        }
+        if (ulgcGcLookbackBars != null && ulgcGcLookbackBars >= 5) {
+            b.gcLookbackBars(ulgcGcLookbackBars);
+        }
+        if (ulgcSignalRisePct != null && ulgcSignalRisePct > 0) {
+            b.signalRisePct(ulgcSignalRisePct / 100D);
+        }
+        return UltraGcBreakoutStrategyParams.merge(b.build());
     }
 
     /** @deprecated 兼容旧 waveband 参数 */

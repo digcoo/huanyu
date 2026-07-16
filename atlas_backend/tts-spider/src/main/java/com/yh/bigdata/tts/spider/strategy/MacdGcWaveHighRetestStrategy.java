@@ -6,8 +6,10 @@ import com.yh.bigdata.tts.common.constants.StrategyTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.param.MacdGcWaveHighRetestStrategyParams;
+import com.yh.bigdata.tts.common.param.MacdPositiveGateParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.macd.MacdPositiveGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.macdgcwhr.MacdGcWaveHighRetestEvaluator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -45,6 +47,9 @@ public class MacdGcWaveHighRetestStrategy extends AbstractStrategy {
             if (!eval.isHit()) {
                 return checkResult;
             }
+            if (!MacdPositiveGateTools.passGate(stockBase, checkResult, resolveMacdPositiveGate(queryContextParam))) {
+                return checkResult;
+            }
             PeriodTypeEnum primaryPeriod = eval.getPeriod();
             checkResult.setHasTrend(true);
             checkResult.setHasSignal(true);
@@ -64,6 +69,13 @@ public class MacdGcWaveHighRetestStrategy extends AbstractStrategy {
             return MacdGcWaveHighRetestStrategyParams.defaults();
         }
         return MacdGcWaveHighRetestStrategyParams.merge(queryContextParam.getMacdGcWaveHighRetest());
+    }
+
+    private MacdPositiveGateParams resolveMacdPositiveGate(QueryContextParam queryContextParam) {
+        if (queryContextParam == null || queryContextParam.getMacdPositiveGate() == null) {
+            return MacdPositiveGateParams.defaults();
+        }
+        return MacdPositiveGateParams.merge(queryContextParam.getMacdPositiveGate());
     }
 
     private void applyFallbackSortValue(StockBase stockBase, CheckResult checkResult) {

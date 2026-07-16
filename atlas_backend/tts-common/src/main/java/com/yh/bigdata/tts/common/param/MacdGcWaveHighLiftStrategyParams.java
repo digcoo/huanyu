@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * MACD金叉波段High上移（macdgcwhu）：MACD&gt;0、价在波段High/金叉K high上、首次上移前K high。
+ * MACD金叉波段High上移（macdgcwhu）：MACD&gt;0、价/前K收在波段High/金叉K high上、首次上移前K high。
  */
 @Data
 @Builder

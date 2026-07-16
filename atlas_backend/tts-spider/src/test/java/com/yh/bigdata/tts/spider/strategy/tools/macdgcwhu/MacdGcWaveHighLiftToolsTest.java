@@ -19,9 +19,9 @@ public class MacdGcWaveHighLiftToolsTest {
                 bar("d1", 10, 11, 11.5, 10),
                 bar("d2", 11, 12, 12.5, 11),
                 bar("d3", 12, 11.5, 13, 11),
-                bar("d4", 11.5, 11.2, 11.5, 11),
-                bar("d5", 11.3, 11.4, 11.6, 11.2),
-                bar("d6", 13.0, 13.1, 13.15, 12.9));
+                bar("d4", 11.5, 11.2, 13.6, 11),
+                bar("d5", 13.2, 13.25, 13.4, 13.1),
+                bar("d6", 13.35, 13.5, 13.55, 13.3));
         List<MACDIndicatorUtils.MACDPoint> points = points(trades,
                 false, false,
                 false, false,
@@ -45,11 +45,13 @@ public class MacdGcWaveHighLiftToolsTest {
         List<Trade> trades = Arrays.asList(
                 bar("d1", 10, 11, 11.5, 10),
                 bar("d2", 11, 12.2, 12.5, 11),
-                bar("d3", 12.2, 12.4, 12.45, 12.2),
-                bar("d4", 12.5, 12.55, 12.6, 12.48));
+                bar("d3", 12.0, 12.1, 13.0, 12.0),
+                bar("d4", 12.55, 12.58, 12.6, 12.52),
+                bar("d5", 12.58, 12.62, 12.65, 12.57));
         List<MACDIndicatorUtils.MACDPoint> points = points(trades,
                 false, false,
                 true, false,
+                false, false,
                 false, false,
                 0.5, false);
         MacdGcWaveHighLiftTools.TierHit hit = MacdGcWaveHighLiftTools.resolveHitOnBars(
@@ -57,6 +59,27 @@ public class MacdGcWaveHighLiftToolsTest {
         Assert.assertNotNull(hit);
         Assert.assertTrue(hit.isGcHighFallback());
         Assert.assertEquals(12.5, hit.getPriceFloor(), 1e-6);
+    }
+
+    @Test
+    public void rejectsWhenPrevCloseNotAboveBandHigh() {
+        List<Trade> trades = Arrays.asList(
+                bar("d1", 10, 11, 11.5, 10),
+                bar("d2", 11, 12, 12.5, 11),
+                bar("d3", 12, 11.5, 13, 11),
+                bar("d4", 11.5, 11.2, 13.6, 11),
+                bar("d5", 11.3, 11.4, 11.6, 11.2),
+                bar("d6", 13.0, 13.1, 13.15, 12.9));
+        List<MACDIndicatorUtils.MACDPoint> points = points(trades,
+                false, false,
+                false, false,
+                false, false,
+                true, false,
+                false, false,
+                false, false,
+                0.5, false);
+        Assert.assertNull(MacdGcWaveHighLiftTools.resolveHitOnBars(
+                trades, points, MacdGcWaveHighLiftStrategyParams.builder().build()));
     }
 
     @Test

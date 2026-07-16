@@ -6,6 +6,7 @@ const { formatDataUpdatedLabel } = require('./time');
 
 const STRATEGY_API = {
   ultra: { strategy: 'ultra', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' },
+  ultragc: { strategy: 'ultragc', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' },
   trend: { strategy: 'trend', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
   medium: { strategy: 'medium', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
   long: { strategy: 'long', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
@@ -629,6 +630,8 @@ function mapRecommendation(item, strategyId) {
     }
   } else if (strategyId === 'ultra') {
     tags = tags.concat(buildUltraTags(item));
+  } else if (strategyId === 'ultragc') {
+    tags = tags.concat(['MACD金叉K突破']);
   } else {
     if (item.signalMessage) tags.push('信号');
     else if (item.trendMessage) tags.push('趋势');
@@ -682,6 +685,8 @@ function mapRecommendation(item, strategyId) {
         ? buildCascadewaveconcavedaySummary(item)
         : buildCascadewaveconvexSummary(item)), item.mainBusiness, item.summary]
     : strategyId === 'ultra'
+    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
+    : strategyId === 'ultragc'
     ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
     : strategyId === 'retest'
     ? [buildRetestSummary(item), item.mainBusiness, item.summary]
