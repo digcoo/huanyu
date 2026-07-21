@@ -6,15 +6,13 @@ import com.yh.bigdata.tts.common.constants.StrategyTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.param.MacdGcWaveHighLiftStrategyParams;
-import com.yh.bigdata.tts.common.param.MacdPositiveGateParams;
 import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.spider.response.CheckResult;
-import com.yh.bigdata.tts.spider.strategy.tools.macd.MacdPositiveGateTools;
 import com.yh.bigdata.tts.spider.strategy.tools.macdgcwhu.MacdGcWaveHighLiftEvaluator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -33,7 +31,7 @@ public class MacdGcWaveHighLiftStrategy extends AbstractStrategy {
 
     @Override
     public List<PeriodTypeEnum> getTrendPeriodTypes() {
-        return Collections.singletonList(PeriodTypeEnum.DAY);
+        return Arrays.asList(PeriodTypeEnum.MONTH, PeriodTypeEnum.WEEK, PeriodTypeEnum.DAY);
     }
 
     @Override
@@ -47,15 +45,11 @@ public class MacdGcWaveHighLiftStrategy extends AbstractStrategy {
             if (!eval.isHit()) {
                 return checkResult;
             }
-            if (!MacdPositiveGateTools.passGate(stockBase, checkResult, resolveMacdPositiveGate(queryContextParam))) {
-                return checkResult;
-            }
-            PeriodTypeEnum primaryPeriod = eval.getPeriod();
             checkResult.setHasTrend(true);
             checkResult.setHasSignal(true);
             checkResult.setSortValue(50);
-            checkResult.setTrendPeriodType(primaryPeriod);
-            checkResult.setOpPeriodType(primaryPeriod);
+            checkResult.setTrendPeriodType(PeriodTypeEnum.MONTH);
+            checkResult.setOpPeriodType(PeriodTypeEnum.DAY);
         } catch (Exception ex) {
             log.error("{} - check exception : stock = {}", getClass().getName(), stockBase.getCode(), ex);
         } finally {
@@ -69,13 +63,6 @@ public class MacdGcWaveHighLiftStrategy extends AbstractStrategy {
             return MacdGcWaveHighLiftStrategyParams.defaults();
         }
         return MacdGcWaveHighLiftStrategyParams.merge(queryContextParam.getMacdGcWaveHighLift());
-    }
-
-    private MacdPositiveGateParams resolveMacdPositiveGate(QueryContextParam queryContextParam) {
-        if (queryContextParam == null || queryContextParam.getMacdPositiveGate() == null) {
-            return MacdPositiveGateParams.defaults();
-        }
-        return MacdPositiveGateParams.merge(queryContextParam.getMacdPositiveGate());
     }
 
     private void applyFallbackSortValue(StockBase stockBase, CheckResult checkResult) {

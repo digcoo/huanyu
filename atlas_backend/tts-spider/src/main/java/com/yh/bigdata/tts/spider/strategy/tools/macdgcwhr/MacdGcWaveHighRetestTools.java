@@ -18,7 +18,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 /**
- * MACD金叉波段High回踩：MACD&gt;0、收盘在基准波段 High 上、末 K 振幅≤阈值。
+ * MACD金叉波段High回踩：MACD&gt;0、收盘在基准波段 High 上、末 K low 贴近 bandHigh（差值幅度≤阈值）。
  */
 public final class MacdGcWaveHighRetestTools {
 
@@ -85,10 +85,11 @@ public final class MacdGcWaveHighRetestTools {
         if (referenceBand == null || Double.isNaN(referenceBand.getBandHigh())) {
             return null;
         }
-        if (!passesCloseAboveBandHigh(signalBar, referenceBand.getBandHigh())) {
+        double bandHigh = referenceBand.getBandHigh();
+        if (!passesCloseAboveBandHigh(signalBar, bandHigh)) {
             return null;
         }
-        if (!passesTightBarRange(signalBar, p.getMaxBarRangePct())) {
+        if (!passesLowNearBandHigh(signalBar, bandHigh, p.getMaxBarRangePct())) {
             return null;
         }
         return new TierHit(latestCross, referenceBand, signalBar);
@@ -112,17 +113,13 @@ public final class MacdGcWaveHighRetestTools {
         return signalBar.getClose() > bandHigh + EPS;
     }
 
-    static boolean passesTightBarRange(Trade signalBar, double maxRangePct) {
-        if (signalBar == null || signalBar.getHigh() == null || signalBar.getLow() == null) {
+    /** 末 K low 与基准 bandHigh 的相对差值：|low - bandHigh| / bandHigh ≤ maxGapPct。 */
+    static boolean passesLowNearBandHigh(Trade signalBar, double bandHigh, double maxGapPct) {
+        if (signalBar == null || signalBar.getLow() == null || Double.isNaN(bandHigh) || bandHigh <= 0) {
             return false;
         }
-        double low = signalBar.getLow();
-        double high = signalBar.getHigh();
-        if (low <= 0 || high < low) {
-            return false;
-        }
-        double rangePct = (high - low) / low;
-        return rangePct <= maxRangePct + EPS;
+        double gapPct = Math.abs(signalBar.getLow() - bandHigh) / bandHigh;
+        return gapPct <= maxGapPct + EPS;
     }
 
     public static String buildSignalMessage(PeriodTypeEnum period, TierHit hit) {
@@ -132,14 +129,13 @@ public final class MacdGcWaveHighRetestTools {
         Trade gcBar = hit.getCrossBar() != null ? hit.getCrossBar().getBar() : null;
         Trade signalBar = hit.getSignalBar();
         double bandHigh = hit.getReferenceBand() != null ? hit.getReferenceBand().getBandHigh() : 0;
-        double rangePct = 0;
-        if (signalBar != null && signalBar.getHigh() != null && signalBar.getLow() != null
-                && signalBar.getLow() > 0) {
-            rangePct = (signalBar.getHigh() - signalBar.getLow()) / signalBar.getLow();
+        double lowBandHighGapPct = 0;
+        if (signalBar != null && signalBar.getLow() != null && bandHigh > 0) {
+            lowBandHighGapPct = Math.abs(signalBar.getLow() - bandHigh) / bandHigh;
         }
         return String.format(
                 "MACD金叉波段High回踩,strategyTag=MGCWHR,signalTier=%s,gcDay=%s,gcClose=%.2f,"
-                        + "bandHigh=%.2f,sigDay=%s,sigClose=%.2f,sigHigh=%.2f,sigLow=%.2f,barRangePct=%.4f",
+                        + "bandHigh=%.2f,sigDay=%s,sigClose=%.2f,sigHigh=%.2f,sigLow=%.2f,lowBandHighGapPct=%.4f",
                 period != null ? period.getCode() : "",
                 dayOf(gcBar),
                 gcBar != null && gcBar.getClose() != null ? gcBar.getClose() : 0,
@@ -148,7 +144,7 @@ public final class MacdGcWaveHighRetestTools {
                 signalBar != null && signalBar.getClose() != null ? signalBar.getClose() : 0,
                 signalBar != null && signalBar.getHigh() != null ? signalBar.getHigh() : 0,
                 signalBar != null && signalBar.getLow() != null ? signalBar.getLow() : 0,
-                rangePct);
+                lowBandHighGapPct);
     }
 
     public static PeriodTypeEnum resolvePeriod(MacdGcWaveHighRetestStrategyParams.Tier tier) {

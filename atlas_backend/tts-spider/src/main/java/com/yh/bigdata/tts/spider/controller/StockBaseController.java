@@ -234,6 +234,7 @@ public class StockBaseController {
             int end = Math.min(start + size, allTargets.size());
             pageResult.setItems(new ArrayList<>(allTargets.subList(start, end)));
         }
+        pageResult.getItems().forEach(this::slimTargetForList);
 
         log.info("findMy page={}/{}, size={}, total={}", page, pageResult.getTotalPage(),
                 pageResult.getItems().size(), pageResult.getTotalNum());
@@ -580,13 +581,28 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getMdcbMinAmountWan()),
                 String.valueOf(pageQuery.getMdcbEnableSignalRiseGate()),
                 String.valueOf(pageQuery.getMdcbSignalRisePct()),
+                String.valueOf(pageQuery.getWccbTier()),
+                String.valueOf(pageQuery.getWccbLookbackDay()),
+                String.valueOf(pageQuery.getWccbLookbackWeek()),
+                String.valueOf(pageQuery.getWccbLookbackMonth()),
+                String.valueOf(pageQuery.getWccbEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getWccbMinAmountWan()),
+                String.valueOf(pageQuery.getWccbEnableSignalRiseGate()),
+                String.valueOf(pageQuery.getWccbSignalRisePct()),
                 String.valueOf(pageQuery.getMgRequireDayMacd()),
                 String.valueOf(pageQuery.getMgRequireWeekMacd()),
                 String.valueOf(pageQuery.getMgRequireMonthMacd()),
                 String.valueOf(pageQuery.getUlgcPrevDays()),
                 String.valueOf(pageQuery.getUlgcMaxBarsPerDay()),
                 String.valueOf(pageQuery.getUlgcGcLookbackBars()),
-                String.valueOf(pageQuery.getUlgcSignalRisePct()));
+                String.valueOf(pageQuery.getUlgcSignalRisePct()),
+                String.valueOf(pageQuery.getDm60PrevDays()),
+                String.valueOf(pageQuery.getDm60MaxBarsPerDay()),
+                String.valueOf(pageQuery.getDm60GcLookbackBars()),
+                String.valueOf(pageQuery.getDm60EnableMinAmountFilter()),
+                String.valueOf(pageQuery.getDm60MinAmountWan()),
+                String.valueOf(pageQuery.getDm60EnableSignalRiseGate()),
+                String.valueOf(pageQuery.getDm60SignalRisePct()));
     }
 
     /** 重跑后预热 findMy 缓存，避免小程序二次全市场扫描超时 */
@@ -616,6 +632,23 @@ public class StockBaseController {
         stockTarget.setChangeRate(stockBase.getChangeRate() != null ? stockBase.getChangeRate() : 0D);
         stockTarget.setMainBusiness(stockBase.getMainBusiness());
         return stockTarget;
+    }
+
+    /** 列表 API 精简 payload：主营摘要在详情页加载 */
+    private void slimTargetForList(StockTarget target) {
+        if (target == null) {
+            return;
+        }
+        target.setMainBusiness(null);
+        target.setTrendMessage(truncateForList(target.getTrendMessage(), 200));
+        target.setSignalMessage(truncateForList(target.getSignalMessage(), 200));
+    }
+
+    private static String truncateForList(String text, int maxLen) {
+        if (text == null || text.length() <= maxLen) {
+            return text;
+        }
+        return text.substring(0, maxLen) + "…";
     }
 
     private QueryContextParam buildQueryContextParam(StockPageQuery stockPageQuery) {
@@ -660,6 +693,15 @@ public class StockBaseController {
                 .macdDcBreakout(stockPageQuery.toMacdDcBreakoutParams())
                 .macdPositiveGate(stockPageQuery.toMacdPositiveGateParams())
                 .ultraGcBreakout(stockPageQuery.toUltraGcBreakoutParams())
+                .waveCcBreakout(stockPageQuery.toWaveCcBreakoutParams())
+                .dayMin60Combo(stockPageQuery.toDayMin60ComboParams())
+                .weekMin60Combo(stockPageQuery.toWeekMin60ComboParams())
+                .dayWeekCombo(stockPageQuery.toDayWeekComboParams())
+                .dayMonthCombo(stockPageQuery.toDayMonthComboParams())
+                .min60WaveCcBreakout(stockPageQuery.toMin60WaveCcBreakoutParams())
+                .dayWaveCcBreakout(stockPageQuery.toDayWaveCcBreakoutParams())
+                .weekWaveCcBreakout(stockPageQuery.toWeekWaveCcBreakoutParams())
+                .monthWaveCcBreakout(stockPageQuery.toMonthWaveCcBreakoutParams())
                 .build();
 
     }

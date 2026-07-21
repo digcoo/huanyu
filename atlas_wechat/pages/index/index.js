@@ -1,6 +1,5 @@
 const {
-  MARKET_INDICES,
-  buildStrategyRecommendations
+  MARKET_INDICES
 } = require('../../utils/mock');
 const { findStockByIdAsync } = require('../../utils/search');
 const { buildMarketsForUI } = require('../../utils/markets');
@@ -15,7 +14,7 @@ const listMemory = require('../../utils/list-memory');
 const listViewCtx = require('../../utils/list-view-context');
 
 const app = getApp();
-const DEFAULT_STRATEGY = 'ultra';
+const DEFAULT_STRATEGY = 'min60wavecc';
 
 const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
 
@@ -26,7 +25,9 @@ function toPageNum(v) {
 
 function mapChartKlines(list, period, strategyId) {
   return list.map(function (item) {
-    var klines = item.klines && item.klines[period] ? item.klines[period] : [];
+    var klines = (item.chartKlines && item.chartKlines.length)
+      ? item.chartKlines
+      : (item.klines && item.klines[period] ? item.klines[period] : []);
     var barMarkersList = [];
     var priceLines = item.priceLines || [];
     if (barMarkers.shouldShowBarMarkers(strategyId, period)) {
@@ -259,8 +260,8 @@ Page({
     markets: buildMarketsForUI(),
     activeStrategy: DEFAULT_STRATEGY,
     activeStrategyFamily: strategyNav.FAMILY_ULTRA,
-    activeCascadeTier: strategyNav.TIER_ULTRA_BUCKET,
-    showCascadeTierRow: false,
+    activeCascadeTier: strategyNav.TIER_MIN60_WAVE_CC,
+    showCascadeTierRow: true,
     allowedPeriods: listViewCtx.allowedPeriods(),
     strategyTitle: strategyNav.strategyTitleFor(DEFAULT_STRATEGY),
 
@@ -310,7 +311,6 @@ Page({
       klineFlipped: klineFlipped
     });
 
-    this._allRecommendations = buildStrategyRecommendations();
     this.refreshParamsBadge(ctx.strategyId);
     if (config.useMock) {
       this.loadMarket(ctx);
@@ -545,16 +545,14 @@ Page({
     const period = ctx.period;
     const marketId = ctx.marketId;
     const indices = MARKET_INDICES[marketId] || [];
-    const strategyPool = this._allRecommendations[strategyId] || {};
-    const all = strategyPool[marketId] || [];
 
-    this._baseList = all.slice();
+    this._baseList = [];
 
     this.setData({
       activeMarket: marketId,
       indices: indices,
-      recommendations: mapChartKlines(this._baseList, period, strategyId),
-      totalCount: all.length,
+      recommendations: [],
+      totalCount: 0,
       loading: false
     });
   },

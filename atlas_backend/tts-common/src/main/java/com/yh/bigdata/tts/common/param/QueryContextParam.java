@@ -135,6 +135,33 @@ public class QueryContextParam extends PageQuery {
     /** 超短线 · MACD金叉K突破 */
     private UltraGcBreakoutStrategyParams ultraGcBreakout;
 
+    /** 凹凸突破（waveccbreak） */
+    private WaveCcBreakoutStrategyParams waveCcBreakout;
+
+    /** 日小时组合（daymin60） */
+    private DayMin60ComboStrategyParams dayMin60Combo;
+
+    /** 小时周组合（weekmin60） */
+    private WeekMin60ComboStrategyParams weekMin60Combo;
+
+    /** 日周组合（dayweek） */
+    private DayWeekComboStrategyParams dayWeekCombo;
+
+    /** 日月组合（daymonth） */
+    private DayMonthComboStrategyParams dayMonthCombo;
+
+    /** 小时凹凸突破（min60wavecc） */
+    private Min60WaveCcBreakoutStrategyParams min60WaveCcBreakout;
+
+    /** 日凹凸突破（daywavecc） */
+    private DayWaveCcBreakoutStrategyParams dayWaveCcBreakout;
+
+    /** 周凹凸突破（weekwavecc） */
+    private WeekWaveCcBreakoutStrategyParams weekWaveCcBreakout;
+
+    /** 月凹凸突破（monthwavecc） */
+    private MonthWaveCcBreakoutStrategyParams monthWaveCcBreakout;
+
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
@@ -177,6 +204,15 @@ public class QueryContextParam extends PageQuery {
                 .macdDcBreakout(MacdDcBreakoutStrategyParams.defaults())
                 .macdPositiveGate(MacdPositiveGateParams.defaults())
                 .ultraGcBreakout(UltraGcBreakoutStrategyParams.defaults())
+                .waveCcBreakout(WaveCcBreakoutStrategyParams.defaults())
+                .dayMin60Combo(DayMin60ComboStrategyParams.defaults())
+                .weekMin60Combo(WeekMin60ComboStrategyParams.defaults())
+                .dayWeekCombo(DayWeekComboStrategyParams.defaults())
+                .dayMonthCombo(DayMonthComboStrategyParams.defaults())
+                .min60WaveCcBreakout(Min60WaveCcBreakoutStrategyParams.defaults())
+                .dayWaveCcBreakout(DayWaveCcBreakoutStrategyParams.defaults())
+                .weekWaveCcBreakout(WeekWaveCcBreakoutStrategyParams.defaults())
+                .monthWaveCcBreakout(MonthWaveCcBreakoutStrategyParams.defaults())
                 .build();
     }
 	

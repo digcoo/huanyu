@@ -65,8 +65,13 @@ public class MyApplicationLoader {
             List<StockMin30> stockMin30s = stockService.findAllStockMin30s(filterCodes);
             RealtimeStockCache.min30Map = TradeConvertHelper.parseSortMapList(stockMin30s, PeriodTypeEnum.MIN30);
 
-            log.info("MyApplicationLoader strat cost = {}s, min30 codes={}",
-                    (System.currentTimeMillis() - start) / 1000, RealtimeStockCache.min30Map.size());
+            List<StockMin60> stockMin60s = stockService.findAllStockMin60s(filterCodes);
+            RealtimeStockCache.min60Map = TradeConvertHelper.parseSortMapList(stockMin60s, PeriodTypeEnum.MIN60);
+
+            log.info("MyApplicationLoader strat cost = {}s, min30 codes={}, min60 codes={}",
+                    (System.currentTimeMillis() - start) / 1000,
+                    RealtimeStockCache.min30Map.size(),
+                    RealtimeStockCache.min60Map.size());
 
         } catch (Exception e) {
             log.error("MyApplicationLoader onApplicationEvent exception....", e);

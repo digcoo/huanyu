@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yh.bigdata.tts.common.dao.StockMin60Mapper" >
+  <resultMap id="BaseResultMap" type="com.yh.bigdata.tts.common.model.StockMin60" >
+    <result column="day" property="day" jdbcType="TIMESTAMP" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="open" property="open" jdbcType="DOUBLE" />
+    <result column="high" property="high" jdbcType="DOUBLE" />
+    <result column="low" property="low" jdbcType="DOUBLE" />
+    <result column="close" property="close" jdbcType="DOUBLE" />
+    <result column="prev_close" property="prevClose" jdbcType="DOUBLE" />
+    <result column="volume" property="volume" jdbcType="BIGINT" />
+    <result column="amount" property="amount" jdbcType="DOUBLE" />
+    <result column="ma5" property="ma5" jdbcType="DOUBLE" />
+    <result column="ma10" property="ma10" jdbcType="DOUBLE" />
+    <result column="ma20" property="ma20" jdbcType="DOUBLE" />
+    <result column="ma30" property="ma30" jdbcType="DOUBLE" />
+    <result column="ma60" property="ma60" jdbcType="DOUBLE" />
+    <result column="ma120" property="ma120" jdbcType="DOUBLE" />
+    <result column="cross_params" property="crossParams" jdbcType="VARCHAR" />
+    <result column="percent" property="percent" jdbcType="DOUBLE" />
+  </resultMap>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" >
+    select * from min60k where code = #{code} and day = #{day}
+  </select>
+
+  <delete id="deleteByPrimaryKey" >
+    delete from min60k where code = #{code} and day = #{day}
+  </delete>
+
+  <insert id="insert" parameterType="com.yh.bigdata.tts.common.model.StockMin60" >
+    insert into min60k (code, day, name, open, high, low, `close`, prev_close, percent, volume, amount,
+      ma5, ma10, ma20, ma30, ma60, ma120, cross_params, create_time, update_time)
+    values (#{code}, #{day}, #{name}, #{open}, #{high}, #{low}, #{close}, #{prevClose}, #{percent}, #{volume}, #{amount},
+      #{ma5}, #{ma10}, #{ma20}, #{ma30}, #{ma60}, #{ma120}, #{crossParams}, now(), now())
+  </insert>
+
+  <update id="updateByPrimaryKey" parameterType="com.yh.bigdata.tts.common.model.StockMin60" >
+    update min60k set update_time = now()
+        <if test="name != null">
+           , name = #{name}
+        </if>
+        <if test="open != null">
+           , open = #{open}
+        </if>
+        <if test="high != null">
+           , high = #{high}
+        </if>
+        <if test="low != null">
+           , low = #{low}
+        </if>
+        <if test="close != null">
+           , `close` = #{close}
+        </if>
+        <if test="prevClose != null">
+           , prev_close = #{prevClose}
+        </if>
+        <if test="percent != null">
+           , percent = #{percent}
+        </if>
+        <if test="volume != null">
+           , volume = #{volume}
+        </if>
+        <if test="amount != null">
+           , amount = #{amount}
+        </if>
+        <if test="ma5 != null">
+           , ma5 = #{ma5}
+        </if>
+        <if test="ma10 != null">
+           , ma10 = #{ma10}
+        </if>
+        <if test="ma20 != null">
+           , ma20 = #{ma20}
+        </if>
+        <if test="ma30 != null">
+           , ma30 = #{ma30}
+        </if>
+        <if test="ma60 != null">
+           , ma60 = #{ma60}
+        </if>
+        <if test="ma120 != null">
+           , ma120 = #{ma120}
+        </if>
+        <if test="crossParams != null">
+           , cross_params = #{crossParams}
+        </if>
+    where code = #{code} and day = #{day}
+  </update>
+
+  <select id="selectAll" resultMap="BaseResultMap">
+    select code, day, name, open, high, low, `close`, prev_close, percent, volume, amount
+    from min60k s
+    <where>
+      <if test="codes != null and codes.size() > 0">
+        and s.code in
+        <foreach collection="codes" item="item" open="(" close=")" separator=",">
+          #{item}
+        </foreach>
+      </if>
+    </where>
+    order by s.code, s.day
+  </select>
+
+  <select id="selectRecentByCode" resultMap="BaseResultMap">
+    select code, day, name, open, high, low, `close`, prev_close, percent, volume, amount
+    from min60k
+    where code = #{code}
+    order by day desc
+    limit #{limit}
+  </select>
+</mapper>

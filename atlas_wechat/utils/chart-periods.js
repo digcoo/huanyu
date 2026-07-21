@@ -1,4 +1,4 @@
-var ALL_CHART_PERIODS = ['min30', 'day', 'week', 'month', 'year'];
+var ALL_CHART_PERIODS = ['min60', 'min30', 'day', 'week', 'month', 'year'];
 
 function isChartPeriod(period) {
   return ALL_CHART_PERIODS.indexOf(period) >= 0;

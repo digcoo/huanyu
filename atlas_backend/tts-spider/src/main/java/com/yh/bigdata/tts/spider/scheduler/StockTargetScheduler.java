@@ -12,7 +12,9 @@ import com.yh.bigdata.tts.common.param.UnilateralStrategyParams;
 import com.yh.bigdata.tts.spider.ws.MyWebSocketHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
@@ -21,6 +23,7 @@ import com.yh.bigdata.tts.common.model.StockTarget;
 import com.yh.bigdata.tts.common.utils.StockQuoteUtils;
 import com.yh.bigdata.tts.spider.strategy.AbstractStrategy;
 import com.yh.bigdata.tts.spider.strategy.tools.StockEvaluationScratchpad;
+import com.yh.bigdata.tts.spider.realtime.TradingSessionUtils;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 
 /**
@@ -45,10 +48,24 @@ public class StockTargetScheduler {
     @Autowired
     List<AbstractStrategy> strategies;
 
+    @Value("${realtime.spider.on:false}")
+    private boolean spiderEnable;
+
 	@PostConstruct
 	public void init() {
 
 	}
+
+    @Scheduled(cron = "${realtime.check.cron:0/30 * 9-11,13-14 * * 1-5}")
+    public void realtimeRecommendCheck() {
+        if (!spiderEnable) {
+            return;
+        }
+        if (!TradingSessionUtils.isInTradingSession()) {
+            return;
+        }
+        recommendSave();
+    }
 
 	public void recommendSave() {
 		try {

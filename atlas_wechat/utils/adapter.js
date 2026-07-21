@@ -7,6 +7,10 @@ const { formatDataUpdatedLabel } = require('./time');
 const STRATEGY_API = {
   ultra: { strategy: 'ultra', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' },
   ultragc: { strategy: 'ultragc', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' },
+  min60wavecc: { strategy: 'min60wavecc', trendPeriodTypes: 'week,day,min60', opPeriodType: 'min60' },
+  daywavecc: { strategy: 'daywavecc', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  weekwavecc: { strategy: 'weekwavecc', trendPeriodTypes: 'week', opPeriodType: 'week' },
+  monthwavecc: { strategy: 'monthwavecc', trendPeriodTypes: 'month', opPeriodType: 'month' },
   trend: { strategy: 'trend', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
   medium: { strategy: 'medium', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
   long: { strategy: 'long', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
@@ -20,36 +24,21 @@ const STRATEGY_API = {
   cascadewaveShort: { strategy: 'cascadewaveShort', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
   cascadewaveMedium: { strategy: 'cascadewaveMedium', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
   cascadewaveLong: { strategy: 'cascadewaveLong', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
-  macdgc: { strategy: 'macdgc', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  macdgcShort: { strategy: 'macdgc', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  macdgcMedium: { strategy: 'macdgc', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
-  macdgcLong: { strategy: 'macdgc', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
   macdgcwh: { strategy: 'macdgcwh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
   macdgcwhShort: { strategy: 'macdgcwh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
   macdgcwhMedium: { strategy: 'macdgcwh', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
   macdgcwhLong: { strategy: 'macdgcwh', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
-  macdgcwhr: { strategy: 'macdgcwhr', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  macdgcwhrShort: { strategy: 'macdgcwhr', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  macdgcwhrMedium: { strategy: 'macdgcwhr', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
-  macdgcwhrLong: { strategy: 'macdgcwhr', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
-  macdgcwhu: { strategy: 'macdgcwhu', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  macdgcwhuShort: { strategy: 'macdgcwhu', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  macdgcwhuMedium: { strategy: 'macdgcwhu', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
-  macdgcwhuLong: { strategy: 'macdgcwhu', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
-  macddcb: { strategy: 'macddcb', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  macddcbShort: { strategy: 'macddcb', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  macddcbMedium: { strategy: 'macddcb', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
-  macddcbLong: { strategy: 'macddcb', trendPeriodTypes: 'year,month', opPeriodType: 'month' }
+  macdgcwhu: { strategy: 'macdgcwhu', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' }
 };
 
 function normalizeStrategyId(strategyId) {
   if (!strategyId) return strategyId;
   if (strategyId === 'ultraLow' || strategyId === 'ladder') return 'nrf';
-  if (strategyId === 'macdgc') return 'macdgcShort';
   if (strategyId === 'macdgcwh') return 'macdgcwhShort';
-  if (strategyId === 'macdgcwhr') return 'macdgcwhrShort';
-  if (strategyId === 'macdgcwhu') return 'macdgcwhuShort';
-  if (strategyId === 'macddcb') return 'macddcbShort';
+  if (strategyId === 'macdgcwhuShort' || strategyId === 'macdgcwhuMedium'
+      || strategyId === 'macdgcwhuLong') return 'macdgcwhu';
+  if (strategyId === 'macddcb' || strategyId === 'macddcbShort'
+      || strategyId === 'macddcbMedium' || strategyId === 'macddcbLong') return 'ultra';
   return strategyId;
 }
 
@@ -601,21 +590,11 @@ function mapRecommendation(item, strategyId) {
     tags = tags.concat(buildCascadewaveconvexdayTags(item));
   } else if (strategyId === 'cascadewaveconcaveday') {
     tags = tags.concat(buildCascadewaveconcavedayTags(item));
-  } else if (strategyId === 'macdgc' || strategyId === 'macdgcShort'
-      || strategyId === 'macdgcMedium' || strategyId === 'macdgcLong') {
-    tags = tags.concat(['MACD金叉']);
   } else if (strategyId === 'macdgcwh' || strategyId === 'macdgcwhShort'
       || strategyId === 'macdgcwhMedium' || strategyId === 'macdgcwhLong') {
     tags = tags.concat(['MACD金叉波段']);
-  } else if (strategyId === 'macdgcwhr' || strategyId === 'macdgcwhrShort'
-      || strategyId === 'macdgcwhrMedium' || strategyId === 'macdgcwhrLong') {
-    tags = tags.concat(['MACD金叉回踩']);
-  } else if (strategyId === 'macdgcwhu' || strategyId === 'macdgcwhuShort'
-      || strategyId === 'macdgcwhuMedium' || strategyId === 'macdgcwhuLong') {
+  } else if (strategyId === 'macdgcwhu') {
     tags = tags.concat(['MACD金叉上移']);
-  } else if (strategyId === 'macddcb' || strategyId === 'macddcbShort'
-      || strategyId === 'macddcbMedium' || strategyId === 'macddcbLong') {
-    tags = tags.concat(['MACD死叉突破']);
   } else if (strategyId === 'cascadewaveShort' || strategyId === 'cascadewaveMedium'
       || strategyId === 'cascadewaveLong') {
     var hitSource = item.cascadeHitSource || strategyId;
@@ -630,6 +609,24 @@ function mapRecommendation(item, strategyId) {
     }
   } else if (strategyId === 'ultra') {
     tags = tags.concat(buildUltraTags(item));
+  } else if (strategyId === 'min60wavecc') {
+    tags = tags.concat(['小时凹凸突破']);
+    if (/shape=CONVEX/.test(item.signalMessage || '')) tags.push('凸突破');
+    if (/shape=CONCAVE/.test(item.signalMessage || '')) tags.push('凹突破');
+  } else if (strategyId === 'daywavecc') {
+    tags = tags.concat(['日凹凸突破']);
+    if (/shape=CONVEX|hitMode=CONVEX_BREAKOUT/.test(item.signalMessage || '')) tags.push('凸突破');
+    if (/shape=CONCAVE|hitMode=CONCAVE_BREAKOUT/.test(item.signalMessage || '')) tags.push('凹突破');
+  } else if (strategyId === 'weekwavecc') {
+    tags = tags.concat(['周凹凸突破']);
+    if (/hitMode=CONVEX_BREAKOUT/.test(item.signalMessage || '')) tags.push('凸突破');
+    if (/hitMode=CONCAVE_BREAKOUT/.test(item.signalMessage || '')) tags.push('凹突破');
+    if (/hitMode=CONVEX_RETEST/.test(item.signalMessage || '')) tags.push('凸回踩');
+  } else if (strategyId === 'monthwavecc') {
+    tags = tags.concat(['月凹凸突破']);
+    if (/hitMode=CONVEX_BREAKOUT/.test(item.signalMessage || '')) tags.push('凸突破');
+    if (/hitMode=CONCAVE_BREAKOUT/.test(item.signalMessage || '')) tags.push('凹突破');
+    if (/hitMode=CONVEX_RETEST/.test(item.signalMessage || '')) tags.push('凸回踩');
   } else if (strategyId === 'ultragc') {
     tags = tags.concat(['MACD金叉K突破']);
   } else {
@@ -660,20 +657,10 @@ function mapRecommendation(item, strategyId) {
     ? [buildCascadewaveconvexdaySummary(item), item.mainBusiness, item.summary]
     : strategyId === 'cascadewaveconcaveday'
     ? [buildCascadewaveconcavedaySummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'macdgc' || strategyId === 'macdgcShort'
-      || strategyId === 'macdgcMedium' || strategyId === 'macdgcLong'
-    ? [item.trendMessage, item.signalMessage, item.mainBusiness, item.summary]
     : strategyId === 'macdgcwh' || strategyId === 'macdgcwhShort'
       || strategyId === 'macdgcwhMedium' || strategyId === 'macdgcwhLong'
     ? [item.trendMessage, item.signalMessage, item.mainBusiness, item.summary]
-    : strategyId === 'macdgcwhr' || strategyId === 'macdgcwhrShort'
-      || strategyId === 'macdgcwhrMedium' || strategyId === 'macdgcwhrLong'
-    ? [item.trendMessage, item.signalMessage, item.mainBusiness, item.summary]
-    : strategyId === 'macdgcwhu' || strategyId === 'macdgcwhuShort'
-      || strategyId === 'macdgcwhuMedium' || strategyId === 'macdgcwhuLong'
-    ? [item.trendMessage, item.signalMessage, item.mainBusiness, item.summary]
-    : strategyId === 'macddcb' || strategyId === 'macddcbShort'
-      || strategyId === 'macddcbMedium' || strategyId === 'macddcbLong'
+    : strategyId === 'macdgcwhu'
     ? [item.trendMessage, item.signalMessage, item.mainBusiness, item.summary]
     : strategyId === 'cascadewaveShort' || strategyId === 'cascadewaveMedium'
       || strategyId === 'cascadewaveLong'
@@ -685,6 +672,14 @@ function mapRecommendation(item, strategyId) {
         ? buildCascadewaveconcavedaySummary(item)
         : buildCascadewaveconvexSummary(item)), item.mainBusiness, item.summary]
     : strategyId === 'ultra'
+    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
+    : strategyId === 'min60wavecc'
+    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
+    : strategyId === 'daywavecc'
+    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
+    : strategyId === 'weekwavecc'
+    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
+    : strategyId === 'monthwavecc'
     ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
     : strategyId === 'ultragc'
     ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
@@ -709,7 +704,6 @@ function mapRecommendation(item, strategyId) {
     signalMessage: item.signalMessage || '',
     trendMessage: item.trendMessage || '',
     resonance: changePct > 2 ? 'strong' : changePct > 0 ? 'medium' : 'weak',
-    mainBusiness: item.mainBusiness,
     dataDay: item.day || '',
     dataUpdatedLabel: formatDataUpdatedLabel(item.day)
   };

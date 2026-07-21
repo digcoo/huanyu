@@ -80,6 +80,24 @@ public enum StrategyTypeEnum {
     MACD_DC_BREAKOUT("macddcb", "MACD死叉突破", 46),
     /** 超短线 · MACD金叉K突破（Min30） */
     ULTRA_GC_BREAKOUT("ultragc", "MACD金叉K突破", 47),
+    /** 凹凸突破（日/周/月单档凸凹边沿破波段 High） */
+    WAVE_CC_BREAKOUT("waveccbreak", "凹凸突破", 48),
+    /** 日小时组合（日 MACD&gt;0 + Min60 金叉波段 High 突破） */
+    DAY_MIN60_COMBO("daymin60", "日小时组合", 49),
+    /** 小时周组合（周 MACD&gt;0 + Min60 金叉波段 High 突破） */
+    WEEK_MIN60_COMBO("weekmin60", "小时周组合", 50),
+    /** 日周组合（周+日 MACD&gt;0 + 日金叉波段 High 突破，信号限末自然周） */
+    DAY_WEEK_COMBO("dayweek", "日周组合", 51),
+    /** 日月组合（月+日 MACD&gt;0 + 日金叉波段 High 突破，信号限末自然月） */
+    DAY_MONTH_COMBO("daymonth", "日月组合", 52),
+    /** 小时凹凸突破（Min60/日/周 MACD≥2&gt;0 + Min60 凸凹边沿破波段 High） */
+    MIN60_WAVE_CC_BREAKOUT("min60wavecc", "小时凹凸突破", 53),
+    /** 日凹凸突破（日/周/月 MACD≥2&gt;0 + 日 K 凸凹边沿破波段 High） */
+    DAY_WAVE_CC_BREAKOUT("daywavecc", "日凹凸突破", 54),
+    /** 周凹凸突破（周 MACD&gt;0 + 周 K 凸凹边沿突破/凸边沿回踩） */
+    WEEK_WAVE_CC_BREAKOUT("weekwavecc", "周凹凸突破", 55),
+    /** 月凹凸突破（月 MACD&gt;0 + 月 K 凸凹边沿突破/凸边沿回踩） */
+    MONTH_WAVE_CC_BREAKOUT("monthwavecc", "月凹凸突破", 56),
     /** @deprecated 凹波分档突破 · 短线 */
     WAVE_CONCAVE_TIER_SHORT("waveconcavetierShort", "凹波突破短线", 29),
     /** 凹波分档突破 · 中线 */
@@ -128,7 +146,11 @@ public enum StrategyTypeEnum {
                 || this == CONVEX_LIFT_TIER || this == BODY_BAR_TIER
                 || this == MACD_GOLDEN_CROSS || this == MACD_GC_WAVE_HIGH
                 || this == MACD_GC_WAVE_HIGH_RETEST || this == MACD_GC_WAVE_HIGH_LIFT
-                || this == MACD_DC_BREAKOUT || this == ULTRA_GC_BREAKOUT;
+                || this == MACD_DC_BREAKOUT || this == ULTRA_GC_BREAKOUT
+                || this == WAVE_CC_BREAKOUT || this == DAY_MIN60_COMBO || this == WEEK_MIN60_COMBO
+                || this == DAY_WEEK_COMBO || this == DAY_MONTH_COMBO
+                || this == MIN60_WAVE_CC_BREAKOUT || this == DAY_WAVE_CC_BREAKOUT
+                || this == WEEK_WAVE_CC_BREAKOUT || this == MONTH_WAVE_CC_BREAKOUT;
     }
 
 	public static StrategyTypeEnum getByCode(String code){

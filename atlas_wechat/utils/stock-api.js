@@ -2,24 +2,13 @@ const api = require('./api');
 const adapter = require('./adapter');
 const strategyParams = require('./strategy-params');
 const listMemory = require('./list-memory');
-const cascadewaveBundle = require('./cascadewave-bundle');
-
-function resolveBundle(strategyId) {
-  if (cascadewaveBundle.isBundled(strategyId)) return cascadewaveBundle;
-  return null;
-}
-
-function isBundledStrategy(strategyId) {
-  return !!resolveBundle(strategyId);
-}
 
 var RECOMMEND_PAGE_SIZE = 12;
-/** min30：2 前日 + 1 当日 × 8 根/日，留余量避免截断 */
-var MIN30_KLINE_LIMIT = 64;
-var bundledListCache = {};
+/** 列表卡片 K 线条数上限（与 list-memory 一致） */
+var MIN30_KLINE_LIMIT = 24;
 
 function klineLimitForPeriod(period) {
-  return period === 'min30' ? MIN30_KLINE_LIMIT : 50;
+  return listMemory.klineLimitForList(period || 'week');
 }
 
 function klineLimitForList(period) {
@@ -33,24 +22,16 @@ function encodePath(code) {
 /** 策略 API 查询参数（findMy / rescan 共用） */
 function buildStrategyQueryParams(strategyId) {
   var apiStrategyId = strategyParams.resolveApiStrategyId(strategyId);
-  var apiConfigId = strategyId === 'nrf' ? 'nrf' : apiStrategyId;
+  var adapterKey = strategyId === 'nrf' ? 'nrf' : strategyId;
   var params = Object.assign(
     {},
-    adapter.getStrategyApiParams(apiConfigId),
+    adapter.getStrategyApiParams(adapterKey),
     strategyParams.toApiParams(strategyId)
   );
   if (strategyId === 'nrf') {
     Object.assign(params, strategyParams.toApiParams('ultra'));
   }
   return params;
-}
-
-function buildSubStrategyQueryParams(virtualId, subApiId) {
-  return Object.assign(
-    {},
-    adapter.getStrategyApiParams(subApiId),
-    strategyParams.toSubApiParams(virtualId, subApiId)
-  );
 }
 
 function fetchSingleRecommendations(strategyId, page, size, mapStrategyId) {
@@ -97,144 +78,6 @@ function fetchSingleRecommendations(strategyId, page, size, mapStrategyId) {
   });
 }
 
-function fetchSubRecommendationsPage(virtualId, subId, page, size) {
-  page = toPageNum(page);
-  size = size || RECOMMEND_PAGE_SIZE;
-  var query = Object.assign({}, buildSubStrategyQueryParams(virtualId, subId), {
-    all: 1,
-    page: page,
-    size: size
-  });
-  var qs = buildQueryString(query);
-  var path = '/stock/findMy' + (qs ? '?' + qs : '');
-  return api.request({
-    path: path,
-    method: 'GET',
-    data: {},
-    timeout: 120000
-  }).then(function (res) {
-    if (!res.ok) {
-      return { subId: subId, items: [], page: page, totalNum: 0, hasMore: false };
-    }
-    var data = res.data || {};
-    var currentPage = toPageNum(data.currentPage || page);
-    var rawItems = data.items || data.list || [];
-    var items = rawItems.filter(function (item) { return item && item.code; });
-    return {
-      subId: subId,
-      items: items,
-      page: currentPage,
-      totalNum: data.totalNum != null ? Number(data.totalNum) : items.length,
-      hasMore: resolveHasMore(data, currentPage, items.length)
-    };
-  }).catch(function () {
-    return { subId: subId, items: [], page: page, totalNum: 0, hasMore: false };
-  });
-}
-
-function fetchAllSubRecommendations(virtualId, subId, pageSize) {
-  pageSize = pageSize || RECOMMEND_PAGE_SIZE;
-  var allItems = [];
-
-  function loadPage(page) {
-    return fetchSubRecommendationsPage(virtualId, subId, page, pageSize).then(function (result) {
-      allItems = allItems.concat(result.items || []);
-      if (result.hasMore) {
-        return loadPage(page + 1);
-      }
-      return { subId: subId, items: allItems };
-    });
-  }
-
-  return loadPage(1);
-}
-
-function bundledCacheKey(strategyId) {
-  var params = strategyParams.load(strategyId);
-  var subs = strategyParams.getBundleSubStrategies(strategyId, params);
-  return strategyId + '|' + subs.join(',') + '|' + JSON.stringify(strategyParams.toApiParams(strategyId));
-}
-
-function invalidateBundledCache(strategyId) {
-  var prefix = strategyId + '|';
-  Object.keys(bundledListCache).forEach(function (key) {
-    if (key.indexOf(prefix) === 0) {
-      delete bundledListCache[key];
-    }
-  });
-}
-
-function fetchBundledFullList(strategyId) {
-  var key = bundledCacheKey(strategyId);
-  if (bundledListCache[key]) {
-    return Promise.resolve(bundledListCache[key]);
-  }
-  var params = strategyParams.load(strategyId);
-  var subs = strategyParams.getBundleSubStrategies(strategyId, params);
-  if (!subs.length) {
-    return Promise.resolve([]);
-  }
-  return Promise.all(subs.map(function (subId) {
-    return fetchAllSubRecommendations(strategyId, subId, RECOMMEND_PAGE_SIZE);
-  })).then(function (results) {
-    var bundle = resolveBundle(strategyId);
-    var merged = bundle.mergeAllBundledResults(strategyId, results);
-    if (merged && merged.length) {
-      bundledListCache[key] = merged;
-    }
-    return merged;
-  });
-}
-
-function fetchBundledRecommendations(strategyId, page, size) {
-  page = toPageNum(page);
-  size = size || RECOMMEND_PAGE_SIZE;
-  return fetchBundledFullList(strategyId).then(function (merged) {
-    var bundle = resolveBundle(strategyId);
-    return bundle.sliceMergedBundledResults(merged, page, size);
-  });
-}
-
-function triggerSubStrategyRescan(virtualId, subApiId) {
-  var params = buildSubStrategyQueryParams(virtualId, subApiId);
-  var qs = Object.keys(params)
-    .filter(function (k) { return params[k] != null && params[k] !== ''; })
-    .map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); })
-    .join('&');
-  var path = '/stock/strategy/rescan' + (qs ? '?' + qs : '');
-  return api.request({ path: path, method: 'POST', data: {}, timeout: 600000 }).then(function (res) {
-    if (!res.ok || !res.data) {
-      return { ok: false, saved: 0, strategy: params.strategy || subApiId };
-    }
-    return {
-      ok: true,
-      saved: res.data.saved != null ? res.data.saved : 0,
-      strategy: res.data.strategy || params.strategy
-    };
-  });
-}
-
-function triggerBundledRescan(strategyId) {
-  var params = strategyParams.load(strategyId);
-  var subs = strategyParams.getBundleSubStrategies(strategyId, params);
-  if (!subs.length) {
-    return Promise.resolve({ ok: false, saved: 0, strategy: strategyId });
-  }
-  invalidateBundledCache(strategyId);
-  return Promise.all(subs.map(function (subId) {
-    return triggerSubStrategyRescan(strategyId, subId);
-  })).then(function (results) {
-    var saved = 0;
-    var ok = true;
-    results.forEach(function (row) {
-      if (!row || !row.ok) ok = false;
-      saved += row && row.saved != null ? row.saved : 0;
-    });
-    return { ok: ok, saved: saved, strategy: strategyId };
-  });
-}
-
-
 function toPageNum(v) {
   var n = Number(v);
   return n > 0 ? n : 1;
@@ -272,9 +115,6 @@ function resolveHasMoreWithSize(data, page, itemCount, pageSize, totalNum) {
 }
 
 function fetchRecommendations(strategyId, page, size) {
-  if (isBundledStrategy(strategyId)) {
-    return fetchBundledRecommendations(strategyId, page, size);
-  }
   return fetchSingleRecommendations(strategyId, page, size);
 }
 
@@ -283,9 +123,6 @@ function fetchRecommendations(strategyId, page, size) {
  * @returns {Promise<{ok:boolean, saved:number, strategy:string}>}
  */
 function triggerStrategyRescan(strategyId) {
-  if (isBundledStrategy(strategyId)) {
-    return triggerBundledRescan(strategyId);
-  }
   var params = buildStrategyQueryParams(strategyId);
   var qs = Object.keys(params)
     .filter(function (k) { return params[k] != null && params[k] !== ''; })
@@ -513,7 +350,7 @@ function fetchMarketIndices(market, period, limit) {
   return api.get('/stock/indices', {
     market: market || 'cn',
     period: period || 'week',
-    limit: limit || 50
+    limit: limit || listMemory.klineLimitForList(period || 'week')
   }).then(function (res) {
     if (!res.ok || !res.data) return [];
     return res.data;
@@ -531,15 +368,11 @@ function attachKlinesToItems(items, period, maxItems, forListCard) {
 
   return Promise.all(list.map(function (item) {
     return fetchKlines(item.code, period, limit, { timeout: 60000 }).then(function (bars) {
-      var klines = adapter.barsToKlines(bars);
-      var merged = Object.assign({}, item, {
-        klines: {},
-        chartKlines: klines
+      return Object.assign({}, item, {
+        chartKlines: adapter.barsToKlines(bars)
       });
-      merged.klines[period] = klines;
-      return merged;
     }).catch(function () {
-      return Object.assign({}, item, { chartKlines: [], klines: {} });
+      return Object.assign({}, item, { chartKlines: [] });
     });
   }));
 }

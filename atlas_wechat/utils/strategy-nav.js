@@ -2,25 +2,29 @@
  * 首页策略导航
  */
 var FAMILY_ULTRA = 'ultra';
-var FAMILY_MACD_GC = 'macdgc';
 var FAMILY_MACD_GC_WH = 'macdgcwh';
-var FAMILY_MACD_GC_WHR = 'macdgcwhr';
 var FAMILY_MACD_GC_WHU = 'macdgcwhu';
-var FAMILY_MACD_DC_BREAKOUT = 'macddcb';
 
 var TIER_SHORT = 'short';
 var TIER_MEDIUM = 'medium';
 var TIER_LONG = 'long';
 var TIER_ULTRA_BUCKET = 'bucket';
-var TIER_ULTRA_GC = 'gc';
+var TIER_MIN60_WAVE_CC = 'min60wavecc';
+var TIER_DAY_WAVE_CC = 'daywavecc';
+var TIER_WEEK_WAVE_CC = 'weekwavecc';
+var TIER_MONTH_WAVE_CC = 'monthwavecc';
+
+var ULTRA_SUB_TABS = [
+  { id: TIER_MIN60_WAVE_CC, name: '小时凹凸', icon: '⬡' },
+  { id: TIER_DAY_WAVE_CC, name: '日凹凸', icon: '◆' },
+  { id: TIER_WEEK_WAVE_CC, name: '周凹凸', icon: '◎' },
+  { id: TIER_MONTH_WAVE_CC, name: '月凹凸', icon: '○' }
+];
 
 var STRATEGY_FAMILIES = [
   { id: FAMILY_ULTRA, name: '超短线', icon: '⚡' },
-  { id: FAMILY_MACD_GC, name: 'MACD金叉', icon: '✦' },
   { id: FAMILY_MACD_GC_WH, name: 'MACD金叉波段', icon: '⬆' },
-  { id: FAMILY_MACD_GC_WHR, name: 'MACD金叉回踩', icon: '↘' },
-  { id: FAMILY_MACD_GC_WHU, name: 'MACD金叉上移', icon: '⇧' },
-  { id: FAMILY_MACD_DC_BREAKOUT, name: 'MACD死叉突破', icon: '✕' }
+  { id: FAMILY_MACD_GC_WHU, name: 'MACD金叉上移', icon: '⇧' }
 ];
 
 var WAVE_TIER_TABS = [
@@ -29,34 +33,17 @@ var WAVE_TIER_TABS = [
   { id: TIER_LONG, name: '长线', icon: '○' }
 ];
 
-var ULTRA_SUB_TABS = [
-  { id: TIER_ULTRA_BUCKET, name: '跨日桶', icon: '▣' },
-  { id: TIER_ULTRA_GC, name: '金叉K', icon: '✦' }
-];
-
 var STRATEGY_TITLES = {
-  ultra: '超短线·跨日桶',
-  ultragc: '超短线·金叉K突破',
-  macdgcShort: 'MACD金叉·短线',
-  macdgcMedium: 'MACD金叉·中线',
-  macdgcLong: 'MACD金叉·长线',
-  macdgc: 'MACD金叉·短线',
+  ultra: '超短线',
+  min60wavecc: '小时凹凸突破',
+  daywavecc: '日凹凸突破',
+  weekwavecc: '周凹凸突破',
+  monthwavecc: '月凹凸突破',
   macdgcwhShort: 'MACD金叉波段·短线',
   macdgcwhMedium: 'MACD金叉波段·中线',
   macdgcwhLong: 'MACD金叉波段·长线',
   macdgcwh: 'MACD金叉波段·短线',
-  macdgcwhrShort: 'MACD金叉回踩·短线',
-  macdgcwhrMedium: 'MACD金叉回踩·中线',
-  macdgcwhrLong: 'MACD金叉回踩·长线',
-  macdgcwhr: 'MACD金叉回踩·短线',
-  macdgcwhuShort: 'MACD金叉上移·短线',
-  macdgcwhuMedium: 'MACD金叉上移·中线',
-  macdgcwhuLong: 'MACD金叉上移·长线',
-  macdgcwhu: 'MACD金叉上移·短线',
-  macddcbShort: 'MACD死叉突破·短线',
-  macddcbMedium: 'MACD死叉突破·中线',
-  macddcbLong: 'MACD死叉突破·长线',
-  macddcb: 'MACD死叉突破·短线'
+  macdgcwhu: 'MACD金叉上移'
 };
 
 var ARCHIVED_STRATEGIES = {
@@ -114,27 +101,43 @@ var ARCHIVED_STRATEGIES = {
   macdcrosstier: true,
   macdcrosstierShort: true,
   macdcrosstierMedium: true,
-  macdcrosstierLong: true
-};
-
-var ACTIVE_STRATEGY_IDS = {
-  ultra: true,
+  macdcrosstierLong: true,
+  macddcb: true,
+  macddcbShort: true,
+  macddcbMedium: true,
+  macddcbLong: true,
   ultragc: true,
+  ultra: true,
+  macdgc: true,
   macdgcShort: true,
   macdgcMedium: true,
   macdgcLong: true,
-  macdgcwhShort: true,
-  macdgcwhMedium: true,
-  macdgcwhLong: true,
+  macdgcwhr: true,
   macdgcwhrShort: true,
   macdgcwhrMedium: true,
   macdgcwhrLong: true,
+  waveccbreak: true,
+  waveccbreakShort: true,
+  waveccbreakMedium: true,
+  waveccbreakLong: true,
+  daymin60: true,
+  weekmin60: true,
+  dayweek: true,
+  daymonth: true,
   macdgcwhuShort: true,
   macdgcwhuMedium: true,
-  macdgcwhuLong: true,
-  macddcbShort: true,
-  macddcbMedium: true,
-  macddcbLong: true
+  macdgcwhuLong: true
+};
+
+var ACTIVE_STRATEGY_IDS = {
+  min60wavecc: true,
+  daywavecc: true,
+  weekwavecc: true,
+  monthwavecc: true,
+  macdgcwhShort: true,
+  macdgcwhMedium: true,
+  macdgcwhLong: true,
+  macdgcwhu: true
 };
 
 function isLegacyWavebandStrategy(strategyId) {
@@ -151,13 +154,6 @@ function normalizeTier(tier) {
   return TIER_SHORT;
 }
 
-function macdGcTierStrategyId(tier) {
-  tier = normalizeTier(tier);
-  if (tier === TIER_MEDIUM) return 'macdgcMedium';
-  if (tier === TIER_LONG) return 'macdgcLong';
-  return 'macdgcShort';
-}
-
 function macdGcWhTierStrategyId(tier) {
   tier = normalizeTier(tier);
   if (tier === TIER_MEDIUM) return 'macdgcwhMedium';
@@ -165,67 +161,27 @@ function macdGcWhTierStrategyId(tier) {
   return 'macdgcwhShort';
 }
 
-function macdGcWhrTierStrategyId(tier) {
-  tier = normalizeTier(tier);
-  if (tier === TIER_MEDIUM) return 'macdgcwhrMedium';
-  if (tier === TIER_LONG) return 'macdgcwhrLong';
-  return 'macdgcwhrShort';
-}
-
-function macdGcWhuTierStrategyId(tier) {
-  tier = normalizeTier(tier);
-  if (tier === TIER_MEDIUM) return 'macdgcwhuMedium';
-  if (tier === TIER_LONG) return 'macdgcwhuLong';
-  return 'macdgcwhuShort';
-}
-
-function normalizeUltraTier(tier) {
-  if (tier === TIER_ULTRA_GC) return TIER_ULTRA_GC;
-  return TIER_ULTRA_BUCKET;
-}
-
-function macdDcBreakoutTierStrategyId(tier) {
-  tier = normalizeTier(tier);
-  if (tier === TIER_MEDIUM) return 'macddcbMedium';
-  if (tier === TIER_LONG) return 'macddcbLong';
-  return 'macddcbShort';
-}
-
 function strategyIdFor(family, tier) {
   family = family || FAMILY_ULTRA;
   if (family === FAMILY_ULTRA) {
-    return normalizeUltraTier(tier) === TIER_ULTRA_GC ? 'ultragc' : 'ultra';
-  }
-  tier = normalizeTier(tier);
-  if (family === FAMILY_MACD_GC) {
-    return macdGcTierStrategyId(tier);
-  }
-  if (family === FAMILY_MACD_GC_WH) {
-    return macdGcWhTierStrategyId(tier);
-  }
-  if (family === FAMILY_MACD_GC_WHR) {
-    return macdGcWhrTierStrategyId(tier);
+    if (tier === TIER_DAY_WAVE_CC) return 'daywavecc';
+    if (tier === TIER_WEEK_WAVE_CC) return 'weekwavecc';
+    if (tier === TIER_MONTH_WAVE_CC) return 'monthwavecc';
+    if (tier === TIER_MIN60_WAVE_CC) return 'min60wavecc';
+    return 'min60wavecc';
   }
   if (family === FAMILY_MACD_GC_WHU) {
-    return macdGcWhuTierStrategyId(tier);
+    return 'macdgcwhu';
   }
-  if (family === FAMILY_MACD_DC_BREAKOUT) {
-    return macdDcBreakoutTierStrategyId(tier);
+  tier = normalizeTier(tier);
+  if (family === FAMILY_MACD_GC_WH) {
+    return macdGcWhTierStrategyId(tier);
   }
   return 'ultra';
 }
 
 function parseStrategyId(strategyId) {
   strategyId = strategyId || 'ultra';
-  if (strategyId === 'macdgcShort' || strategyId === 'macdgc') {
-    return { family: FAMILY_MACD_GC, tier: TIER_SHORT, strategyId: 'macdgcShort' };
-  }
-  if (strategyId === 'macdgcMedium') {
-    return { family: FAMILY_MACD_GC, tier: TIER_MEDIUM, strategyId: 'macdgcMedium' };
-  }
-  if (strategyId === 'macdgcLong') {
-    return { family: FAMILY_MACD_GC, tier: TIER_LONG, strategyId: 'macdgcLong' };
-  }
   if (strategyId === 'macdgcwhShort' || strategyId === 'macdgcwh') {
     return { family: FAMILY_MACD_GC_WH, tier: TIER_SHORT, strategyId: 'macdgcwhShort' };
   }
@@ -235,52 +191,34 @@ function parseStrategyId(strategyId) {
   if (strategyId === 'macdgcwhLong') {
     return { family: FAMILY_MACD_GC_WH, tier: TIER_LONG, strategyId: 'macdgcwhLong' };
   }
-  if (strategyId === 'macdgcwhrShort' || strategyId === 'macdgcwhr') {
-    return { family: FAMILY_MACD_GC_WHR, tier: TIER_SHORT, strategyId: 'macdgcwhrShort' };
+  if (strategyId === 'macdgcwhu' || strategyId === 'macdgcwhuShort'
+      || strategyId === 'macdgcwhuMedium' || strategyId === 'macdgcwhuLong') {
+    return { family: FAMILY_MACD_GC_WHU, tier: TIER_SHORT, strategyId: 'macdgcwhu' };
   }
-  if (strategyId === 'macdgcwhrMedium') {
-    return { family: FAMILY_MACD_GC_WHR, tier: TIER_MEDIUM, strategyId: 'macdgcwhrMedium' };
+  if (strategyId === 'min60wavecc') {
+    return { family: FAMILY_ULTRA, tier: TIER_MIN60_WAVE_CC, strategyId: 'min60wavecc' };
   }
-  if (strategyId === 'macdgcwhrLong') {
-    return { family: FAMILY_MACD_GC_WHR, tier: TIER_LONG, strategyId: 'macdgcwhrLong' };
+  if (strategyId === 'daywavecc') {
+    return { family: FAMILY_ULTRA, tier: TIER_DAY_WAVE_CC, strategyId: 'daywavecc' };
   }
-  if (strategyId === 'macdgcwhuShort' || strategyId === 'macdgcwhu') {
-    return { family: FAMILY_MACD_GC_WHU, tier: TIER_SHORT, strategyId: 'macdgcwhuShort' };
+  if (strategyId === 'weekwavecc') {
+    return { family: FAMILY_ULTRA, tier: TIER_WEEK_WAVE_CC, strategyId: 'weekwavecc' };
   }
-  if (strategyId === 'macdgcwhuMedium') {
-    return { family: FAMILY_MACD_GC_WHU, tier: TIER_MEDIUM, strategyId: 'macdgcwhuMedium' };
+  if (strategyId === 'monthwavecc') {
+    return { family: FAMILY_ULTRA, tier: TIER_MONTH_WAVE_CC, strategyId: 'monthwavecc' };
   }
-  if (strategyId === 'macdgcwhuLong') {
-    return { family: FAMILY_MACD_GC_WHU, tier: TIER_LONG, strategyId: 'macdgcwhuLong' };
-  }
-  if (strategyId === 'macddcbShort' || strategyId === 'macddcb') {
-    return { family: FAMILY_MACD_DC_BREAKOUT, tier: TIER_SHORT, strategyId: 'macddcbShort' };
-  }
-  if (strategyId === 'macddcbMedium') {
-    return { family: FAMILY_MACD_DC_BREAKOUT, tier: TIER_MEDIUM, strategyId: 'macddcbMedium' };
-  }
-  if (strategyId === 'macddcbLong') {
-    return { family: FAMILY_MACD_DC_BREAKOUT, tier: TIER_LONG, strategyId: 'macddcbLong' };
-  }
-  if (strategyId === 'ultragc') {
-    return { family: FAMILY_ULTRA, tier: TIER_ULTRA_GC, strategyId: 'ultragc' };
-  }
-  return { family: FAMILY_ULTRA, tier: TIER_ULTRA_BUCKET, strategyId: 'ultra' };
+  return { family: FAMILY_ULTRA, tier: TIER_MIN60_WAVE_CC, strategyId: 'min60wavecc' };
 }
 
 function showTierRow(family) {
-  return family === FAMILY_ULTRA || family === FAMILY_MACD_GC || family === FAMILY_MACD_GC_WH
-    || family === FAMILY_MACD_GC_WHR || family === FAMILY_MACD_GC_WHU
-    || family === FAMILY_MACD_DC_BREAKOUT;
+  return family === FAMILY_ULTRA || family === FAMILY_MACD_GC_WH;
 }
 
 function tierTabsForFamily(family) {
   if (family === FAMILY_ULTRA) {
     return ULTRA_SUB_TABS;
   }
-  if (family === FAMILY_MACD_GC || family === FAMILY_MACD_GC_WH
-      || family === FAMILY_MACD_GC_WHR || family === FAMILY_MACD_GC_WHU
-      || family === FAMILY_MACD_DC_BREAKOUT) {
+  if (family === FAMILY_MACD_GC_WH) {
     return WAVE_TIER_TABS;
   }
   return [];
@@ -291,30 +229,21 @@ function strategyTitleFor(strategyId) {
 }
 
 function migrateSavedStrategy(strategyId) {
-  var id = strategyId || 'ultra';
+  var id = strategyId || 'min60wavecc';
   if (id === 'cascadewaveconvex' || id === 'cascadewaveconcave'
       || id === 'cascadewaveconvexday' || id === 'cascadewaveconcaveday'
       || id === 'cascadewaveShort' || id === 'cascadewaveMedium' || id === 'cascadewaveLong') {
-    return { strategy: 'ultra' };
-  }
-  if (id === 'macdcrosstier' || id === 'macdcrosstierShort'
-      || id === 'macdcrosstierMedium' || id === 'macdcrosstierLong') {
-    return { strategy: 'macdgcShort' };
-  }
-  if (id === 'macdgc') {
-    return { strategy: 'macdgcShort' };
+    return { strategy: 'min60wavecc' };
   }
   if (id === 'macdgcwh') {
     return { strategy: 'macdgcwhShort' };
   }
-  if (id === 'macdgcwhr') {
-    return { strategy: 'macdgcwhrShort' };
+  if (id === 'macdgcwhu' || id === 'macdgcwhuShort'
+      || id === 'macdgcwhuMedium' || id === 'macdgcwhuLong') {
+    return { strategy: 'macdgcwhu' };
   }
-  if (id === 'macdgcwhu') {
-    return { strategy: 'macdgcwhuShort' };
-  }
-  if (id === 'macddcb') {
-    return { strategy: 'macddcbShort' };
+  if (id === 'ultragc' || id === 'ultra') {
+    return { strategy: 'min60wavecc' };
   }
   if (isLegacyWavebandStrategy(id)
       || id === 'waveperiodgateShort' || id === 'waveperiodgateMedium' || id === 'waveperiodgateLong'
@@ -322,15 +251,15 @@ function migrateSavedStrategy(strategyId) {
       || id === 'convexlifttierMedium' || id === 'convexlifttierLong'
       || id === 'bodybar' || id === 'bodybarShort'
       || id === 'bodybarMedium' || id === 'bodybarLong') {
-    return { strategy: 'ultra' };
+    return { strategy: 'min60wavecc' };
   }
   if (ARCHIVED_STRATEGIES[id]) {
-    return { strategy: 'ultra' };
+    return { strategy: 'min60wavecc' };
   }
   if (ACTIVE_STRATEGY_IDS[id]) {
     return { strategy: id };
   }
-  return { strategy: 'ultra' };
+  return { strategy: 'min60wavecc' };
 }
 
 function isActiveStrategy(strategyId) {
@@ -339,16 +268,16 @@ function isActiveStrategy(strategyId) {
 
 module.exports = {
   FAMILY_ULTRA: FAMILY_ULTRA,
-  FAMILY_MACD_GC: FAMILY_MACD_GC,
   FAMILY_MACD_GC_WH: FAMILY_MACD_GC_WH,
-  FAMILY_MACD_GC_WHR: FAMILY_MACD_GC_WHR,
   FAMILY_MACD_GC_WHU: FAMILY_MACD_GC_WHU,
-  FAMILY_MACD_DC_BREAKOUT: FAMILY_MACD_DC_BREAKOUT,
   STRATEGY_FAMILIES: STRATEGY_FAMILIES,
   WAVE_TIER_TABS: WAVE_TIER_TABS,
-  ULTRA_SUB_TABS: ULTRA_SUB_TABS,
   TIER_ULTRA_BUCKET: TIER_ULTRA_BUCKET,
-  TIER_ULTRA_GC: TIER_ULTRA_GC,
+  TIER_MIN60_WAVE_CC: TIER_MIN60_WAVE_CC,
+  TIER_DAY_WAVE_CC: TIER_DAY_WAVE_CC,
+  TIER_WEEK_WAVE_CC: TIER_WEEK_WAVE_CC,
+  TIER_MONTH_WAVE_CC: TIER_MONTH_WAVE_CC,
+  ULTRA_SUB_TABS: ULTRA_SUB_TABS,
   strategyIdFor: strategyIdFor,
   parseStrategyId: parseStrategyId,
   showTierRow: showTierRow,

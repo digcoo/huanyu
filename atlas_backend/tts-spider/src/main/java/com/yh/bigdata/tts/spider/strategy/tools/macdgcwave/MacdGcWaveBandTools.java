@@ -8,7 +8,11 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 /**
- * MACD 金叉 K 定基准完整阳波段（macdgcwh / macdgcwhr 共用）。
+ * MACD 金叉 K 定基准完整阳波段（macdgcwh / macdgcwhr / macdgcwhu 共用）。
+ * <ul>
+ *   <li>阳 K 金叉：取该阳 K 所属的完整阳波段。</li>
+ *   <li>阴 K 金叉：从该阴 K 往前追溯最近一个完整阳波段（含以该阴 K 为完结 K 的波段）。</li>
+ * </ul>
  */
 public final class MacdGcWaveBandTools {
 
@@ -30,7 +34,7 @@ public final class MacdGcWaveBandTools {
         if (gcIdx < 0) {
             return null;
         }
-        return findLastCompleteBandBeforeIndex(bands, trades, gcIdx);
+        return findNearestCompleteBandAtOrBeforeIndex(bands, trades, gcIdx);
     }
 
     private static YangBandTools.CompleteYangBand findCompleteBandContainingBar(
@@ -50,13 +54,14 @@ public final class MacdGcWaveBandTools {
         return null;
     }
 
-    private static YangBandTools.CompleteYangBand findLastCompleteBandBeforeIndex(
+    /** 阴 K 金叉：完结 K 索引 ≤ 金叉 K 索引的最近完整阳波段。 */
+    private static YangBandTools.CompleteYangBand findNearestCompleteBandAtOrBeforeIndex(
             List<YangBandTools.CompleteYangBand> bands, List<Trade> trades, int barIdx) {
         YangBandTools.CompleteYangBand best = null;
         int bestTermIdx = -1;
         for (YangBandTools.CompleteYangBand band : bands) {
             int termIdx = MacdCrossStructureTools.indexOfBar(trades, band.getTerminatorBar());
-            if (termIdx >= 0 && termIdx < barIdx && termIdx > bestTermIdx) {
+            if (termIdx >= 0 && termIdx <= barIdx && termIdx > bestTermIdx) {
                 bestTermIdx = termIdx;
                 best = band;
             }

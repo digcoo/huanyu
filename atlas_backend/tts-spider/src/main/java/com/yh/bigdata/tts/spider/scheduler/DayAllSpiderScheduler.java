@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.yh.bigdata.tts.spider.crawler.StockBaseCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockDayXueQiuCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockMin30XueQiuCrawler;
+import com.yh.bigdata.tts.spider.xueqiu.StockMin60XueQiuCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockMonthXueQiuCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockQuarterXueQiuCrawler;
 import com.yh.bigdata.tts.spider.xueqiu.StockWeekXueQiuCrawler;
@@ -36,6 +37,9 @@ public class DayAllSpiderScheduler {
 
 	@Autowired
 	StockMin30XueQiuCrawler stockMin30Crawler;
+
+	@Autowired
+	StockMin60XueQiuCrawler stockMin60Crawler;
 
 	@Value("${spider.min30.default-count:16}")
 	private int min30DefaultCount;
@@ -67,6 +71,7 @@ public class DayAllSpiderScheduler {
                 stockBaseCrawler.run();
                 stockDayCrawler.run(null, days);
                 stockMin30Crawler.run(null, days * 8);
+                stockMin60Crawler.run(null, days * 4);
                 stockWeekCrawler.run(null, 2);
                 stockMonthCrawler.run(null, 2);
                 stockQuarterCrawler.run(null, 2);
@@ -74,6 +79,7 @@ public class DayAllSpiderScheduler {
             }else {
                 stockDayCrawler.run(code, 100);
                 stockMin30Crawler.run(code, 100);
+                stockMin60Crawler.run(code, 100);
                 stockWeekCrawler.run(code, 100);
                 stockMonthCrawler.run(code, 100);
                 stockQuarterCrawler.run(code, 100);

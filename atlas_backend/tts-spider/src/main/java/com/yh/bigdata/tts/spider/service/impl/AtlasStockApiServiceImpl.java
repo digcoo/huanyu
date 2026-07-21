@@ -4,10 +4,12 @@ import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.constants.RealtimeStockCache;
 import com.yh.bigdata.tts.common.dao.StockBaseMapper;
 import com.yh.bigdata.tts.common.dao.StockMin30Mapper;
+import com.yh.bigdata.tts.common.dao.StockMin60Mapper;
 import com.yh.bigdata.tts.common.dto.atlas.*;
 import com.yh.bigdata.tts.common.model.StockAnnualReport;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockMin30;
+import com.yh.bigdata.tts.common.model.StockMin60;
 import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.utils.StockCodeUtil;
 import com.yh.bigdata.tts.common.utils.StockQuoteUtils;
@@ -90,6 +92,9 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
     private StockMin30Mapper stockMin30Mapper;
 
     @Autowired
+    private StockMin60Mapper stockMin60Mapper;
+
+    @Autowired
     private AtlasAnnualReportService atlasAnnualReportService;
 
     @Autowired
@@ -134,6 +139,11 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
         List<Trade> trades;
         if (periodType == PeriodTypeEnum.MIN30) {
             trades = loadMin30FromDb(stock.getCode(), safeLimit);
+            if (trades == null || trades.isEmpty()) {
+                trades = RealtimeStockCache.getLastTrades(stock, periodType, safeLimit);
+            }
+        } else if (periodType == PeriodTypeEnum.MIN60) {
+            trades = loadMin60FromDb(stock.getCode(), safeLimit);
             if (trades == null || trades.isEmpty()) {
                 trades = RealtimeStockCache.getLastTrades(stock, periodType, safeLimit);
             }
@@ -645,16 +655,28 @@ public class AtlasStockApiServiceImpl implements AtlasStockApiService {
                 .build();
     }
 
-    /** 雪球 API period：30 分钟为 30m，其余与日/周/月/年 code 一致 */
+    /** 雪球 API period：30 分钟为 30m，60 分钟为 60m，其余与日/周/月/年 code 一致 */
     private static String toXueQiuPeriod(PeriodTypeEnum periodType) {
         if (periodType == PeriodTypeEnum.MIN30) {
             return "30m";
+        }
+        if (periodType == PeriodTypeEnum.MIN60) {
+            return "60m";
         }
         return periodType.getCode();
     }
 
     private List<Trade> loadMin30FromDb(String code, int limit) {
         List<StockMin30> rows = stockMin30Mapper.selectRecentByCode(code, limit);
+        if (rows == null || rows.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Collections.reverse(rows);
+        return new ArrayList<>(rows);
+    }
+
+    private List<Trade> loadMin60FromDb(String code, int limit) {
+        List<StockMin60> rows = stockMin60Mapper.selectRecentByCode(code, limit);
         if (rows == null || rows.isEmpty()) {
             return Collections.emptyList();
         }

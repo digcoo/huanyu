@@ -14,7 +14,7 @@ import java.util.List;
 public class MacdGcWaveHighRetestToolsTest {
 
     @Test
-    public void hitsWhenAboveBandHighWithTightBar() {
+    public void hitsWhenAboveBandHighWithLowNearBandHigh() {
         List<Trade> trades = Arrays.asList(
                 bar("d1", 10, 11, 11.5, 10),
                 bar("d2", 11, 12, 12.5, 11),
@@ -28,21 +28,21 @@ public class MacdGcWaveHighRetestToolsTest {
                 true, false,
                 false, false,
                 0.5, false);
-        MacdGcWaveHighRetestStrategyParams p = MacdGcWaveHighRetestStrategyParams.builder().build();
-        MacdGcWaveHighRetestTools.TierHit hit = MacdGcWaveHighRetestTools.resolveHitOnBars(trades, points, p);
+        MacdGcWaveHighRetestTools.TierHit hit = MacdGcWaveHighRetestTools.resolveHitOnBars(
+                trades, points, MacdGcWaveHighRetestStrategyParams.builder().build());
         Assert.assertNotNull(hit);
         Assert.assertEquals("d4", hit.getCrossBar().getBar().getDay());
         Assert.assertEquals(13.0, hit.getReferenceBand().getBandHigh(), 1e-6);
     }
 
     @Test
-    public void rejectsWhenBarRangeTooWide() {
+    public void rejectsWhenLowTooFarFromBandHigh() {
         List<Trade> trades = Arrays.asList(
                 bar("d1", 10, 11, 11.5, 10),
                 bar("d2", 11, 12, 12.5, 11),
                 bar("d3", 12, 11.5, 13, 11),
                 bar("d4", 11.5, 11.2, 11.5, 11),
-                bar("d5", 13.0, 13.2, 13.5, 13.0));
+                bar("d5", 13.2, 13.25, 13.5, 12.85));
         List<MACDIndicatorUtils.MACDPoint> points = points(trades,
                 false, false,
                 false, false,
@@ -93,11 +93,11 @@ public class MacdGcWaveHighRetestToolsTest {
     }
 
     @Test
-    public void passesTightBarRangeAtOnePercent() {
-        Trade bar = bar("d5", 10, 10.05, 10.099, 10);
-        Assert.assertTrue(MacdGcWaveHighRetestTools.passesTightBarRange(bar, 0.01));
-        Trade wide = bar("d6", 10, 10.2, 10.3, 10);
-        Assert.assertFalse(MacdGcWaveHighRetestTools.passesTightBarRange(wide, 0.01));
+    public void passesLowNearBandHighAtOnePercent() {
+        Assert.assertTrue(MacdGcWaveHighRetestTools.passesLowNearBandHigh(
+                bar("d5", 13.05, 13.08, 13.12, 13.04), 13.0, 0.01));
+        Assert.assertFalse(MacdGcWaveHighRetestTools.passesLowNearBandHigh(
+                bar("d6", 13.2, 13.25, 13.5, 12.85), 13.0, 0.01));
     }
 
     private static Trade bar(String day, double open, double close, double high, double low) {

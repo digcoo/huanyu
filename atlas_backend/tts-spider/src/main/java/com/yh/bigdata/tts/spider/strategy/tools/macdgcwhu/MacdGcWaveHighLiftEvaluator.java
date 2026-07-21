@@ -14,39 +14,41 @@ public final class MacdGcWaveHighLiftEvaluator {
     public static MacdGcWaveHighLiftEvaluation evaluate(StockBase stock, CheckResult checkResult,
                                                         MacdGcWaveHighLiftStrategyParams params) {
         MacdGcWaveHighLiftStrategyParams p = params != null ? params : MacdGcWaveHighLiftStrategyParams.defaults();
-        MacdGcWaveHighLiftTools.TierHit hit = MacdGcWaveHighLiftTools.resolveHit(stock, p);
+        if (!MacdGcWaveHighLiftTools.passesMultiPeriodMacdGate(stock, checkResult, p)) {
+            return MacdGcWaveHighLiftEvaluation.miss();
+        }
+        MacdGcWaveHighLiftTools.Hit hit = MacdGcWaveHighLiftTools.resolveHit(stock, p);
         if (hit == null) {
             return MacdGcWaveHighLiftEvaluation.miss();
         }
-        PeriodTypeEnum period = MacdGcWaveHighLiftTools.resolvePeriod(p.getTier());
         if (!MacdGcWaveHighLiftTools.passesOptionalGates(
-                stock, checkResult, period, p, hit.getSignalBar(), hit.getPrevBar())) {
+                stock, checkResult, p, hit.getSignalBar(), hit.getPrevBar())) {
             return MacdGcWaveHighLiftEvaluation.miss();
         }
-        if (checkResult != null && period != null) {
-            String tierLabel = MacdGcWaveHighLiftTools.buildTierLabel(p);
-            checkResult.addTrendPeriod(period, "[MGCWHU]" + tierLabel + "MACD金叉波段High上移");
-            checkResult.addSignal(period, MacdGcWaveHighLiftTools.buildSignalMessage(period, hit));
+        if (checkResult != null) {
+            String trendMessage = MacdGcWaveHighLiftTools.buildTrendMessage(p);
+            checkResult.addTrendPeriod(PeriodTypeEnum.MONTH, trendMessage);
+            checkResult.addTrendPeriod(PeriodTypeEnum.WEEK, trendMessage);
+            checkResult.addTrendPeriod(PeriodTypeEnum.DAY, trendMessage);
+            checkResult.addSignal(PeriodTypeEnum.DAY, MacdGcWaveHighLiftTools.buildSignalMessage(hit));
         }
-        return MacdGcWaveHighLiftEvaluation.hit(period);
+        return MacdGcWaveHighLiftEvaluation.hit();
     }
 
     @Getter
     public static final class MacdGcWaveHighLiftEvaluation {
-        private final PeriodTypeEnum period;
         private final boolean hit;
 
-        MacdGcWaveHighLiftEvaluation(PeriodTypeEnum period, boolean hit) {
-            this.period = period;
+        MacdGcWaveHighLiftEvaluation(boolean hit) {
             this.hit = hit;
         }
 
         static MacdGcWaveHighLiftEvaluation miss() {
-            return new MacdGcWaveHighLiftEvaluation(null, false);
+            return new MacdGcWaveHighLiftEvaluation(false);
         }
 
-        static MacdGcWaveHighLiftEvaluation hit(PeriodTypeEnum period) {
-            return new MacdGcWaveHighLiftEvaluation(period, true);
+        static MacdGcWaveHighLiftEvaluation hit() {
+            return new MacdGcWaveHighLiftEvaluation(true);
         }
     }
 }

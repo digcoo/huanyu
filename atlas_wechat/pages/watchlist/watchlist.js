@@ -6,7 +6,9 @@ const { rehydrateListAsync } = require('../../utils/watchlist');
 
 function mapChartKlines(list, period) {
   return list.map(function (item) {
-    var klines = item.klines && item.klines[period] ? item.klines[period].slice() : [];
+    var klines = (item.chartKlines && item.chartKlines.length)
+      ? item.chartKlines.slice()
+      : (item.klines && item.klines[period] ? item.klines[period].slice() : []);
     return Object.assign({}, item, { chartKlines: klines });
   });
 }

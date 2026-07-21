@@ -3,6 +3,7 @@ const PERIODS = [
   { id: 'month', label: '月K' },
   { id: 'week', label: '周K' },
   { id: 'day', label: '日K' },
+  { id: 'min60', label: '60分' },
   { id: 'min30', label: '30分' }
 ];
 

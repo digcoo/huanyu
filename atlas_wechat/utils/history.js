@@ -6,7 +6,7 @@ const watchlistApi = require('./watchlist-api');
 const auth = require('./auth');
 
 const STORAGE_KEY = 'watchHistory';
-const MAX_RECORDS = 200;
+const MAX_RECORDS = 80;
 
 function findMarketLabel(marketId) {
   const meta = MARKETS.find(function (m) { return m.id === marketId; });
@@ -54,8 +54,6 @@ function buildRecord(item, exitPrice, removeReason) {
     name: item.name,
     market: item.market,
     strategy: item.strategy,
-    resonance: item.resonance,
-    tags: item.tags || [],
     addedAt: addedAt,
     removedAt: removedAt,
     holdDays: calcHoldDays(addedAt, removedAt),

@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * MACD金叉波段High上移（macdgcwhu）：MACD&gt;0、价/前K收在波段High/金叉K high上、首次上移前K high。
+ * MACD金叉上移（macdgcwhu）：日/周/月 MACD&gt;0 + 日 close&gt;前日 high + 前日收阳。
  */
 @Data
 @Builder
@@ -22,7 +22,7 @@ public class MacdGcWaveHighLiftStrategyParams {
     public static final int DEFAULT_LOOKBACK_WEEK = 52;
     public static final int DEFAULT_LOOKBACK_MONTH = 36;
     public static final double DEFAULT_MIN_AVG_AMOUNT = 3000D * 10_000D;
-    public static final double DEFAULT_SIGNAL_RISE_PCT = 0.03;
+    public static final double DEFAULT_SIGNAL_RISE_PCT = 0.01;
 
     @Builder.Default
     private Tier tier = Tier.DAY;
@@ -47,6 +47,18 @@ public class MacdGcWaveHighLiftStrategyParams {
 
     @Builder.Default
     private double signalRisePct = DEFAULT_SIGNAL_RISE_PCT;
+
+    @Builder.Default
+    private boolean requireDayMacd = true;
+
+    @Builder.Default
+    private boolean requireWeekMacd = true;
+
+    @Builder.Default
+    private boolean requireMonthMacd = true;
+
+    @Builder.Default
+    private boolean requireMin60Macd = false;
 
     public static MacdGcWaveHighLiftStrategyParams defaults() {
         return MacdGcWaveHighLiftStrategyParams.builder().build();
@@ -77,6 +89,10 @@ public class MacdGcWaveHighLiftStrategyParams {
         if (incoming.signalRisePct > 0) {
             d.signalRisePct = incoming.signalRisePct;
         }
+        d.requireDayMacd = incoming.requireDayMacd;
+        d.requireWeekMacd = incoming.requireWeekMacd;
+        d.requireMonthMacd = incoming.requireMonthMacd;
+        d.requireMin60Macd = incoming.requireMin60Macd;
         return d;
     }
 

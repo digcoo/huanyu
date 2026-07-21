@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * MACD金叉波段High回踩（macdgcwhr）：MACD&gt;0、价在基准波段 High 上、末 K 振幅≤1%。
+ * MACD金叉波段High回踩（macdgcwhr）：MACD&gt;0、价在基准波段 High 上、末 K low 贴近 bandHigh（差值≤1%）。
  */
 @Data
 @Builder
@@ -22,6 +22,7 @@ public class MacdGcWaveHighRetestStrategyParams {
     public static final int DEFAULT_LOOKBACK_WEEK = 52;
     public static final int DEFAULT_LOOKBACK_MONTH = 36;
     public static final double DEFAULT_MIN_AVG_AMOUNT = 3000D * 10_000D;
+    /** 末 K low 与 bandHigh 的最大相对差值 |low-bandHigh|/bandHigh，默认 1%。 */
     public static final double DEFAULT_MAX_BAR_RANGE_PCT = 0.01;
 
     @Builder.Default

@@ -392,82 +392,6 @@ var CASCADEWAVE_LONG_SCHEMA = [
   }
 ].concat(CASCADEWAVE_BUNDLE_COMMON_SCHEMA);
 
-var MGC_DEFAULTS = Object.assign({
-  mgcEnableMinAmountFilter: true,
-  mgcMinAmountWan: 3000,
-  mgcEnableSignalRiseGate: true,
-  mgcSignalRisePct: 3,
-  mgcEnableHistoryRiseGate: true,
-  mgcHistoryLookbackBars: 5,
-  mgcHistoryRisePct: 3
-}, MACD_POSITIVE_GATE_DEFAULTS);
-
-var MGC_SCHEMA = [
-  {
-    type: 'section',
-    label: '命中条件',
-    hint: '末 K MACD 金叉；以下三门均为可选，默认开启'
-  },
-  {
-    key: 'mgcEnableMinAmountFilter',
-    label: '成交额门',
-    hint: '近6日日均成交额（不含当日K）',
-    type: 'switch'
-  },
-  {
-    key: 'mgcMinAmountWan',
-    label: '最低日均成交额',
-    hint: '近6日日均成交额（万）',
-    type: 'slider',
-    min: 0,
-    max: 10000,
-    step: 500,
-    unit: '万'
-  },
-  {
-    key: 'mgcEnableSignalRiseGate',
-    label: '末K涨幅门',
-    hint: '末 K 上涨率须大于阈值',
-    type: 'switch'
-  },
-  {
-    key: 'mgcSignalRisePct',
-    label: '末K涨幅阈值',
-    hint: '上涨率 = (收盘-前收)/前收',
-    type: 'slider',
-    min: 1,
-    max: 15,
-    step: 0.5,
-    unit: '%'
-  },
-  {
-    key: 'mgcEnableHistoryRiseGate',
-    label: '近N根涨幅门',
-    hint: '末K之前 N 根中至少一根涨幅达标',
-    type: 'switch'
-  },
-  {
-    key: 'mgcHistoryLookbackBars',
-    label: '向前检视K数',
-    hint: '不含末 K',
-    type: 'slider',
-    min: 1,
-    max: 20,
-    step: 1,
-    unit: '根'
-  },
-  {
-    key: 'mgcHistoryRisePct',
-    label: '历史涨幅阈值',
-    hint: '单根上涨率须大于该值',
-    type: 'slider',
-    min: 1,
-    max: 15,
-    step: 0.5,
-    unit: '%'
-  }
-].concat(MACD_POSITIVE_GATE_SCHEMA);
-
 var MGCWH_DEFAULTS = Object.assign({
   mgcwhEnableMinAmountFilter: true,
   mgcwhMinAmountWan: 3000,
@@ -515,48 +439,53 @@ var MGCWH_SCHEMA = [
   }
 ].concat(MACD_POSITIVE_GATE_SCHEMA);
 
-var MGCWHR_DEFAULTS = Object.assign({
-  mgcwhrEnableMinAmountFilter: true,
-  mgcwhrMinAmountWan: 3000
-}, MACD_POSITIVE_GATE_DEFAULTS);
-
-var MGCWHR_SCHEMA = [
-  {
-    type: 'section',
-    label: '命中条件',
-    hint: 'MACD>0、价在金叉基准波段High上、末K振幅≤1%；成交额门可选'
-  },
-  {
-    key: 'mgcwhrEnableMinAmountFilter',
-    label: '成交额门',
-    hint: '近6日日均成交额（不含当日K）',
-    type: 'switch'
-  },
-  {
-    key: 'mgcwhrMinAmountWan',
-    label: '最低日均成交额',
-    hint: '近6日日均成交额（万）',
-    type: 'slider',
-    min: 0,
-    max: 10000,
-    step: 500,
-    unit: '万'
-  }
-].concat(MACD_POSITIVE_GATE_SCHEMA);
-
 var MGCWHU_DEFAULTS = Object.assign({
   mgcwhuEnableMinAmountFilter: true,
   mgcwhuMinAmountWan: 3000,
   mgcwhuEnableSignalRiseGate: true,
-  mgcwhuSignalRisePct: 3
-}, MACD_POSITIVE_GATE_DEFAULTS);
+  mgcwhuSignalRisePct: 1
+}, {
+  mgRequireDayMacd: true,
+  mgRequireWeekMacd: true,
+  mgRequireMonthMacd: true,
+  mgRequireMin60Macd: false
+});
+
+var MGCWHU_MACD_GATE_SCHEMA = [
+  {
+    type: 'section',
+    label: 'MACD>0',
+    hint: '勾选周期须 MACD 柱>0；默认日/周/月全开，Min60 默认关'
+  },
+  {
+    key: 'mgRequireMin60Macd',
+    label: 'Min60 MACD>0',
+    type: 'switch'
+  },
+  {
+    key: 'mgRequireDayMacd',
+    label: '日 MACD>0',
+    type: 'switch'
+  },
+  {
+    key: 'mgRequireWeekMacd',
+    label: '周 MACD>0',
+    type: 'switch'
+  },
+  {
+    key: 'mgRequireMonthMacd',
+    label: '月 MACD>0',
+    type: 'switch'
+  }
+];
 
 var MGCWHU_SCHEMA = [
   {
     type: 'section',
     label: '命中条件',
-    hint: 'MACD>0、价/前K收在波段High上、首次上移前K high'
-  },
+    hint: '日收>前日 high；前日收阳'
+  }
+].concat(MGCWHU_MACD_GATE_SCHEMA).concat([
   {
     key: 'mgcwhuEnableMinAmountFilter',
     label: '成交额门',
@@ -589,7 +518,7 @@ var MGCWHU_SCHEMA = [
     step: 0.5,
     unit: '%'
   }
-].concat(MACD_POSITIVE_GATE_SCHEMA);
+]);
 
 var MDCB_DEFAULTS = Object.assign({
   mdcbEnableMinAmountFilter: true,
@@ -692,6 +621,276 @@ var ULTRAGC_SCHEMA = [
     unit: '%'
   }
 ].concat(MACD_POSITIVE_GATE_SCHEMA);
+
+var M60WCCB_DEFAULTS = {
+  m60wccbPrevDays: 2,
+  m60wccbMaxBarsPerDay: 4,
+  m60wccbLookbackBars: 120,
+  m60wccbEnableMinAmountFilter: true,
+  m60wccbMinAmountWan: 3000,
+  m60wccbEnableSignalRiseGate: true,
+  m60wccbSignalRisePct: 1
+};
+
+var M60WCCB_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: 'Min60/日/周 MACD 至少 2 个>0；Min60 凸凹边沿破波段 High；信号限末交易日'
+  },
+  {
+    key: 'm60wccbPrevDays',
+    label: '背景交易日',
+    hint: '信号日前纳入的背景交易日数',
+    type: 'slider',
+    min: 0,
+    max: 5,
+    step: 1,
+    unit: '日'
+  },
+  {
+    key: 'm60wccbMaxBarsPerDay',
+    label: '每日 Min60 根数',
+    hint: '每个交易日最多纳入的 Min60 根',
+    type: 'slider',
+    min: 2,
+    max: 8,
+    step: 1,
+    unit: '根'
+  },
+  {
+    key: 'm60wccbLookbackBars',
+    label: '波段回溯',
+    hint: 'Min60 凸凹波段识别回溯根数',
+    type: 'slider',
+    min: 40,
+    max: 240,
+    step: 10,
+    unit: '根'
+  },
+  {
+    key: 'm60wccbEnableMinAmountFilter',
+    label: '启用成交额门',
+    type: 'switch'
+  },
+  {
+    key: 'm60wccbMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'm60wccbEnableSignalRiseGate',
+    label: '启用突破涨幅门',
+    type: 'switch'
+  },
+  {
+    key: 'm60wccbSignalRisePct',
+    label: '突破涨幅阈值',
+    hint: '上涨率 = (收盘-前收)/前收',
+    type: 'slider',
+    min: 0.5,
+    max: 10,
+    step: 0.5,
+    unit: '%'
+  }
+];
+
+var DWCCB_DEFAULTS = {
+  dwccbLookbackBars: 120,
+  dwccbEnableMinAmountFilter: true,
+  dwccbMinAmountWan: 3000,
+  dwccbEnableSignalRiseGate: true,
+  dwccbSignalRisePct: 1
+};
+
+var DWCCB_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '日/周/月 MACD 至少 2 个>0；日 K 凸凹边沿破波段 High；信号限末根日 K'
+  },
+  {
+    key: 'dwccbLookbackBars',
+    label: '波段回溯',
+    hint: '日 K 凸凹波段识别回溯根数',
+    type: 'slider',
+    min: 40,
+    max: 240,
+    step: 10,
+    unit: '根'
+  },
+  {
+    key: 'dwccbEnableMinAmountFilter',
+    label: '启用成交额门',
+    type: 'switch'
+  },
+  {
+    key: 'dwccbMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'dwccbEnableSignalRiseGate',
+    label: '启用突破涨幅门',
+    type: 'switch'
+  },
+  {
+    key: 'dwccbSignalRisePct',
+    label: '突破涨幅阈值',
+    hint: '上涨率 = (收盘-前收)/前收',
+    type: 'slider',
+    min: 0.5,
+    max: 10,
+    step: 0.5,
+    unit: '%'
+  }
+];
+
+var WWCCB_DEFAULTS = {
+  wwccbLookbackBars: 52,
+  wwccbEnableMinAmountFilter: true,
+  wwccbMinAmountWan: 3000,
+  wwccbEnableSignalRiseGate: true,
+  wwccbSignalRisePct: 1,
+  wwccbMaxRetestGapPct: 1
+};
+
+var WWCCB_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '周 MACD>0；周 K 凹/凸边沿突破或凸边沿回踩；信号限末根周 K'
+  },
+  {
+    key: 'wwccbLookbackBars',
+    label: '波段回溯',
+    hint: '周 K 凸凹波段识别回溯根数',
+    type: 'slider',
+    min: 20,
+    max: 120,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'wwccbMaxRetestGapPct',
+    label: '回踩容差',
+    hint: 'low 与次波段 High 最大相对差值',
+    type: 'slider',
+    min: 0.5,
+    max: 5,
+    step: 0.5,
+    unit: '%'
+  },
+  {
+    key: 'wwccbEnableMinAmountFilter',
+    label: '启用成交额门',
+    type: 'switch'
+  },
+  {
+    key: 'wwccbMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'wwccbEnableSignalRiseGate',
+    label: '启用突破涨幅门',
+    hint: '仅对凹/凸边沿突破生效',
+    type: 'switch'
+  },
+  {
+    key: 'wwccbSignalRisePct',
+    label: '突破涨幅阈值',
+    hint: '上涨率 = (收盘-前收)/前收',
+    type: 'slider',
+    min: 0.5,
+    max: 10,
+    step: 0.5,
+    unit: '%'
+  }
+];
+
+var MWCCB_DEFAULTS = {
+  mwccbLookbackBars: 36,
+  mwccbEnableMinAmountFilter: true,
+  mwccbMinAmountWan: 3000,
+  mwccbEnableSignalRiseGate: true,
+  mwccbSignalRisePct: 1,
+  mwccbMaxRetestGapPct: 1
+};
+
+var MWCCB_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '月 MACD>0；月 K 凹/凸边沿突破或凸边沿回踩；信号限末根月 K'
+  },
+  {
+    key: 'mwccbLookbackBars',
+    label: '波段回溯',
+    hint: '月 K 凸凹波段识别回溯根数',
+    type: 'slider',
+    min: 12,
+    max: 80,
+    step: 4,
+    unit: '根'
+  },
+  {
+    key: 'mwccbMaxRetestGapPct',
+    label: '回踩容差',
+    hint: 'low 与次波段 High 最大相对差值',
+    type: 'slider',
+    min: 0.5,
+    max: 5,
+    step: 0.5,
+    unit: '%'
+  },
+  {
+    key: 'mwccbEnableMinAmountFilter',
+    label: '启用成交额门',
+    type: 'switch'
+  },
+  {
+    key: 'mwccbMinAmountWan',
+    label: '最低成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'mwccbEnableSignalRiseGate',
+    label: '启用突破涨幅门',
+    hint: '仅对凹/凸边沿突破生效',
+    type: 'switch'
+  },
+  {
+    key: 'mwccbSignalRisePct',
+    label: '突破涨幅阈值',
+    hint: '上涨率 = (收盘-前收)/前收',
+    type: 'slider',
+    min: 0.5,
+    max: 10,
+    step: 0.5,
+    unit: '%'
+  }
+];
 
 var ULTRA_DEFAULTS = Object.assign({
   ulMinAmountWan: 5000,
@@ -2132,6 +2331,10 @@ var CASCADEWAVECONCAVEDAY_SCHEMA = [
 var SCHEMA_BY_STRATEGY = {
   ultra: ULTRA_SCHEMA,
   ultragc: ULTRAGC_SCHEMA,
+  min60wavecc: M60WCCB_SCHEMA,
+  daywavecc: DWCCB_SCHEMA,
+  weekwavecc: WWCCB_SCHEMA,
+  monthwavecc: MWCCB_SCHEMA,
   trend: TREND_SCHEMA,
   medium: MEDIUM_SCHEMA,
   long: LONG_SCHEMA,
@@ -2150,26 +2353,11 @@ var SCHEMA_BY_STRATEGY = {
   cascadewaveShort: CASCADEWAVE_SHORT_SCHEMA,
   cascadewaveMedium: CASCADEWAVE_MEDIUM_SCHEMA,
   cascadewaveLong: CASCADEWAVE_LONG_SCHEMA,
-  macdgc: MGC_SCHEMA,
-  macdgcShort: MGC_SCHEMA,
-  macdgcMedium: MGC_SCHEMA,
-  macdgcLong: MGC_SCHEMA,
   macdgcwh: MGCWH_SCHEMA,
   macdgcwhShort: MGCWH_SCHEMA,
   macdgcwhMedium: MGCWH_SCHEMA,
   macdgcwhLong: MGCWH_SCHEMA,
-  macdgcwhr: MGCWHR_SCHEMA,
-  macdgcwhrShort: MGCWHR_SCHEMA,
-  macdgcwhrMedium: MGCWHR_SCHEMA,
-  macdgcwhrLong: MGCWHR_SCHEMA,
-  macdgcwhu: MGCWHU_SCHEMA,
-  macdgcwhuShort: MGCWHU_SCHEMA,
-  macdgcwhuMedium: MGCWHU_SCHEMA,
-  macdgcwhuLong: MGCWHU_SCHEMA,
-  macddcb: MDCB_SCHEMA,
-  macddcbShort: MDCB_SCHEMA,
-  macddcbMedium: MDCB_SCHEMA,
-  macddcbLong: MDCB_SCHEMA
+  macdgcwhu: MGCWHU_SCHEMA
 };
 
 var LADDER_TIER_SHORT = 'short';
@@ -2559,6 +2747,10 @@ function getPanelSchema(strategyId, tier) {
 var DEFAULTS_BY_STRATEGY = {
   ultra: ULTRA_DEFAULTS,
   ultragc: ULTRAGC_DEFAULTS,
+  min60wavecc: M60WCCB_DEFAULTS,
+  daywavecc: DWCCB_DEFAULTS,
+  weekwavecc: WWCCB_DEFAULTS,
+  monthwavecc: MWCCB_DEFAULTS,
   trend: TREND_DEFAULTS,
   medium: MEDIUM_DEFAULTS,
   long: LONG_DEFAULTS,
@@ -2577,26 +2769,11 @@ var DEFAULTS_BY_STRATEGY = {
   cascadewaveShort: CASCADEWAVE_BUNDLE_DEFAULTS,
   cascadewaveMedium: CASCADEWAVE_BUNDLE_DEFAULTS,
   cascadewaveLong: CASCADEWAVE_BUNDLE_DEFAULTS,
-  macdgc: MGC_DEFAULTS,
-  macdgcShort: MGC_DEFAULTS,
-  macdgcMedium: MGC_DEFAULTS,
-  macdgcLong: MGC_DEFAULTS,
   macdgcwh: MGCWH_DEFAULTS,
   macdgcwhShort: MGCWH_DEFAULTS,
   macdgcwhMedium: MGCWH_DEFAULTS,
   macdgcwhLong: MGCWH_DEFAULTS,
-  macdgcwhr: MGCWHR_DEFAULTS,
-  macdgcwhrShort: MGCWHR_DEFAULTS,
-  macdgcwhrMedium: MGCWHR_DEFAULTS,
-  macdgcwhrLong: MGCWHR_DEFAULTS,
-  macdgcwhu: MGCWHU_DEFAULTS,
-  macdgcwhuShort: MGCWHU_DEFAULTS,
-  macdgcwhuMedium: MGCWHU_DEFAULTS,
-  macdgcwhuLong: MGCWHU_DEFAULTS,
-  macddcb: MDCB_DEFAULTS,
-  macddcbShort: MDCB_DEFAULTS,
-  macddcbMedium: MDCB_DEFAULTS,
-  macddcbLong: MDCB_DEFAULTS
+  macdgcwhu: MGCWHU_DEFAULTS
 };
 
 var TIER_PICKER = null;
@@ -2621,20 +2798,11 @@ function resolveApiStrategyId(strategyId) {
   if (strategyId === 'trend' || strategyId === 'medium' || strategyId === 'long') {
     return strategyId;
   }
-  if (isMacdGoldenCrossStrategy(strategyId)) {
-    return 'macdgc';
-  }
   if (isMacdGcWaveHighStrategy(strategyId)) {
     return 'macdgcwh';
   }
-  if (isMacdGcWaveHighRetestStrategy(strategyId)) {
-    return 'macdgcwhr';
-  }
   if (isMacdGcWaveHighLiftStrategy(strategyId)) {
     return 'macdgcwhu';
-  }
-  if (isMacdDcBreakoutStrategy(strategyId)) {
-    return 'macddcb';
   }
   return strategyId;
 }
@@ -2817,13 +2985,6 @@ var CASCADE_TIER_STRATEGIES = {
   cascadewaveLong: true
 };
 
-var MACD_GOLDEN_CROSS_STRATEGIES = {
-  macdgc: true,
-  macdgcShort: true,
-  macdgcMedium: true,
-  macdgcLong: true
-};
-
 var MACD_GC_WAVE_HIGH_STRATEGIES = {
   macdgcwh: true,
   macdgcwhShort: true,
@@ -2831,59 +2992,16 @@ var MACD_GC_WAVE_HIGH_STRATEGIES = {
   macdgcwhLong: true
 };
 
-var MACD_GC_WAVE_HIGH_RETEST_STRATEGIES = {
-  macdgcwhr: true,
-  macdgcwhrShort: true,
-  macdgcwhrMedium: true,
-  macdgcwhrLong: true
-};
-
 var MACD_GC_WAVE_HIGH_LIFT_STRATEGIES = {
-  macdgcwhu: true,
-  macdgcwhuShort: true,
-  macdgcwhuMedium: true,
-  macdgcwhuLong: true
+  macdgcwhu: true
 };
-
-var MACD_DC_BREAKOUT_STRATEGIES = {
-  macddcb: true,
-  macddcbShort: true,
-  macddcbMedium: true,
-  macddcbLong: true
-};
-
-function isMacdGoldenCrossStrategy(strategyId) {
-  return !!MACD_GOLDEN_CROSS_STRATEGIES[normalizeStrategyId(strategyId)];
-}
 
 function isMacdGcWaveHighStrategy(strategyId) {
   return !!MACD_GC_WAVE_HIGH_STRATEGIES[normalizeStrategyId(strategyId)];
 }
 
-function isMacdGcWaveHighRetestStrategy(strategyId) {
-  return !!MACD_GC_WAVE_HIGH_RETEST_STRATEGIES[normalizeStrategyId(strategyId)];
-}
-
 function isMacdGcWaveHighLiftStrategy(strategyId) {
   return !!MACD_GC_WAVE_HIGH_LIFT_STRATEGIES[normalizeStrategyId(strategyId)];
-}
-
-function isMacdDcBreakoutStrategy(strategyId) {
-  return !!MACD_DC_BREAKOUT_STRATEGIES[normalizeStrategyId(strategyId)];
-}
-
-function mgcTierForStrategy(strategyId) {
-  strategyId = normalizeStrategyId(strategyId);
-  if (strategyId === 'macdgcMedium') return 'week';
-  if (strategyId === 'macdgcLong') return 'month';
-  return 'day';
-}
-
-function mgcPrimaryPeriod(strategyId) {
-  var tier = mgcTierForStrategy(strategyId);
-  if (tier === 'week') return 'week';
-  if (tier === 'month') return 'month';
-  return 'day';
 }
 
 function mgcwhTierForStrategy(strategyId) {
@@ -2900,45 +3018,7 @@ function mgcwhPrimaryPeriod(strategyId) {
   return 'day';
 }
 
-function mgcwhrTierForStrategy(strategyId) {
-  strategyId = normalizeStrategyId(strategyId);
-  if (strategyId === 'macdgcwhrMedium') return 'week';
-  if (strategyId === 'macdgcwhrLong') return 'month';
-  return 'day';
-}
-
-function mgcwhrPrimaryPeriod(strategyId) {
-  var tier = mgcwhrTierForStrategy(strategyId);
-  if (tier === 'week') return 'week';
-  if (tier === 'month') return 'month';
-  return 'day';
-}
-
-function mgcwhuTierForStrategy(strategyId) {
-  strategyId = normalizeStrategyId(strategyId);
-  if (strategyId === 'macdgcwhuMedium') return 'week';
-  if (strategyId === 'macdgcwhuLong') return 'month';
-  return 'day';
-}
-
 function mgcwhuPrimaryPeriod(strategyId) {
-  var tier = mgcwhuTierForStrategy(strategyId);
-  if (tier === 'week') return 'week';
-  if (tier === 'month') return 'month';
-  return 'day';
-}
-
-function mdcbTierForStrategy(strategyId) {
-  strategyId = normalizeStrategyId(strategyId);
-  if (strategyId === 'macddcbMedium') return 'week';
-  if (strategyId === 'macddcbLong') return 'month';
-  return 'day';
-}
-
-function mdcbPrimaryPeriod(strategyId) {
-  var tier = mdcbTierForStrategy(strategyId);
-  if (tier === 'week') return 'week';
-  if (tier === 'month') return 'month';
   return 'day';
 }
 
@@ -2955,6 +3035,10 @@ function chartPrimaryPeriod(strategyId, params) {
   strategyId = normalizeStrategyId(strategyId);
   if (strategyId === 'ultra') return 'min30';
   if (strategyId === 'ultragc') return 'min30';
+  if (strategyId === 'min60wavecc') return 'min60';
+  if (strategyId === 'daywavecc') return 'day';
+  if (strategyId === 'weekwavecc') return 'week';
+  if (strategyId === 'monthwavecc') return 'month';
   if (strategyId === 'trend') return 'day';
   if (strategyId === 'medium') return 'week';
   if (strategyId === 'long') return 'month';
@@ -2974,20 +3058,11 @@ function chartPrimaryPeriod(strategyId, params) {
   if (strategyId === 'cascadewaveShort') return shortChartPrimaryPeriod(params);
   if (strategyId === 'cascadewaveMedium') return 'week';
   if (strategyId === 'cascadewaveLong') return 'month';
-  if (isMacdGoldenCrossStrategy(strategyId)) {
-    return mgcPrimaryPeriod(strategyId);
-  }
   if (isMacdGcWaveHighStrategy(strategyId)) {
     return mgcwhPrimaryPeriod(strategyId);
   }
-  if (isMacdGcWaveHighRetestStrategy(strategyId)) {
-    return mgcwhrPrimaryPeriod(strategyId);
-  }
   if (isMacdGcWaveHighLiftStrategy(strategyId)) {
     return mgcwhuPrimaryPeriod(strategyId);
-  }
-  if (isMacdDcBreakoutStrategy(strategyId)) {
-    return mdcbPrimaryPeriod(strategyId);
   }
   return null;
 }
@@ -2995,6 +3070,10 @@ function chartPrimaryPeriod(strategyId, params) {
 function normalizeStrategyId(strategyId) {
   if (!strategyId) return strategyId;
   if (strategyId === 'ultraLow' || strategyId === 'ladder') return 'nrf';
+  if (strategyId === 'macdgcwhuShort' || strategyId === 'macdgcwhuMedium'
+      || strategyId === 'macdgcwhuLong') {
+    return 'macdgcwhu';
+  }
   return strategyId;
 }
 
@@ -3029,6 +3108,7 @@ function migrateMacdPositiveGateFields(raw) {
 function formatMacdPositiveGateSummary(p) {
   var parts = [];
   if (p.mgRequireDayMacd) parts.push('日MACD>0');
+  if (p.mgRequireMin60Macd) parts.push('Min60MACD>0');
   if (p.mgRequireWeekMacd) parts.push('周MACD>0');
   if (p.mgRequireMonthMacd) parts.push('月MACD>0');
   return parts.length ? parts.join('+') : '';
@@ -3282,35 +3362,14 @@ function toApiParams(strategyId) {
       toApiParamsFromForm(tierApiId(nrfActive), nrfBundle[nrfActive])
     );
   }
-  if (isMacdGoldenCrossStrategy(strategyId)) {
-    return Object.assign(
-      { mgcTier: mgcTierForStrategy(strategyId) },
-      toApiParamsFromForm('macdgc', load(strategyId))
-    );
-  }
   if (isMacdGcWaveHighStrategy(strategyId)) {
     return Object.assign(
       { mgcwhTier: mgcwhTierForStrategy(strategyId) },
       toApiParamsFromForm('macdgcwh', load(strategyId))
     );
   }
-  if (isMacdGcWaveHighRetestStrategy(strategyId)) {
-    return Object.assign(
-      { mgcwhrTier: mgcwhrTierForStrategy(strategyId) },
-      toApiParamsFromForm('macdgcwhr', load(strategyId))
-    );
-  }
   if (isMacdGcWaveHighLiftStrategy(strategyId)) {
-    return Object.assign(
-      { mgcwhuTier: mgcwhuTierForStrategy(strategyId) },
-      toApiParamsFromForm('macdgcwhu', load(strategyId))
-    );
-  }
-  if (isMacdDcBreakoutStrategy(strategyId)) {
-    return Object.assign(
-      { mdcbTier: mdcbTierForStrategy(strategyId) },
-      toApiParamsFromForm('macddcb', load(strategyId))
-    );
+    return toApiParamsFromForm('macdgcwhu', load(strategyId));
   }
   if (strategyId === 'ultragc') {
     return toApiParamsFromForm('ultragc', load(strategyId));
@@ -3550,24 +3609,6 @@ function formatSummary(strategyId) {
       + (cwbGateParts.length ? ' · ' + cwbGateParts.join('+') : '')
       + (p.cwbMinAmountWan != null && p.cwbMinAmountWan > 0 ? ' · ' + p.cwbMinAmountWan + '万' : '');
   }
-  if (isMacdGoldenCrossStrategy(strategyId)) {
-    var mgcLabel = mgcTierForStrategy(strategyId) === 'week' ? '周档'
-      : mgcTierForStrategy(strategyId) === 'month' ? '月档' : '日档';
-    var mgcParts = [mgcLabel + 'MACD金叉'];
-    if (p.mgcEnableMinAmountFilter !== false) {
-      mgcParts.push((p.mgcMinAmountWan != null ? p.mgcMinAmountWan : 3000) + '万');
-    }
-    if (p.mgcEnableSignalRiseGate !== false) {
-      mgcParts.push('末K>' + (p.mgcSignalRisePct != null ? p.mgcSignalRisePct : 3) + '%');
-    }
-    if (p.mgcEnableHistoryRiseGate !== false) {
-      mgcParts.push('近' + (p.mgcHistoryLookbackBars != null ? p.mgcHistoryLookbackBars : 5)
-        + '根>' + (p.mgcHistoryRisePct != null ? p.mgcHistoryRisePct : 3) + '%');
-    }
-    var mgcMacd = formatMacdPositiveGateSummary(p);
-    if (mgcMacd) mgcParts.push(mgcMacd);
-    return mgcParts.join(' · ');
-  }
   if (isMacdGcWaveHighStrategy(strategyId)) {
     var mgcwhLabel = mgcwhTierForStrategy(strategyId) === 'week' ? '周档'
       : mgcwhTierForStrategy(strategyId) === 'month' ? '月档' : '日档';
@@ -3582,44 +3623,17 @@ function formatSummary(strategyId) {
     if (mgcwhMacd) mgcwhParts.push(mgcwhMacd);
     return mgcwhParts.join(' · ');
   }
-  if (isMacdGcWaveHighRetestStrategy(strategyId)) {
-    var mgcwhrLabel = mgcwhrTierForStrategy(strategyId) === 'week' ? '周档'
-      : mgcwhrTierForStrategy(strategyId) === 'month' ? '月档' : '日档';
-    var mgcwhrParts = [mgcwhrLabel + 'MACD金叉波段High回踩', '振幅≤1%'];
-    if (p.mgcwhrEnableMinAmountFilter !== false) {
-      mgcwhrParts.push((p.mgcwhrMinAmountWan != null ? p.mgcwhrMinAmountWan : 3000) + '万');
-    }
-    var mgcwhrMacd = formatMacdPositiveGateSummary(p);
-    if (mgcwhrMacd) mgcwhrParts.push(mgcwhrMacd);
-    return mgcwhrParts.join(' · ');
-  }
   if (isMacdGcWaveHighLiftStrategy(strategyId)) {
-    var mgcwhuLabel = mgcwhuTierForStrategy(strategyId) === 'week' ? '周档'
-      : mgcwhuTierForStrategy(strategyId) === 'month' ? '月档' : '日档';
-    var mgcwhuParts = [mgcwhuLabel + 'MACD金叉波段High上移', '前K收>波段High', '首次上移前K high'];
+    var mgcwhuParts = ['日收>前日high', '前日收阳'];
+    var mgcwhuMacd = formatMacdPositiveGateSummary(p);
+    if (mgcwhuMacd) mgcwhuParts.unshift(mgcwhuMacd);
     if (p.mgcwhuEnableMinAmountFilter !== false) {
       mgcwhuParts.push((p.mgcwhuMinAmountWan != null ? p.mgcwhuMinAmountWan : 3000) + '万');
     }
     if (p.mgcwhuEnableSignalRiseGate !== false) {
-      mgcwhuParts.push('末K>' + (p.mgcwhuSignalRisePct != null ? p.mgcwhuSignalRisePct : 3) + '%');
+      mgcwhuParts.push('末K>' + (p.mgcwhuSignalRisePct != null ? p.mgcwhuSignalRisePct : 1) + '%');
     }
-    var mgcwhuMacd = formatMacdPositiveGateSummary(p);
-    if (mgcwhuMacd) mgcwhuParts.push(mgcwhuMacd);
     return mgcwhuParts.join(' · ');
-  }
-  if (isMacdDcBreakoutStrategy(strategyId)) {
-    var mdcbLabel = mdcbTierForStrategy(strategyId) === 'week' ? '周档'
-      : mdcbTierForStrategy(strategyId) === 'month' ? '月档' : '日档';
-    var mdcbParts = [mdcbLabel + 'MACD死叉突破', '突破死叉K前一根K high'];
-    if (p.mdcbEnableMinAmountFilter !== false) {
-      mdcbParts.push((p.mdcbMinAmountWan != null ? p.mdcbMinAmountWan : 3000) + '万');
-    }
-    if (p.mdcbEnableSignalRiseGate !== false) {
-      mdcbParts.push('末K>' + (p.mdcbSignalRisePct != null ? p.mdcbSignalRisePct : 3) + '%');
-    }
-    var mdcbMacd = formatMacdPositiveGateSummary(p);
-    if (mdcbMacd) mdcbParts.push(mdcbMacd);
-    return mdcbParts.join(' · ');
   }
   if (strategyId === 'ultra') {
     var macdParts = [];
@@ -3674,11 +3688,8 @@ module.exports = {
   cascadePrimaryPeriod: cascadePrimaryPeriod,
   chartPrimaryPeriod: chartPrimaryPeriod,
   isCascadeTierStrategy: isCascadeTierStrategy,
-  isMacdGoldenCrossStrategy: isMacdGoldenCrossStrategy,
   isMacdGcWaveHighStrategy: isMacdGcWaveHighStrategy,
-  isMacdGcWaveHighRetestStrategy: isMacdGcWaveHighRetestStrategy,
   isMacdGcWaveHighLiftStrategy: isMacdGcWaveHighLiftStrategy,
-  isMacdDcBreakoutStrategy: isMacdDcBreakoutStrategy,
   defaultChartPeriod: defaultChartPeriod
 };
 

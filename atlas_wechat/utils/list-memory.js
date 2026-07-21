@@ -1,14 +1,17 @@
 /** 列表页内存控制：K 线条数、持有上限 */
 
-var MAX_HELD_RECOMMENDATIONS = 120;
-var MAX_SEEN_RECOMMENDATION_IDS = 2000;
+/** 列表内存持有上限（约 4 页 × 12 条） */
+var MAX_HELD_RECOMMENDATIONS = 48;
+/** 分页去重 id 记录上限 */
+var MAX_SEEN_RECOMMENDATION_IDS = 400;
 
 var LIST_KLINE_LIMIT = {
-  min30: 32,
-  day: 24,
-  week: 24,
-  month: 24,
-  year: 24
+  min30: 24,
+  min60: 24,
+  day: 16,
+  week: 16,
+  month: 16,
+  year: 16
 };
 
 function klineLimitForList(period) {
@@ -19,18 +22,18 @@ function cardMaxBars(period) {
   return klineLimitForList(period);
 }
 
-/** 只保留当前周期 K 线，避免切换周期后多周期堆积 */
+/** 只保留当前周期 chartKlines，丢弃 klines 多周期 map 与标记缓存 */
 function slimItemKlines(item, period) {
   if (!item) return item;
-  var bars = item.klines && item.klines[period] ? item.klines[period] : [];
-  var klines = {};
-  if (bars && bars.length) {
-    klines[period] = bars;
-  }
-  return Object.assign({}, item, {
-    klines: klines,
-    chartKlines: bars
-  });
+  var bars = (item.chartKlines && item.chartKlines.length)
+    ? item.chartKlines
+    : (item.klines && item.klines[period] ? item.klines[period] : []);
+  var slim = Object.assign({}, item, { chartKlines: bars });
+  delete slim.klines;
+  delete slim.barMarkers;
+  delete slim.priceLines;
+  delete slim.markerEpoch;
+  return slim;
 }
 
 function slimListKlines(list, period) {

@@ -17,6 +17,11 @@
 | [24.MACD金叉.md](./24.MACD金叉.md) | MACD金叉（日/周/月末 K 金叉） | `strategy=macdgc` | **已实现** |
 | [28.MACD死叉突破.md](./28.MACD死叉突破.md) | MACD死叉突破（日/周/月单档） | `strategy=macddcb` | **已实现** |
 | [29.MACD金叉K突破.md](./29.MACD金叉K突破.md) | 超短线 · MACD金叉K突破（Min30） | `strategy=ultragc` | **已实现** |
+| [30.凹凸突破.md](./30.凹凸突破.md) | 凹凸突破（日/周/月凸凹边沿破波段 High） | `strategy=waveccbreak` | **已实现** |
+| [31.日小时组合.md](./31.日小时组合.md) | 日小时组合（日 MACD 门 + Min60 金叉波段 High 突破） | `strategy=daymin60` | **已实现** |
+| [32.小时周组合.md](./32.小时周组合.md) | 小时周组合（周 MACD 门 + Min60 金叉波段 High 突破） | `strategy=weekmin60` | **已实现** |
+| [33.日周组合.md](./33.日周组合.md) | 日周组合（周+日 MACD 门 + 日金叉波段 High 突破） | `strategy=dayweek` | **已实现** |
+| [34.日月组合.md](./34.日月组合.md) | 日月组合（月+日 MACD 门 + 日金叉波段 High 突破） | `strategy=daymonth` | **已实现** |
 | [0.趋势筛选：月周四象限.md](./0.趋势筛选：月周四象限.md) | 趋势筛选（月/周四象限） | `strategy=regime`（草案） | **设计中** |
 
 **说明：** 超短线家族含 `strategy=ultra`（跨日桶突破）与 `strategy=ultragc`（金叉K突破），均由后端与 `ul*` / `ulgc*` 参数承载。波段策略：级联 MACD 凸凹 × 同档/日边沿（文档 13–16）；凹/凸波分档突破（文档 17–18）已下线，由文档 19 统一替代。

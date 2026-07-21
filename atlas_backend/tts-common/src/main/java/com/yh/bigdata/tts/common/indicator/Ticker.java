@@ -49,26 +49,15 @@ public class  Ticker {
         ticker.setHigh(x.getHigh());
         ticker.setLow(x.getLow());
         ticker.setOpen(x.getOpen());
-        ticker.setVolume(x.getVolume());
-        ticker.setAmount(x.getAmount());
+        ticker.setVolume(x.getVolume() != null ? x.getVolume() : 0L);
+        ticker.setAmount(x.getAmount() != null ? x.getAmount() : 0D);
         ticker.setTimestamp(DateUtil.parseDate(x.getDay()).getTime());
         ticker.setDay(x.getDay());
         return ticker;
     }
 
 	public static List<Ticker> from(List<Trade> trades) {
-        return trades.stream().map(x -> {
-        	Ticker ticker = new Ticker();
-        	ticker.setClose(x.getClose());
-        	ticker.setHigh(x.getHigh());
-        	ticker.setLow(x.getLow());
-        	ticker.setOpen(x.getOpen());
-            ticker.setVolume(x.getVolume());
-            ticker.setAmount(x.getAmount());
-        	ticker.setTimestamp(DateUtil.parseDate(x.getDay()).getTime());
-        	ticker.setDay(x.getDay());
-        	return ticker;
-        }).collect(Collectors.toList());
+        return trades.stream().map(Ticker::from).collect(Collectors.toList());
     }
 
     public Trade toTrade() {

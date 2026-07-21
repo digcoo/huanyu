@@ -222,11 +222,8 @@ Page({
     const savedPeriod = wx.getStorageSync('activePeriod') || 'week';
     const primary = strategyParams.defaultChartPeriod(strategy);
     const initialPeriod = strategyParams.isCascadeTierStrategy(strategy)
-      || strategyParams.isMacdGoldenCrossStrategy(strategy)
       || strategyParams.isMacdGcWaveHighStrategy(strategy)
-      || strategyParams.isMacdGcWaveHighRetestStrategy(strategy)
       || strategyParams.isMacdGcWaveHighLiftStrategy(strategy)
-      || strategyParams.isMacdDcBreakoutStrategy(strategy)
       ? chartPeriods.normalizeChartPeriod(primary)
       : chartPeriods.normalizeChartPeriod(savedPeriod, primary);
     const klineFlipped = !!wx.getStorageSync('klineFlipped');

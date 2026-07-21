@@ -5,18 +5,15 @@ const watchlistApi = require('./utils/watchlist-api');
 App({
   globalData: {
     watchlist: [],
-    history: [],
     loggedIn: false,
     detailSignalHint: null
   },
 
   onLaunch() {
-    const { loadWatchlistLocal, saveWatchlistLocal } = require('./utils/watchlist');
-    const { loadHistoryLocal } = require('./utils/history');
+    const { loadWatchlistLocal } = require('./utils/watchlist');
     auth.sanitizeStoredSession();
     wx.removeStorageSync('ignoredIds');
     this.globalData.watchlist = loadWatchlistLocal();
-    this.globalData.history = loadHistoryLocal();
     this.globalData.loggedIn = auth.isLoggedIn();
 
     if (typeof console !== 'undefined' && console.info) {
@@ -44,18 +41,10 @@ App({
   syncFromServer() {
     const self = this;
     const { saveWatchlistLocal } = require('./utils/watchlist');
-    const { saveHistoryLocal } = require('./utils/history');
-    return Promise.all([
-      watchlistApi.fetchWatchlist(),
-      watchlistApi.fetchHistory('all')
-    ]).then(function (results) {
-      const remoteList = results[0] || [];
-      const historyRes = results[1] || {};
-      self.globalData.watchlist = remoteList;
-      self.globalData.history = historyRes.items || [];
-      saveWatchlistLocal(remoteList);
-      saveHistoryLocal(historyRes.items || []);
-      return { watchlist: remoteList, history: historyRes.items || [] };
+    return watchlistApi.fetchWatchlist().then(function (remoteList) {
+      self.globalData.watchlist = remoteList || [];
+      saveWatchlistLocal(remoteList || []);
+      return { watchlist: remoteList || [] };
     }).catch(function (err) {
       console.warn('[app] syncFromServer failed', err);
       return null;
@@ -144,7 +133,6 @@ App({
         const { archiveRecordAsync } = require('./utils/history');
         return archiveRecordAsync(item, reason).then(function () {
           doRemoveLocal();
-          self.globalData.history = require('./utils/history').loadHistoryLocal();
           return true;
         });
       });
@@ -153,19 +141,16 @@ App({
     const { archiveRecordAsync } = require('./utils/history');
     return archiveRecordAsync(item, reason).then(function () {
       doRemoveLocal();
-      self.globalData.history = require('./utils/history').loadHistoryLocal();
       return true;
     });
   },
 
   refreshHistoryFromServer() {
-    const self = this;
     if (!watchlistApi.isRemoteEnabled() || !auth.isLoggedIn()) {
       return Promise.resolve([]);
     }
     return watchlistApi.fetchHistory('all').then(function (res) {
       const items = (res && res.items) || [];
-      self.globalData.history = items;
       require('./utils/history').saveHistoryLocal(items);
       return items;
     });
