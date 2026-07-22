@@ -6,7 +6,6 @@ import com.binance.client.enums.PeriodTypeEnum;
 import com.binance.client.examples.constants.GlobalConstants;
 import com.binance.client.examples.constants.SymbolCacheData;
 import com.binance.client.examples.constants.PrivateConfig;
-import com.binance.client.examples.strategy.LongCheckerUtils;
 import com.binance.client.model.market.Candlestick;
 import com.binance.client.model.market.ExchangeInformation;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +30,7 @@ public class PeriodSpiderTask extends Thread {
     SyncRequestClient syncRequestClient = null;
 
 
-    int KLINE_LIMIT = 100;  //取5条k数据
+    int KLINE_LIMIT = 150;
 
     int SYMBOL_TOP_N = 50;
 
@@ -135,42 +134,7 @@ public class PeriodSpiderTask extends Thread {
 
         List<Map.Entry<String, BigDecimal>> topEntries = sortedList.size() > SYMBOL_TOP_N ? sortedList.subList(0, SYMBOL_TOP_N) : sortedList;
 
-        return topEntries.stream().map(x -> x.getKey()).collect(Collectors.toList());
-
-    }
-
-    public static void main(String[] args) {
-
-        SyncRequestClient syncRequestClient = SyncRequestClient.create(PrivateConfig.API_KEY, PrivateConfig.SECRET_KEY,
-                new RequestOptions());
-        String symbol = "BTCUSDT";
-        int KLINE_LIMIT = 100;
-        List<Candlestick> hour4Candlesticks = syncRequestClient.getCandlestick(symbol, PeriodTypeEnum.HOUR4.getInterval(), null, null, KLINE_LIMIT);
-        List<Candlestick> min30Candlesticks = syncRequestClient.getCandlestick(symbol, PeriodTypeEnum.MIN30.getInterval(), null, null, KLINE_LIMIT);
-
-//        log.info(String.valueOf(candlesticks.size()));
-//
-//        List<Double> closeList = candlesticks.stream().map(x -> x.getClose().doubleValue()).collect(Collectors.toList());
-//
-//        List<double[]> macdResults = MACDIndicator.calculateMACD(closeList);
-//
-//        for (int i = macdResults.size() - 30; i < macdResults.size(); i++) {
-//            double[] values = macdResults.get(i);
-//            System.out.printf("Day %d: DIF=%.4f, DEA=%.4f, MACD=%.4f%n", i + 1, values[0], values[1], values[2]);
-//        }
-
-        //梯子
-        PeriodTypeEnum trendPeriodType = PeriodTypeEnum.HOUR4;
-        PeriodTypeEnum opPeriodType = PeriodTypeEnum.MIN30;
-        BigDecimal percent = new BigDecimal("100");
-        Map<PeriodTypeEnum, List<Candlestick>> keyPressureMap = LongCheckerUtils.getKeyPressureMap(hour4Candlesticks, trendPeriodType, min30Candlesticks, opPeriodType);
-
-        for (Map.Entry<PeriodTypeEnum, List<Candlestick>> entry: keyPressureMap.entrySet()) {
-            List<Candlestick> keyPressureList = entry.getValue();
-            for (Candlestick tiZiCandlestick: keyPressureList) {
-                log.info("梯子({}){} shockRate:{}, changeRate:{}", entry.getKey(), tiZiCandlestick.getOpenTimeStr(), tiZiCandlestick.getCrestShockRate().multiply(percent), tiZiCandlestick.getChangeRate().multiply(percent));
-            }
-        }
+        return topEntries.stream().map(Map.Entry::getKey).collect(Collectors.toList());
 
     }
 }

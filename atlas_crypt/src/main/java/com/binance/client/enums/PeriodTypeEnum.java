@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 
 @Getter
 public enum PeriodTypeEnum {
+    HOUR1(new BigDecimal("0.01"), new BigDecimal("0.015"), new BigDecimal("0.008"), "1小时", CandlestickInterval.HOURLY),
     MIN30(new BigDecimal("0.008"), new BigDecimal("0.0065"), new BigDecimal("0.0035"),"30分钟", CandlestickInterval.HALF_HOURLY),
     HOUR4(new BigDecimal("0.02"), new BigDecimal("0.025"), new BigDecimal("0.01"),"4小时", CandlestickInterval.FOUR_HOURLY),
     DAY1(new BigDecimal("0.02"), new BigDecimal("0.025"), new BigDecimal("0.01"),  "天", CandlestickInterval.DAILY),

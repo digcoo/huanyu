@@ -5,164 +5,134 @@ import com.binance.client.enums.PeriodTypeEnum;
 import com.binance.client.enums.SideTypeEnum;
 import com.binance.client.examples.constants.GlobalConstants;
 import com.binance.client.examples.constants.SymbolCacheData;
-import com.binance.client.examples.strategy.CheckResult;
-import com.binance.client.examples.strategy.LongChecker;
-import com.binance.client.examples.strategy.ShortChecker;
-import com.binance.client.futures.BinanceServiceClient;
 import com.binance.client.model.market.Candlestick;
+import com.binance.client.strategy.StrategyCheckResult;
+import com.binance.client.strategy.wavecc.HourWaveCcBreakdownTools;
+import com.binance.client.strategy.wavecc.HourWaveCcBreakoutTools;
 import com.binance.client.utils.MessageSenderUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
- * 顺势策略
- *
+ * 1小时凹凸突破/跌破策略（多/空对称）
  */
-
 @Slf4j
 public class StrategyCheckTask extends Thread {
 
-    private static final String link_pref = "https://www.binance.com/zh-CN/futures/";
+    private static final String LINK_PREFIX = "https://www.binance.com/zh-CN/futures/";
 
-    SymbolCacheData symbolData;
-    BinanceServiceClient binanceServiceClient;
+    private final SymbolCacheData symbolData;
 
     public StrategyCheckTask(SymbolCacheData symbolData) {
         this.symbolData = symbolData;
-        this.binanceServiceClient = new BinanceServiceClient();
     }
 
     @Override
     public void run() {
-        log.info("开始执行策略");
-        AtomicInteger atomicInteger = new AtomicInteger();
-//        Lock lock = new ReentrantLock();
-        //定时拉取K线并判断
+        log.info("开始执行1小时凹凸突破/跌破策略");
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(() -> {
-
             try {
-
                 StopWatch stopWatch = new StopWatch();
                 stopWatch.start();
 
-
-                final List<CheckResult> checkResults = new ArrayList<>();
-
+                List<StrategyCheckResult> results = new ArrayList<>();
                 for (String symbol : symbolData.getSymbols()) {
                     try {
-
-                        ConcurrentHashMap<PeriodTypeEnum, List<Candlestick>> data = symbolData.getData(symbol);
-                        List<Candlestick> dayCandlesticks = data.get(GlobalConstants.SPIDER_CHECK_PERIOD);
-
-                        if (dayCandlesticks == null || dayCandlesticks.size() < 1) {
-                            log.error("no day trade data, symbol = {}", symbol);
-                            continue;
-                        }
-
-                        CheckResult checkResult = new CheckResult(symbol);
-                        new LongChecker(symbol, symbolData.getData(symbol), GlobalConstants.TREND_PERIODS, GlobalConstants.OP_PERIOD, 0).check(checkResult);
-                        if (!checkResult.isSuccess()) {
-                            checkResult = new CheckResult(symbol);
-                            new ShortChecker(symbol, symbolData.getData(symbol), GlobalConstants.TREND_PERIODS, GlobalConstants.OP_PERIOD, 0).check(checkResult);
-                        }
-
-                        checkResults.add(checkResult);
-
-                        /**
-                         * 策略说明：
-                         * 1、机会：深坑、梯子、空间、脱离、上移、中枢突破
-                         * 2、危险：箱顶、斜侧顶、抛物顶
-                         * 3、MA20上：多空行情生命线
-                         *
-                         *
-                         * 2、买点
-                         *          买点1：深坑位：脱离、梯子、上移顺势、空间（排除箱顶）
-                         *              止损位：跌破MA20
-                         *              止盈位：箱顶
-                         *          买点2：突破箱顶位：小深坑、吊颈、顺势、空间
-                         *              止损位：跌破箱顶
-                         *              止盈位：*****
-                         * 3、止损：跌破MA20
-                         * 4、非以上，等待
-                         *
-                         */
-
-
+                        results.addAll(checkSymbol(symbol));
                     } catch (Exception ex) {
                         log.error("[StrategyCheckTask] exception, symbol = {}", symbol, ex);
                     }
                 }
 
-                //排序
-                List<CheckResult> sortCheckResults = checkResults.stream()
-                        .sorted((entry1, entry2) -> entry2.getSortValue().abs().compareTo(entry1.getSortValue().abs()))
-                        .collect(Collectors.toList());
-
                 AtomicInteger newBidCnt = new AtomicInteger(0);
-                for (CheckResult checkResult : sortCheckResults) {
-
+                for (StrategyCheckResult result : results) {
                     try {
+                        if (result.isHit()) {
+                            if (!symbolData.containsRecommend(result.getOpPeriodType(), result.getSideType(), result.getSymbol())) {
+                                MessageSenderUtil.sendAsync(result.getSymbol() + ":" + result.getTrendMessage()
+                                        + "  " + result.getSignalMessage() + "：" + result.getClose());
 
-                        if (checkResult.isSuccess()) {
-
-                            //下单
-//                            binanceServiceClient.newOrder(checkResult.getSymbol(), checkResult.getSideType(), checkResult.getOpPeriodType());
-
-
-                            if (!symbolData.containsRecommend(checkResult.getOpPeriodType(), checkResult.getSideType(), checkResult.getSymbol())) {
-                                MessageSenderUtil.sendAsync(checkResult.getSymbol() + ":" + checkResult.getTrendMessage() + "  "+  checkResult.getSignalMessage() +"：" + checkResult.getClose());
-
-                                String changeRateMessage = checkResult.getChangeRate().multiply(new BigDecimal(100)).setScale(3, RoundingMode.HALF_DOWN) + "%";
-                                log.warn("【【{}-{}】】 -【趋势: {}】-【策略: {}】-【价格: {}-({})】 {}\n"
-                                        , checkResult.getSymbol()
-                                        , checkResult.getSideType().getDesc()
-                                        , checkResult.getTrendMessage()
-                                        , checkResult.getSignalMessage()
-                                        , checkResult.getClose()
-                                        , changeRateMessage
-                                        , link_pref + checkResult.getSymbol());
-                                symbolData.addRecommend(checkResult.getOpPeriodType(), checkResult.getSideType(), checkResult.getSymbol());
+                                String changeRateMessage = result.getChangeRate()
+                                        .multiply(new BigDecimal(100))
+                                        .setScale(3, RoundingMode.HALF_DOWN) + "%";
+                                log.warn("【【{}-{}】】 -【趋势: {}】-【策略: {}】-【价格: {}-({})】 {}\n",
+                                        result.getSymbol(),
+                                        result.getSideType().getDesc(),
+                                        result.getTrendMessage(),
+                                        result.getSignalMessage(),
+                                        result.getClose(),
+                                        changeRateMessage,
+                                        LINK_PREFIX + result.getSymbol());
+                                symbolData.addRecommend(result.getOpPeriodType(), result.getSideType(), result.getSymbol());
                                 newBidCnt.incrementAndGet();
                             }
-                        } else {
-                            for (PeriodTypeEnum removePeriodType : Arrays.asList(PeriodTypeEnum.DAY1, PeriodTypeEnum.HOUR4, PeriodTypeEnum.MIN30)) {
-                                if(symbolData.removeRecommend(removePeriodType, SideTypeEnum.LONG, checkResult.getSymbol())) {
-                                    log.warn("【【移除】】: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{} ", checkResult.getSymbol());
-                                }
-                                if(symbolData.removeRecommend(removePeriodType, SideTypeEnum.SHORT, checkResult.getSymbol())) {
-                                    log.warn("【【移除】】: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!{} ", checkResult.getSymbol());
-                                }
-                            }
+                        } else if (symbolData.removeRecommend(GlobalConstants.OP_PERIOD, result.getSideType(), result.getSymbol())) {
+                            log.warn("【【移除-{}】】: {}", result.getSideType().getDesc(), result.getSymbol());
                         }
-                    }catch (Exception exception) {
-                        exception.printStackTrace();
+                    } catch (Exception exception) {
+                        log.error("[StrategyCheckTask] notify failed, symbol={}", result.getSymbol(), exception);
                     }
                 }
 
                 if (newBidCnt.get() > 0) {
-                      log.info("[StrategyCheckTask]总耗时[{}]秒, bid:{}", stopWatch.getTime() / 1000, newBidCnt.get());
+                    log.info("[StrategyCheckTask]总耗时[{}]秒, bid:{}", stopWatch.getTime() / 1000, newBidCnt.get());
                 }
-
-
             } catch (Throwable ex) {
                 log.error("策略执行异常", ex);
-            }finally {
-//                lock.unlock();
             }
-
         }, 0, 10, TimeUnit.SECONDS);
-
     }
 
+    private List<StrategyCheckResult> checkSymbol(String symbol) {
+        StrategyCheckResult longResult = new StrategyCheckResult(symbol, SideTypeEnum.LONG);
+        StrategyCheckResult shortResult = new StrategyCheckResult(symbol, SideTypeEnum.SHORT);
+
+        ConcurrentHashMap<PeriodTypeEnum, List<Candlestick>> data = symbolData.getData(symbol);
+        if (data == null) {
+            return Arrays.asList(longResult, shortResult);
+        }
+
+        List<Candlestick> hour1Bars = data.get(PeriodTypeEnum.HOUR1);
+        List<Candlestick> hour4Bars = data.get(PeriodTypeEnum.HOUR4);
+        List<Candlestick> dayBars = data.get(PeriodTypeEnum.DAY1);
+        if (hour1Bars == null || hour1Bars.size() < 3) {
+            return Arrays.asList(longResult, shortResult);
+        }
+
+        Candlestick lastBar = hour1Bars.get(hour1Bars.size() - 1);
+
+        HourWaveCcBreakoutTools.Hit longHit = HourWaveCcBreakoutTools.findHit(hour1Bars, hour4Bars, dayBars);
+        if (longHit != null) {
+            longResult.setHit(true);
+            longResult.setClose(lastBar.getClose());
+            longResult.setChangeRate(lastBar.getChangeRate());
+            longResult.setLongWaveHit(longHit);
+            longResult.setTrendMessage(HourWaveCcBreakoutTools.buildTrendMessage(longHit));
+            longResult.setSignalMessage(HourWaveCcBreakoutTools.buildSignalMessage(longHit));
+        }
+
+        HourWaveCcBreakdownTools.Hit shortHit = HourWaveCcBreakdownTools.findHit(hour1Bars, hour4Bars, dayBars);
+        if (shortHit != null) {
+            shortResult.setHit(true);
+            shortResult.setClose(lastBar.getClose());
+            shortResult.setChangeRate(lastBar.getChangeRate());
+            shortResult.setShortWaveHit(shortHit);
+            shortResult.setTrendMessage(HourWaveCcBreakdownTools.buildTrendMessage(shortHit));
+            shortResult.setSignalMessage(HourWaveCcBreakdownTools.buildSignalMessage(shortHit));
+        }
+
+        return Arrays.asList(longResult, shortResult);
+    }
 }
