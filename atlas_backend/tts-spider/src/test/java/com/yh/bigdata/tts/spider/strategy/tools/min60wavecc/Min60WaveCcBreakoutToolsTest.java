@@ -36,7 +36,7 @@ public class Min60WaveCcBreakoutToolsTest {
     }
 
     @Test
-    public void findHitOnBarsScansOnlyLastDaySignalBucket() {
+    public void findHitOnBarsReturnsNullWhenLastBarHasNoBandBreakout() {
         List<Trade> bars = new ArrayList<>();
         bars.add(bar("2026-01-01 10:00", 10, 10.2, 9.9, 10));
         bars.add(bar("2026-01-01 11:00", 10, 10.2, 9.95, 10.05));

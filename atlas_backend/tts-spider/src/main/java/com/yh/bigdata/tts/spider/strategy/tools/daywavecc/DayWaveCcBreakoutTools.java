@@ -18,11 +18,12 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 /**
- * 日凹凸突破：日/周/月 MACD 至少 2 个 &gt;0；日 K 凸凹边沿破波段 High（信号限末根日 K）。
+ * 日凹凸突破：日/周/月 MACD 至少 2 个 &gt;0；末根日 K 凸凹边沿突破（c1 振幅扩张 或 c2 涨幅&gt;1.5%）。
  */
 public final class DayWaveCcBreakoutTools {
 
     private static final double EPS = 1e-6;
+    private static final double INTRINSIC_BREAKOUT_RISE_PCT = 0.015;
     private static final int DAY_MACD_LOOKBACK = 40;
     private static final int WEEK_MACD_LOOKBACK = 40;
     private static final int MONTH_MACD_LOOKBACK = 36;
@@ -109,7 +110,7 @@ public final class DayWaveCcBreakoutTools {
         if (!passesBandHighEdge(prevBar, signalBar, breakLine)) {
             return null;
         }
-        if (!passesAmplitudeExpand(signalBar, prevBar, prevPrevBar)) {
+        if (!passesBreakoutStrength(signalBar, prevBar, prevPrevBar)) {
             return null;
         }
         return new Hit(shape, lastBand, prevBand, referenceBand, signalBar, prevBar, prevPrevBar, breakLine);
@@ -173,6 +174,14 @@ public final class DayWaveCcBreakoutTools {
         return Math.max(rangeRate, gapRate);
     }
 
+    static boolean passesBreakoutStrength(Trade signalBar, Trade prevBar, Trade prevPrevBar) {
+        if (passesAmplitudeExpand(signalBar, prevBar, prevPrevBar)) {
+            return true;
+        }
+        double rise = BodyBarTierTools.risePct(signalBar, prevBar);
+        return !Double.isNaN(rise) && rise > INTRINSIC_BREAKOUT_RISE_PCT + EPS;
+    }
+
     static boolean passesAmplitudeExpand(Trade signalBar, Trade prevBar, Trade prevPrevBar) {
         double sigRate = barAmplitudeRate(signalBar, prevBar);
         double prevRate = barAmplitudeRate(prevBar, prevPrevBar);
@@ -234,7 +243,7 @@ public final class DayWaveCcBreakoutTools {
             return "[DWCCB]日凹凸突破";
         }
         String shapeLabel = hit.getShape() == BandShape.CONVEX ? "凸" : "凹";
-        return String.format("[DWCCB]日凹凸突破|日/周/月MACD≥2>0,%s破波段High|breakLine=%.2f",
+        return String.format("[DWCCB]日凹凸突破|日/周/月MACD≥2>0,末日%s破波段High|breakLine=%.2f",
                 shapeLabel, hit.getBreakLine());
     }
 

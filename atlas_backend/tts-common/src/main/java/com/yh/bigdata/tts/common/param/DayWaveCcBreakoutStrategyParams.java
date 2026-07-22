@@ -16,7 +16,7 @@ public class DayWaveCcBreakoutStrategyParams {
 
     public static final int DEFAULT_LOOKBACK_BARS = 120;
     public static final double DEFAULT_MIN_AVG_AMOUNT = 3000D * 10_000D;
-    public static final double DEFAULT_SIGNAL_RISE_PCT = 0.01;
+    public static final double DEFAULT_SIGNAL_RISE_PCT = 0.015;
 
     @Builder.Default
     private int lookbackBars = DEFAULT_LOOKBACK_BARS;

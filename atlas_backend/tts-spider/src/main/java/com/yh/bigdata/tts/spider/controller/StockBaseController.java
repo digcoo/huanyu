@@ -592,6 +592,7 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getMgRequireDayMacd()),
                 String.valueOf(pageQuery.getMgRequireWeekMacd()),
                 String.valueOf(pageQuery.getMgRequireMonthMacd()),
+                String.valueOf(pageQuery.getMgRequireMin60Macd()),
                 String.valueOf(pageQuery.getUlgcPrevDays()),
                 String.valueOf(pageQuery.getUlgcMaxBarsPerDay()),
                 String.valueOf(pageQuery.getUlgcGcLookbackBars()),

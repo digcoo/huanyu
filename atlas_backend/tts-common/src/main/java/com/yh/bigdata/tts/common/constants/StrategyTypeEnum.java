@@ -90,13 +90,13 @@ public enum StrategyTypeEnum {
     DAY_WEEK_COMBO("dayweek", "日周组合", 51),
     /** 日月组合（月+日 MACD&gt;0 + 日金叉波段 High 突破，信号限末自然月） */
     DAY_MONTH_COMBO("daymonth", "日月组合", 52),
-    /** 小时凹凸突破（Min60/日/周 MACD≥2&gt;0 + Min60 凸凹边沿破波段 High） */
-    MIN60_WAVE_CC_BREAKOUT("min60wavecc", "小时凹凸突破", 53),
-    /** 日凹凸突破（日/周/月 MACD≥2&gt;0 + 日 K 凸凹边沿破波段 High） */
+    /** 分时凹凸突破（Min60/日/周 MACD≥2&gt;0 + 末根 Min60 凸凹边沿突破） */
+    MIN60_WAVE_CC_BREAKOUT("min60wavecc", "分时凹凸突破", 53),
+    /** 日凹凸突破（日/周/月 MACD≥2&gt;0 + 末根日 K 凸凹边沿突破） */
     DAY_WAVE_CC_BREAKOUT("daywavecc", "日凹凸突破", 54),
-    /** 周凹凸突破（周 MACD&gt;0 + 周 K 凸凹边沿突破/凸边沿回踩） */
+    /** @deprecated 已下线 */
     WEEK_WAVE_CC_BREAKOUT("weekwavecc", "周凹凸突破", 55),
-    /** 月凹凸突破（月 MACD&gt;0 + 月 K 凸凹边沿突破/凸边沿回踩） */
+    /** @deprecated 已下线 */
     MONTH_WAVE_CC_BREAKOUT("monthwavecc", "月凹凸突破", 56),
     /** @deprecated 凹波分档突破 · 短线 */
     WAVE_CONCAVE_TIER_SHORT("waveconcavetierShort", "凹波突破短线", 29),
@@ -144,13 +144,12 @@ public enum StrategyTypeEnum {
                 || this == WAVE_BAND_SHORT || this == WAVE_BAND_MEDIUM
                 || this == WAVE_PERIOD_GATE || this == MACD_CROSS_TIER
                 || this == CONVEX_LIFT_TIER || this == BODY_BAR_TIER
-                || this == MACD_GOLDEN_CROSS || this == MACD_GC_WAVE_HIGH
-                || this == MACD_GC_WAVE_HIGH_RETEST || this == MACD_GC_WAVE_HIGH_LIFT
+                || this == MACD_GOLDEN_CROSS
+                || this == MACD_GC_WAVE_HIGH_RETEST
                 || this == MACD_DC_BREAKOUT || this == ULTRA_GC_BREAKOUT
                 || this == WAVE_CC_BREAKOUT || this == DAY_MIN60_COMBO || this == WEEK_MIN60_COMBO
                 || this == DAY_WEEK_COMBO || this == DAY_MONTH_COMBO
-                || this == MIN60_WAVE_CC_BREAKOUT || this == DAY_WAVE_CC_BREAKOUT
-                || this == WEEK_WAVE_CC_BREAKOUT || this == MONTH_WAVE_CC_BREAKOUT;
+                || this == MIN60_WAVE_CC_BREAKOUT || this == DAY_WAVE_CC_BREAKOUT;
     }
 
 	public static StrategyTypeEnum getByCode(String code){

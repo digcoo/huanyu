@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 小时凹凸突破（min60wavecc）：Min60/日/周 MACD 至少 2 个 &gt;0 + Min60 凸凹边沿突破（信号限末交易日）。
+ * 分时凹凸突破（min60wavecc）：Min60/日/周 MACD 至少 2 个 &gt;0 + 末根 Min60 凸凹边沿突破。
  */
 @Data
 @Builder
@@ -18,7 +18,7 @@ public class Min60WaveCcBreakoutStrategyParams {
     public static final int DEFAULT_MAX_BARS_PER_DAY = 4;
     public static final int DEFAULT_LOOKBACK_BARS = 120;
     public static final double DEFAULT_MIN_AVG_AMOUNT = 3000D * 10_000D;
-    public static final double DEFAULT_SIGNAL_RISE_PCT = 0.01;
+    public static final double DEFAULT_SIGNAL_RISE_PCT = 0.015;
 
     @Builder.Default
     private int prevDays = DEFAULT_PREV_DAYS;

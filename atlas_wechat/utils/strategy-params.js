@@ -623,40 +623,18 @@ var ULTRAGC_SCHEMA = [
 ].concat(MACD_POSITIVE_GATE_SCHEMA);
 
 var M60WCCB_DEFAULTS = {
-  m60wccbPrevDays: 2,
-  m60wccbMaxBarsPerDay: 4,
   m60wccbLookbackBars: 120,
   m60wccbEnableMinAmountFilter: true,
   m60wccbMinAmountWan: 3000,
   m60wccbEnableSignalRiseGate: true,
-  m60wccbSignalRisePct: 1
+  m60wccbSignalRisePct: 1.5
 };
 
 var M60WCCB_SCHEMA = [
   {
     type: 'section',
     label: '命中条件',
-    hint: 'Min60/日/周 MACD 至少 2 个>0；Min60 凸凹边沿破波段 High；信号限末交易日'
-  },
-  {
-    key: 'm60wccbPrevDays',
-    label: '背景交易日',
-    hint: '信号日前纳入的背景交易日数',
-    type: 'slider',
-    min: 0,
-    max: 5,
-    step: 1,
-    unit: '日'
-  },
-  {
-    key: 'm60wccbMaxBarsPerDay',
-    label: '每日 Min60 根数',
-    hint: '每个交易日最多纳入的 Min60 根',
-    type: 'slider',
-    min: 2,
-    max: 8,
-    step: 1,
-    unit: '根'
+    hint: 'Min60/日/周 MACD≥2>0；末根 Min60 凸凹边沿突破；振幅扩张或涨幅>1.5%'
   },
   {
     key: 'm60wccbLookbackBars',
@@ -670,12 +648,13 @@ var M60WCCB_SCHEMA = [
   },
   {
     key: 'm60wccbEnableMinAmountFilter',
-    label: '启用成交额门',
+    label: '成交额门',
+    hint: '近6日日均成交额（不含当日K）',
     type: 'switch'
   },
   {
     key: 'm60wccbMinAmountWan',
-    label: '最低成交额',
+    label: '最低日均成交额',
     hint: '近6日日均成交额（万）',
     type: 'slider',
     min: 0,
@@ -685,7 +664,8 @@ var M60WCCB_SCHEMA = [
   },
   {
     key: 'm60wccbEnableSignalRiseGate',
-    label: '启用突破涨幅门',
+    label: '突破涨幅门',
+    hint: '可选；突破K涨幅须大于阈值',
     type: 'switch'
   },
   {
@@ -705,14 +685,14 @@ var DWCCB_DEFAULTS = {
   dwccbEnableMinAmountFilter: true,
   dwccbMinAmountWan: 3000,
   dwccbEnableSignalRiseGate: true,
-  dwccbSignalRisePct: 1
+  dwccbSignalRisePct: 1.5
 };
 
 var DWCCB_SCHEMA = [
   {
     type: 'section',
     label: '命中条件',
-    hint: '日/周/月 MACD 至少 2 个>0；日 K 凸凹边沿破波段 High；信号限末根日 K'
+    hint: '日/周/月 MACD≥2>0；末根日K凸凹边沿突破；振幅扩张或涨幅>1.5%'
   },
   {
     key: 'dwccbLookbackBars',
@@ -2333,8 +2313,6 @@ var SCHEMA_BY_STRATEGY = {
   ultragc: ULTRAGC_SCHEMA,
   min60wavecc: M60WCCB_SCHEMA,
   daywavecc: DWCCB_SCHEMA,
-  weekwavecc: WWCCB_SCHEMA,
-  monthwavecc: MWCCB_SCHEMA,
   trend: TREND_SCHEMA,
   medium: MEDIUM_SCHEMA,
   long: LONG_SCHEMA,
@@ -2352,12 +2330,7 @@ var SCHEMA_BY_STRATEGY = {
   cascadewaveconcaveday: CASCADEWAVECONCAVEDAY_SCHEMA,
   cascadewaveShort: CASCADEWAVE_SHORT_SCHEMA,
   cascadewaveMedium: CASCADEWAVE_MEDIUM_SCHEMA,
-  cascadewaveLong: CASCADEWAVE_LONG_SCHEMA,
-  macdgcwh: MGCWH_SCHEMA,
-  macdgcwhShort: MGCWH_SCHEMA,
-  macdgcwhMedium: MGCWH_SCHEMA,
-  macdgcwhLong: MGCWH_SCHEMA,
-  macdgcwhu: MGCWHU_SCHEMA
+  cascadewaveLong: CASCADEWAVE_LONG_SCHEMA
 };
 
 var LADDER_TIER_SHORT = 'short';
@@ -2749,8 +2722,6 @@ var DEFAULTS_BY_STRATEGY = {
   ultragc: ULTRAGC_DEFAULTS,
   min60wavecc: M60WCCB_DEFAULTS,
   daywavecc: DWCCB_DEFAULTS,
-  weekwavecc: WWCCB_DEFAULTS,
-  monthwavecc: MWCCB_DEFAULTS,
   trend: TREND_DEFAULTS,
   medium: MEDIUM_DEFAULTS,
   long: LONG_DEFAULTS,
@@ -2768,12 +2739,7 @@ var DEFAULTS_BY_STRATEGY = {
   cascadewaveconcaveday: CASCADEWAVECONCAVEDAY_DEFAULTS,
   cascadewaveShort: CASCADEWAVE_BUNDLE_DEFAULTS,
   cascadewaveMedium: CASCADEWAVE_BUNDLE_DEFAULTS,
-  cascadewaveLong: CASCADEWAVE_BUNDLE_DEFAULTS,
-  macdgcwh: MGCWH_DEFAULTS,
-  macdgcwhShort: MGCWH_DEFAULTS,
-  macdgcwhMedium: MGCWH_DEFAULTS,
-  macdgcwhLong: MGCWH_DEFAULTS,
-  macdgcwhu: MGCWHU_DEFAULTS
+  cascadewaveLong: CASCADEWAVE_BUNDLE_DEFAULTS
 };
 
 var TIER_PICKER = null;
@@ -3608,6 +3574,26 @@ function formatSummary(strategyId) {
     return (cwbModes.length ? cwbModes.join('+') : '未启用') + ' · ' + cwbTitle + cwbBreak
       + (cwbGateParts.length ? ' · ' + cwbGateParts.join('+') : '')
       + (p.cwbMinAmountWan != null && p.cwbMinAmountWan > 0 ? ' · ' + p.cwbMinAmountWan + '万' : '');
+  }
+  if (strategyId === 'min60wavecc') {
+    var m60Parts = ['Min60/日/周MACD≥2', '末根Min60凸凹突破'];
+    if (p.m60wccbEnableMinAmountFilter !== false) {
+      m60Parts.push((p.m60wccbMinAmountWan != null ? p.m60wccbMinAmountWan : 3000) + '万');
+    }
+    if (p.m60wccbEnableSignalRiseGate !== false) {
+      m60Parts.push('末K>' + (p.m60wccbSignalRisePct != null ? p.m60wccbSignalRisePct : 1.5) + '%');
+    }
+    return m60Parts.join(' · ');
+  }
+  if (strategyId === 'daywavecc') {
+    var dwParts = ['日/周/月MACD≥2', '末根日K凸凹突破'];
+    if (p.dwccbEnableMinAmountFilter !== false) {
+      dwParts.push((p.dwccbMinAmountWan != null ? p.dwccbMinAmountWan : 3000) + '万');
+    }
+    if (p.dwccbEnableSignalRiseGate !== false) {
+      dwParts.push('末K>' + (p.dwccbSignalRisePct != null ? p.dwccbSignalRisePct : 1.5) + '%');
+    }
+    return dwParts.join(' · ');
   }
   if (isMacdGcWaveHighStrategy(strategyId)) {
     var mgcwhLabel = mgcwhTierForStrategy(strategyId) === 'week' ? '周档'
