@@ -4,6 +4,7 @@ import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.param.Min60WaveCcBreakoutStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.wavecc.WaveCcMin60BreakoutCore.Hit;
 import lombok.Getter;
 
 public final class Min60WaveCcBreakoutEvaluator {
@@ -14,7 +15,7 @@ public final class Min60WaveCcBreakoutEvaluator {
     public static Min60WaveCcBreakoutEvaluation evaluate(StockBase stock, CheckResult checkResult,
                                                          Min60WaveCcBreakoutStrategyParams params) {
         Min60WaveCcBreakoutStrategyParams p = params != null ? params : Min60WaveCcBreakoutStrategyParams.defaults();
-        Min60WaveCcBreakoutTools.Hit hit = Min60WaveCcBreakoutTools.findHit(stock, p);
+        Hit hit = Min60WaveCcBreakoutTools.findHit(stock, p);
         if (hit == null) {
             return Min60WaveCcBreakoutEvaluation.miss();
         }

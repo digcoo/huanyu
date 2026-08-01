@@ -98,6 +98,30 @@ public enum StrategyTypeEnum {
     WEEK_WAVE_CC_BREAKOUT("weekwavecc", "周凹凸突破", 55),
     /** @deprecated 已下线 */
     MONTH_WAVE_CC_BREAKOUT("monthwavecc", "月凹凸突破", 56),
+    /** 趋势内凹凸突破（趋势 MACD&gt;0 + 信号周期凸凹边沿突破） */
+    TREND_WAVE_CC_BREAKOUT("trendwavecc", "趋势内凹凸突破", 57),
+    /** 趋势上移（日/周/月 MACD 全 &gt;0 + 日 close &gt; 前一日 low） */
+    TREND_LIFT("trendlift", "趋势上移", 58),
+    /** 趋势MA（日/周/月 MACD&gt;0 且 close&gt;max(MA5~30) 且收阳，至少 2 档） */
+    TREND_MA("trendma", "趋势MA", 59),
+    /** 趋势回踩破 Low */
+    TREND_RETEST_LOW("trendretestlow", "趋势回踩破Low", 61),
+    /** 趋势回踩破 High */
+    TREND_RETEST_HIGH("trendretesthigh", "趋势回踩破High", 62),
+    /** 趋势中转二阳 */
+    TREND_RELAY_2YANG("trendrelay2yang", "趋势中转二阳", 63),
+    /** 趋势中转突破前 High */
+    TREND_RELAY_PREV_HIGH("trendrelayprevhigh", "趋势中转破前High", 64),
+    /** 趋势中转突破末波段 High */
+    TREND_RELAY_BAND_HIGH("trendrelaybandhigh", "趋势中转破末High", 65),
+    /** 底部波段突破 */
+    BOTTOM_BAND_HIGH("bottombandhigh", "底部波段突破", 66),
+    /** 底部 High 突破（末前 2 根 K max high） */
+    BOTTOM_PREV2_HIGH("bottomprev2high", "底部High突破", 67),
+    /** 均线多头突破（MA10&gt;MA20&gt;MA30 + 边沿或开盘突破均线MAX） */
+    MA_ALIGN_LIFT("maalignlift", "均线多头突破", 68),
+    /** 均线空头突破（MA10&lt;MA20&lt;MA30 + 边沿或开盘突破均线MAX） */
+    MA_BEAR_BREAK("mabearbreak", "均线空头突破", 69),
     /** @deprecated 凹波分档突破 · 短线 */
     WAVE_CONCAVE_TIER_SHORT("waveconcavetierShort", "凹波突破短线", 29),
     /** 凹波分档突破 · 中线 */
@@ -134,22 +158,10 @@ public enum StrategyTypeEnum {
     private final int groupOrder;
 
     public boolean isActive() {
-        return this == ULTRA_SHORT || this == TREND_V2 || this == MEDIUM || this == LONG
-                || this == FRICTIONLESS_LADDER || this == PILLAR_BREAKOUT || this == CASCADE_BREAKOUT
-                || this == LADDER_DIP || this == MACD_EDGE_BREAKOUT
-                || this == WAVE_CONVEX || this == WAVE_CONCAVE
-                || this == WAVE_CONVEX_DAY || this == WAVE_CONCAVE_DAY
-                || this == CASCADE_WAVE_CONVEX || this == CASCADE_WAVE_CONCAVE
-                || this == CASCADE_WAVE_CONVEX_DAY || this == CASCADE_WAVE_CONCAVE_DAY
-                || this == WAVE_BAND_SHORT || this == WAVE_BAND_MEDIUM
-                || this == WAVE_PERIOD_GATE || this == MACD_CROSS_TIER
-                || this == CONVEX_LIFT_TIER || this == BODY_BAR_TIER
-                || this == MACD_GOLDEN_CROSS
-                || this == MACD_GC_WAVE_HIGH_RETEST
-                || this == MACD_DC_BREAKOUT || this == ULTRA_GC_BREAKOUT
-                || this == WAVE_CC_BREAKOUT || this == DAY_MIN60_COMBO || this == WEEK_MIN60_COMBO
-                || this == DAY_WEEK_COMBO || this == DAY_MONTH_COMBO
-                || this == MIN60_WAVE_CC_BREAKOUT || this == DAY_WAVE_CC_BREAKOUT;
+        return this == TREND_RETEST_LOW || this == TREND_RETEST_HIGH || this == TREND_RELAY_2YANG
+                || this == TREND_RELAY_PREV_HIGH || this == TREND_RELAY_BAND_HIGH
+                || this == BOTTOM_BAND_HIGH || this == BOTTOM_PREV2_HIGH
+                || this == MA_ALIGN_LIFT || this == MA_BEAR_BREAK;
     }
 
 	public static StrategyTypeEnum getByCode(String code){

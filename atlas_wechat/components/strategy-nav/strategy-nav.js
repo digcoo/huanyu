@@ -4,7 +4,7 @@ Component({
   properties: {
     activeFamily: {
       type: String,
-      value: strategyNav.FAMILY_ULTRA
+      value: strategyNav.STRATEGY_TREND_RETEST_LOW
     },
     activeTier: {
       type: String,

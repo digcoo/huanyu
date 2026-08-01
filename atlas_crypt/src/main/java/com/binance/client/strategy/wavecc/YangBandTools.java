@@ -8,6 +8,8 @@ import java.util.List;
 
 /**
  * 连续阳 K 完整波段：严格 close&gt;open，以严格阴 K（close≤open）完结，且完结 K 不能是序列最后一根。
+ * <p>
+ * 波段底 = min(波段内所有阳 K low)；波段顶 = max(波段内所有阳 K high, 紧跟阳段后的完结阴 K high)。
  */
 public final class YangBandTools {
 
@@ -94,7 +96,16 @@ public final class YangBandTools {
         if (terminator != null) {
             high = Math.max(high, terminator.getHigh());
         }
-        double low = first != null ? first.getLow() : Double.NaN;
+        double low = Double.POSITIVE_INFINITY;
+        for (int k = from; k <= to; k++) {
+            Ticker bar = bars.get(k);
+            if (isStrictYang(bar)) {
+                low = Math.min(low, bar.getLow());
+            }
+        }
+        if (low == Double.POSITIVE_INFINITY) {
+            low = Double.NaN;
+        }
         Ticker bandHighBar = resolveBandHighBar(bars, from, to, terminator, high);
         return new CompleteYangBand(first, last, terminator, bandHighBar, high, low);
     }

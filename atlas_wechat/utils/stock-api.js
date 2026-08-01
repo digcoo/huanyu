@@ -31,6 +31,9 @@ function buildStrategyQueryParams(strategyId) {
   if (strategyId === 'nrf') {
     Object.assign(params, strategyParams.toApiParams('ultra'));
   }
+  if (adapterKey === 'trendretestlow' || /^trendretestlow/.test(String(strategyId || ''))) {
+    // tier 由 strategy-params.toApiParams 注入 trlTier
+  }
   return params;
 }
 

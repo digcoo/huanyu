@@ -11,55 +11,23 @@ import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.service.KlineLoadService;
 import com.yh.bigdata.tts.spider.strategy.tools.MinAvgAmountFilterTools;
 import com.yh.bigdata.tts.spider.strategy.tools.bodybar.BodyBarTierTools;
-import com.yh.bigdata.tts.spider.strategy.tools.wavecc.WaveShapeTools;
-import com.yh.bigdata.tts.spider.strategy.tools.wavecc.YangBandTools;
-import lombok.Getter;
+import com.yh.bigdata.tts.spider.strategy.tools.wavecc.WaveCcMin60BreakoutCore;
+import com.yh.bigdata.tts.spider.strategy.tools.wavecc.WaveCcMin60BreakoutCore.BandShape;
+import com.yh.bigdata.tts.spider.strategy.tools.wavecc.WaveCcMin60BreakoutCore.Hit;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
 /**
- * 分时凹凸突破：Min60/日/周 MACD 至少 2 个 &gt;0；末根 Min60 凸凹边沿突破（c1 振幅扩张 或 c2 涨幅&gt;1.5%）。
+ * 分时凹凸突破：Min60/日/周 MACD 至少 2 个 &gt;0；Min60 凸凹边沿突破（c1 振幅扩张 或 c2 涨幅&gt;1.5%）。
  */
 public final class Min60WaveCcBreakoutTools {
 
     private static final double EPS = 1e-6;
-    private static final double INTRINSIC_BREAKOUT_RISE_PCT = 0.015;
     private static final int DAY_MACD_LOOKBACK = 40;
     private static final int WEEK_MACD_LOOKBACK = 40;
 
     private Min60WaveCcBreakoutTools() {
-    }
-
-    public enum BandShape {
-        CONVEX, CONCAVE
-    }
-
-    @Getter
-    public static final class Hit {
-        private final BandShape shape;
-        private final YangBandTools.CompleteYangBand lastBand;
-        private final YangBandTools.CompleteYangBand prevBand;
-        private final YangBandTools.CompleteYangBand referenceBand;
-        private final Trade signalBar;
-        private final Trade prevBar;
-        private final Trade prevPrevBar;
-        private final double breakLine;
-
-        Hit(BandShape shape,
-            YangBandTools.CompleteYangBand lastBand,
-            YangBandTools.CompleteYangBand prevBand,
-            YangBandTools.CompleteYangBand referenceBand,
-            Trade signalBar, Trade prevBar, Trade prevPrevBar, double breakLine) {
-            this.shape = shape;
-            this.lastBand = lastBand;
-            this.prevBand = prevBand;
-            this.referenceBand = referenceBand;
-            this.signalBar = signalBar;
-            this.prevBar = prevBar;
-            this.prevPrevBar = prevPrevBar;
-            this.breakLine = breakLine;
-        }
     }
 
     public static Hit findHit(StockBase stock, Min60WaveCcBreakoutStrategyParams params) {
@@ -77,57 +45,12 @@ public final class Min60WaveCcBreakoutTools {
 
     static Hit findHitOnBars(List<Trade> allBars, Min60WaveCcBreakoutStrategyParams params) {
         Min60WaveCcBreakoutStrategyParams p = params != null ? params : Min60WaveCcBreakoutStrategyParams.defaults();
-        if (CollectionUtils.isEmpty(allBars) || allBars.size() < 3) {
-            return null;
-        }
-        int signalIdx = allBars.size() - 1;
-        Trade signalBar = allBars.get(signalIdx);
-        Trade prevBar = allBars.get(signalIdx - 1);
-        Trade prevPrevBar = signalIdx >= 2 ? allBars.get(signalIdx - 2) : null;
-        int lookback = Math.max(p.getLookbackBars(), 10);
-        Hit hit = resolveHitAtIndex(allBars, signalIdx, lookback);
-        if (hit == null) {
-            return null;
-        }
-        if (!passesBreakoutStrength(signalBar, prevBar, prevPrevBar)) {
-            return null;
-        }
-        return new Hit(hit.getShape(), hit.getLastBand(), hit.getPrevBand(), hit.getReferenceBand(),
-                hit.getSignalBar(), hit.getPrevBar(), prevPrevBar, hit.getBreakLine());
-    }
-
-    static Hit resolveHitAtIndex(List<Trade> allBars, int signalIdx, int lookback) {
-        if (signalIdx <= 0 || CollectionUtils.isEmpty(allBars)) {
-            return null;
-        }
-        List<Trade> prefix = allBars.subList(0, signalIdx + 1);
-        List<YangBandTools.CompleteYangBand> bands = YangBandTools.findCompleteBands(prefix, lookback);
-        if (bands.size() < 2) {
-            return null;
-        }
-        Trade signalBar = allBars.get(signalIdx);
-        Trade prevBar = allBars.get(signalIdx - 1);
-        YangBandTools.CompleteYangBand lastBand = bands.get(bands.size() - 1);
-        YangBandTools.CompleteYangBand prevBand = bands.get(bands.size() - 2);
-        boolean convex = WaveShapeTools.isConvex(lastBand, prevBand);
-        BandShape shape = convex ? BandShape.CONVEX : BandShape.CONCAVE;
-
-        YangBandTools.CompleteYangBand referenceBand;
-        double breakLine;
-        if (convex) {
-            referenceBand = prevBand;
-            breakLine = prevBand.getBandHigh();
-        } else {
-            referenceBand = lastBand;
-            breakLine = lastBand.getBandHigh();
-        }
-        if (Double.isNaN(breakLine)) {
-            return null;
-        }
-        if (!passesBandHighEdge(prevBar, signalBar, breakLine)) {
-            return null;
-        }
-        return new Hit(shape, lastBand, prevBand, referenceBand, signalBar, prevBar, null, breakLine);
+        return WaveCcMin60BreakoutCore.findHitOnBars(
+                allBars,
+                p.getPrevDays(),
+                p.getMaxBarsPerDay(),
+                p.getLookbackBars(),
+                p.isRequireCurrentBreakout());
     }
 
     public static boolean passesMultiPeriodMacdGate(StockBase stock) {
@@ -170,46 +93,20 @@ public final class Min60WaveCcBreakoutTools {
         return last != null ? last.getMacd() : Double.NaN;
     }
 
-    static boolean passesBandHighEdge(Trade prevBar, Trade signalBar, double bandHigh) {
-        if (prevBar == null || signalBar == null || Double.isNaN(bandHigh)) {
-            return false;
-        }
-        Double prevClose = prevBar.getClose();
-        Double signalClose = signalBar.getClose();
-        if (prevClose == null || signalClose == null) {
-            return false;
-        }
-        return prevClose <= bandHigh + EPS && signalClose > bandHigh + EPS;
-    }
-
-    /** 振幅率 max((high-low)/low, (open-lastClose)/lastClose) */
     static double barAmplitudeRate(Trade bar, Trade prevBar) {
-        if (bar == null || bar.getLow() == null || bar.getHigh() == null || bar.getLow() <= 0) {
-            return Double.NaN;
-        }
-        double rangeRate = (bar.getHigh() - bar.getLow()) / bar.getLow();
-        if (bar.getOpen() == null || prevBar == null || prevBar.getClose() == null || prevBar.getClose() <= 0) {
-            return rangeRate;
-        }
-        double gapRate = (bar.getOpen() - prevBar.getClose()) / prevBar.getClose();
-        return Math.max(rangeRate, gapRate);
+        return WaveCcMin60BreakoutCore.barAmplitudeRate(bar, prevBar);
     }
 
-    static boolean passesBreakoutStrength(Trade signalBar, Trade prevBar, Trade prevPrevBar) {
-        if (passesAmplitudeExpand(signalBar, prevBar, prevPrevBar)) {
-            return true;
-        }
-        double rise = BodyBarTierTools.risePct(signalBar, prevBar);
-        return !Double.isNaN(rise) && rise > INTRINSIC_BREAKOUT_RISE_PCT + EPS;
+    static boolean passesBandHighEdge(Trade prevBar, Trade signalBar, double bandHigh) {
+        return WaveCcMin60BreakoutCore.passesBandHighEdge(prevBar, signalBar, bandHigh);
     }
 
     static boolean passesAmplitudeExpand(Trade signalBar, Trade prevBar, Trade prevPrevBar) {
-        double sigRate = barAmplitudeRate(signalBar, prevBar);
-        double prevRate = barAmplitudeRate(prevBar, prevPrevBar);
-        if (Double.isNaN(sigRate) || Double.isNaN(prevRate)) {
-            return false;
-        }
-        return sigRate > prevRate + EPS;
+        return WaveCcMin60BreakoutCore.passesAmplitudeExpand(signalBar, prevBar, prevPrevBar);
+    }
+
+    static boolean passesBreakoutStrength(Trade signalBar, Trade prevBar, Trade prevPrevBar) {
+        return WaveCcMin60BreakoutCore.passesBreakoutStrength(signalBar, prevBar, prevPrevBar);
     }
 
     public static boolean passesOptionalGates(StockBase stock, CheckResult checkResult,

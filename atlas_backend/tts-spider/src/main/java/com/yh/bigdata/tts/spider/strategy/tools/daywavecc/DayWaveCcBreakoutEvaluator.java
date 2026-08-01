@@ -4,6 +4,7 @@ import com.yh.bigdata.tts.common.constants.PeriodTypeEnum;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.param.DayWaveCcBreakoutStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
+import com.yh.bigdata.tts.spider.strategy.tools.wavecc.WaveCcMin60BreakoutCore.Hit;
 import lombok.Getter;
 
 public final class DayWaveCcBreakoutEvaluator {
@@ -14,7 +15,7 @@ public final class DayWaveCcBreakoutEvaluator {
     public static DayWaveCcBreakoutEvaluation evaluate(StockBase stock, CheckResult checkResult,
                                                        DayWaveCcBreakoutStrategyParams params) {
         DayWaveCcBreakoutStrategyParams p = params != null ? params : DayWaveCcBreakoutStrategyParams.defaults();
-        DayWaveCcBreakoutTools.Hit hit = DayWaveCcBreakoutTools.findHit(stock, p);
+        Hit hit = DayWaveCcBreakoutTools.findHit(stock, p);
         if (hit == null) {
             return DayWaveCcBreakoutEvaluation.miss();
         }
@@ -24,7 +25,7 @@ public final class DayWaveCcBreakoutEvaluator {
         }
         if (checkResult != null) {
             checkResult.addTrendPeriod(PeriodTypeEnum.MONTH, DayWaveCcBreakoutTools.buildTrendMessage(hit));
-            checkResult.addSignal(PeriodTypeEnum.DAY, DayWaveCcBreakoutTools.buildSignalMessage(hit));
+            checkResult.addSignal(PeriodTypeEnum.MIN60, DayWaveCcBreakoutTools.buildSignalMessage(hit));
         }
         return DayWaveCcBreakoutEvaluation.hit();
     }

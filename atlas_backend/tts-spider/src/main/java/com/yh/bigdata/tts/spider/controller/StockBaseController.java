@@ -603,7 +603,47 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getDm60EnableMinAmountFilter()),
                 String.valueOf(pageQuery.getDm60MinAmountWan()),
                 String.valueOf(pageQuery.getDm60EnableSignalRiseGate()),
-                String.valueOf(pageQuery.getDm60SignalRisePct()));
+                String.valueOf(pageQuery.getDm60SignalRisePct()),
+                String.valueOf(pageQuery.getTwccbSignalPeriod()),
+                String.valueOf(pageQuery.getTwccbPrevDays()),
+                String.valueOf(pageQuery.getTwccbMaxBarsPerDay()),
+                String.valueOf(pageQuery.getTwccbLookbackBars()),
+                String.valueOf(pageQuery.getTwccbEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getTwccbMinAmountWan()),
+                String.valueOf(pageQuery.getTwccbEnableSignalRiseGate()),
+                String.valueOf(pageQuery.getTwccbSignalRisePct()),
+                String.valueOf(pageQuery.getTwccbRequireDayMacd()),
+                String.valueOf(pageQuery.getTwccbRequireWeekMacd()),
+                String.valueOf(pageQuery.getTwccbRequireMonthMacd()),
+                String.valueOf(pageQuery.getM60wccbPrevDays()),
+                String.valueOf(pageQuery.getM60wccbMaxBarsPerDay()),
+                String.valueOf(pageQuery.getM60wccbLookbackBars()),
+                String.valueOf(pageQuery.getM60wccbEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getM60wccbMinAmountWan()),
+                String.valueOf(pageQuery.getM60wccbEnableSignalRiseGate()),
+                String.valueOf(pageQuery.getM60wccbSignalRisePct()),
+                String.valueOf(pageQuery.getM60wccbRequireCurrentBreakout()),
+                String.valueOf(pageQuery.getDwccbPrevDays()),
+                String.valueOf(pageQuery.getDwccbMaxBarsPerDay()),
+                String.valueOf(pageQuery.getDwccbLookbackBars()),
+                String.valueOf(pageQuery.getDwccbEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getDwccbMinAmountWan()),
+                String.valueOf(pageQuery.getDwccbEnableSignalRiseGate()),
+                String.valueOf(pageQuery.getDwccbSignalRisePct()),
+                String.valueOf(pageQuery.getDwccbRequireCurrentBreakout()),
+                String.valueOf(pageQuery.getTlEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getTlMinAmountWan()),
+                String.valueOf(pageQuery.getTmaEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getTmaMinAmountWan()),
+                String.valueOf(pageQuery.getTrlTier()),
+                String.valueOf(pageQuery.getTrlEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getTrlMinAmountWan()),
+                String.valueOf(pageQuery.getTrhTier()),
+                String.valueOf(pageQuery.getTrhEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getTrhMinAmountWan()),
+                String.valueOf(pageQuery.getTr2yTier()),
+                String.valueOf(pageQuery.getTr2yEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getTr2yMinAmountWan()));
     }
 
     /** 重跑后预热 findMy 缓存，避免小程序二次全市场扫描超时 */
@@ -703,6 +743,18 @@ public class StockBaseController {
                 .dayWaveCcBreakout(stockPageQuery.toDayWaveCcBreakoutParams())
                 .weekWaveCcBreakout(stockPageQuery.toWeekWaveCcBreakoutParams())
                 .monthWaveCcBreakout(stockPageQuery.toMonthWaveCcBreakoutParams())
+                .trendWaveCcBreakout(stockPageQuery.toTrendWaveCcBreakoutParams())
+                .trendLift(stockPageQuery.toTrendLiftParams())
+                .trendMa(stockPageQuery.toTrendMaParams())
+                .trendRetestLow(stockPageQuery.toTrendRetestLowParams())
+                .trendRetestHigh(stockPageQuery.toTrendRetestHighParams())
+                .trendRelay2Yang(stockPageQuery.toTrendRelay2YangParams())
+                .trendRelayPrevHigh(stockPageQuery.toTrendRelayPrevHighParams())
+                .trendRelayBandHigh(stockPageQuery.toTrendRelayBandHighParams())
+                .bottomBandHigh(stockPageQuery.toBottomBandHighParams())
+                .bottomPrev2High(stockPageQuery.toBottomPrev2HighParams())
+                .maAlignLift(stockPageQuery.toMaAlignLiftParams())
+                .maBearBreak(stockPageQuery.toMaBearBreakParams())
                 .build();
 
     }

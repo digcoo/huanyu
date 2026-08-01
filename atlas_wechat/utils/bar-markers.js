@@ -1,20 +1,15 @@
-const ultraMarkers = require('./ultra-markers');
-
-function shouldShowBarMarkers(strategyId, period) {
-  return ultraMarkers.shouldShowUltraMarkers(strategyId, period);
+/**
+ * 列表 K 线标记（当前策略无额外标记）
+ */
+function shouldShowBarMarkers() {
+  return false;
 }
 
-function resolveBarMarkersForItem(item, strategyId, period, klines) {
-  if (ultraMarkers.shouldShowUltraMarkers(strategyId, period)) {
-    return ultraMarkers.resolveBarMarkersForItem(item, strategyId, period, klines);
-  }
+function resolveBarMarkersForItem() {
   return [];
 }
 
-function enrichItemsWithBarMarkers(items, strategyId, period) {
-  if (ultraMarkers.shouldShowUltraMarkers(strategyId, period)) {
-    return ultraMarkers.enrichItemsWithUltraMarkers(items, strategyId, period);
-  }
+function enrichItemsWithBarMarkers(items) {
   return Promise.resolve(items || []);
 }
 

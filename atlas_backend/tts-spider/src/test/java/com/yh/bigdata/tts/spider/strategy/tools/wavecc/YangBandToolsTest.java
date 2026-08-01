@@ -45,7 +45,7 @@ public class YangBandToolsTest {
     }
 
     @Test
-    public void bandLow_isFirstYangLow() {
+    public void bandLow_isMinYangLowInBand() {
         List<Trade> bars = Arrays.asList(
                 yang("2026-01-01", 10.0, 10.5, 9.5, 10.4),
                 yang("2026-01-02", 10.4, 10.8, 9.0, 10.7),
@@ -55,7 +55,7 @@ public class YangBandToolsTest {
 
         YangBandTools.CompleteYangBand band = YangBandTools.findLastCompleteBand(bars, 20);
         Assert.assertNotNull(band);
-        Assert.assertEquals(9.5, band.getBandLow(), 1e-6);
+        Assert.assertEquals(9.0, band.getBandLow(), 1e-6);
     }
 
     @Test

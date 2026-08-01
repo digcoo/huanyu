@@ -606,13 +606,13 @@ public class StockPageQuery extends PageQuery {
     /** MACD金叉 · 启用末 K 上涨率门 */
     private Boolean mgcEnableSignalRiseGate;
     /** MACD金叉 · 末 K 上涨率阈值（%，如 3 表示 3%） */
-    private Integer mgcSignalRisePct;
+    private Double mgcSignalRisePct;
     /** MACD金叉 · 启用近 N 根历史上涨率门 */
     private Boolean mgcEnableHistoryRiseGate;
     /** MACD金叉 · 历史检视 K 根数（不含末 K） */
     private Integer mgcHistoryLookbackBars;
     /** MACD金叉 · 历史上涨率阈值（%，如 3 表示 3%） */
-    private Integer mgcHistoryRisePct;
+    private Double mgcHistoryRisePct;
     /** MACD金叉波段High突破 · 档位 day/week/month */
     private String mgcwhTier;
     /** MACD金叉波段High突破 · 日 K lookback */
@@ -628,7 +628,7 @@ public class StockPageQuery extends PageQuery {
     /** MACD金叉波段High突破 · 启用末 K 上涨率门 */
     private Boolean mgcwhEnableSignalRiseGate;
     /** MACD金叉波段High突破 · 末 K 上涨率阈值（%，如 3 表示 3%） */
-    private Integer mgcwhSignalRisePct;
+    private Double mgcwhSignalRisePct;
     /** MACD金叉波段High回踩 · 档位 day/week/month */
     private String mgcwhrTier;
     /** MACD金叉波段High回踩 · 日 K lookback */
@@ -656,7 +656,7 @@ public class StockPageQuery extends PageQuery {
     /** MACD金叉波段High上移 · 启用末 K 上涨率门 */
     private Boolean mgcwhuEnableSignalRiseGate;
     /** MACD金叉波段High上移 · 末 K 上涨率阈值（%，如 3 表示 3%） */
-    private Integer mgcwhuSignalRisePct;
+    private Double mgcwhuSignalRisePct;
     /** MACD死叉突破 · 档位 day/week/month */
     private String mdcbTier;
     /** MACD死叉突破 · 日 K lookback */
@@ -672,7 +672,7 @@ public class StockPageQuery extends PageQuery {
     /** MACD死叉突破 · 启用末 K 上涨率门 */
     private Boolean mdcbEnableSignalRiseGate;
     /** MACD死叉突破 · 末 K 上涨率阈值（%，如 3 表示 3%） */
-    private Integer mdcbSignalRisePct;
+    private Double mdcbSignalRisePct;
     /** 凹凸突破 · 档位 day/week/month */
     private String wccbTier;
     /** 凹凸突破 · 日 K lookback */
@@ -688,7 +688,7 @@ public class StockPageQuery extends PageQuery {
     /** 凹凸突破 · 启用末 K 上涨率门 */
     private Boolean wccbEnableSignalRiseGate;
     /** 凹凸突破 · 末 K 上涨率阈值（%，如 3 表示 3%） */
-    private Integer wccbSignalRisePct;
+    private Double wccbSignalRisePct;
     /** 多周期 MACD&gt;0 门 · 日档 */
     private Boolean mgRequireDayMacd;
     /** 多周期 MACD&gt;0 门 · 周档 */
@@ -704,7 +704,7 @@ public class StockPageQuery extends PageQuery {
     /** MACD金叉K突破 · 金叉回溯根数 */
     private Integer ulgcGcLookbackBars;
     /** MACD金叉K突破 · 信号 Min30 涨幅阈值（%，如 1 表示 1%） */
-    private Integer ulgcSignalRisePct;
+    private Double ulgcSignalRisePct;
     /** 日小时组合 · 信号日前 N 个交易日（Min60 背景） */
     private Integer dm60PrevDays;
     /** 日小时组合 · 每日最多 Min60 根 */
@@ -718,7 +718,7 @@ public class StockPageQuery extends PageQuery {
     /** 日小时组合 · 启用突破 K 涨幅门 */
     private Boolean dm60EnableSignalRiseGate;
     /** 日小时组合 · 突破 K 涨幅阈值（%，如 1 表示 1%） */
-    private Integer dm60SignalRisePct;
+    private Double dm60SignalRisePct;
     /** 小时周组合 · 信号周前 N 个自然周（Min60 背景） */
     private Integer wm60PrevWeeks;
     /** 小时周组合 · 每周最多 Min60 根 */
@@ -732,7 +732,7 @@ public class StockPageQuery extends PageQuery {
     /** 小时周组合 · 启用突破 K 涨幅门 */
     private Boolean wm60EnableSignalRiseGate;
     /** 小时周组合 · 突破 K 涨幅阈值（%，如 1 表示 1%） */
-    private Integer wm60SignalRisePct;
+    private Double wm60SignalRisePct;
     /** 日周组合 · 信号周前 N 个自然周（日 K 背景） */
     private Integer dwPrevWeeks;
     /** 日周组合 · 每自然周最多日 K 根 */
@@ -746,7 +746,7 @@ public class StockPageQuery extends PageQuery {
     /** 日周组合 · 启用突破 K 涨幅门 */
     private Boolean dwEnableSignalRiseGate;
     /** 日周组合 · 突破 K 涨幅阈值（%，如 1 表示 1%） */
-    private Integer dwSignalRisePct;
+    private Double dwSignalRisePct;
     /** 日月组合 · 信号月前 N 个自然月（日 K 背景） */
     private Integer dmonPrevMonths;
     /** 日月组合 · 每自然月最多日 K 根 */
@@ -760,7 +760,7 @@ public class StockPageQuery extends PageQuery {
     /** 日月组合 · 启用突破 K 涨幅门 */
     private Boolean dmonEnableSignalRiseGate;
     /** 日月组合 · 突破 K 涨幅阈值（%，如 1 表示 1%） */
-    private Integer dmonSignalRisePct;
+    private Double dmonSignalRisePct;
     /** 小时凹凸突破 · 信号日前 N 个交易日（Min60 背景） */
     private Integer m60wccbPrevDays;
     /** 小时凹凸突破 · 每日最多 Min60 根 */
@@ -774,8 +774,14 @@ public class StockPageQuery extends PageQuery {
     /** 小时凹凸突破 · 启用突破 K 涨幅门 */
     private Boolean m60wccbEnableSignalRiseGate;
     /** 小时凹凸突破 · 突破 K 涨幅阈值（%，如 1 表示 1%） */
-    private Integer m60wccbSignalRisePct;
-    /** 日凹凸突破 · 日 K 波段回溯根数 */
+    private Double m60wccbSignalRisePct;
+    /** 小时凹凸突破 · 须末根 Min60 K 为突破 K（0=当日任一根满足即可） */
+    private Boolean m60wccbRequireCurrentBreakout;
+    /** 日凹凸突破 · 信号日前 N 个交易日（Min60 背景） */
+    private Integer dwccbPrevDays;
+    /** 日凹凸突破 · 每日最多 Min60 根 */
+    private Integer dwccbMaxBarsPerDay;
+    /** 日凹凸突破 · Min60 波段回溯根数 */
     private Integer dwccbLookbackBars;
     /** 日凹凸突破 · 启用近6日日均成交额门 */
     private Boolean dwccbEnableMinAmountFilter;
@@ -784,7 +790,9 @@ public class StockPageQuery extends PageQuery {
     /** 日凹凸突破 · 启用突破 K 涨幅门 */
     private Boolean dwccbEnableSignalRiseGate;
     /** 日凹凸突破 · 突破 K 涨幅阈值（%，如 1 表示 1%） */
-    private Integer dwccbSignalRisePct;
+    private Double dwccbSignalRisePct;
+    /** 日凹凸突破 · 须末根 Min60 K 为突破 K（0=当日任一根满足即可） */
+    private Boolean dwccbRequireCurrentBreakout;
     /** 周凹凸突破 · 周 K 波段回溯根数 */
     private Integer wwccbLookbackBars;
     /** 周凹凸突破 · 启用近6日日均成交额门 */
@@ -794,9 +802,9 @@ public class StockPageQuery extends PageQuery {
     /** 周凹凸突破 · 启用突破 K 涨幅门 */
     private Boolean wwccbEnableSignalRiseGate;
     /** 周凹凸突破 · 突破 K 涨幅阈值（%，如 1 表示 1%） */
-    private Integer wwccbSignalRisePct;
+    private Double wwccbSignalRisePct;
     /** 周凹凸突破 · 回踩 low 与次波段 High 最大相对差值（%，如 1 表示 1%） */
-    private Integer wwccbMaxRetestGapPct;
+    private Double wwccbMaxRetestGapPct;
     /** 月凹凸突破 · 月 K 波段回溯根数 */
     private Integer mwccbLookbackBars;
     /** 月凹凸突破 · 启用近6日日均成交额门 */
@@ -806,9 +814,93 @@ public class StockPageQuery extends PageQuery {
     /** 月凹凸突破 · 启用突破 K 涨幅门 */
     private Boolean mwccbEnableSignalRiseGate;
     /** 月凹凸突破 · 突破 K 涨幅阈值（%，如 1 表示 1%） */
-    private Integer mwccbSignalRisePct;
+    private Double mwccbSignalRisePct;
     /** 月凹凸突破 · 回踩 low 与次波段 High 最大相对差值（%，如 1 表示 1%） */
-    private Integer mwccbMaxRetestGapPct;
+    private Double mwccbMaxRetestGapPct;
+    /** 趋势内凹凸突破 · 信号周期 min60/day/week */
+    private String twccbSignalPeriod;
+    /** 趋势内凹凸突破 · Min60 信号日前 N 个交易日 */
+    private Integer twccbPrevDays;
+    /** 趋势内凹凸突破 · Min60 每日最多根数 */
+    private Integer twccbMaxBarsPerDay;
+    /** 趋势内凹凸突破 · 波段回溯根数 */
+    private Integer twccbLookbackBars;
+    /** 趋势内凹凸突破 · 启用近6日日均成交额门 */
+    private Boolean twccbEnableMinAmountFilter;
+    /** 趋势内凹凸突破 · 最低日均成交额（万） */
+    private Integer twccbMinAmountWan;
+    /** 趋势内凹凸突破 · 启用信号 K 涨幅门 */
+    private Boolean twccbEnableSignalRiseGate;
+    /** 趋势内凹凸突破 · 信号 K 涨幅阈值（%） */
+    private Double twccbSignalRisePct;
+    /** 趋势内凹凸突破 · 趋势门 日 MACD&gt;0 */
+    private Boolean twccbRequireDayMacd;
+    /** 趋势内凹凸突破 · 趋势门 周 MACD&gt;0 */
+    private Boolean twccbRequireWeekMacd;
+    /** 趋势内凹凸突破 · 趋势门 月 MACD&gt;0 */
+    private Boolean twccbRequireMonthMacd;
+    /** 趋势上移 · 启用近6日日均成交额门 */
+    private Boolean tlEnableMinAmountFilter;
+    /** 趋势上移 · 最低日均成交额（万） */
+    private Integer tlMinAmountWan;
+    /** 趋势MA · 启用近6日日均成交额门 */
+    private Boolean tmaEnableMinAmountFilter;
+    /** 趋势MA · 最低日均成交额（万） */
+    private Integer tmaMinAmountWan;
+    /** 趋势回踩破 Low · 档位 day/week/month */
+    private String trlTier;
+    /** 趋势回踩破 Low · 启用成交额门 */
+    private Boolean trlEnableMinAmountFilter;
+    /** 趋势回踩破 Low · 最低日均成交额（万） */
+    private Integer trlMinAmountWan;
+    /** 趋势回踩破 High · 档位 day/week/month */
+    private String trhTier;
+    /** 趋势回踩破 High · 启用成交额门 */
+    private Boolean trhEnableMinAmountFilter;
+    /** 趋势回踩破 High · 最低日均成交额（万） */
+    private Integer trhMinAmountWan;
+    /** 趋势中转二阳 · 档位 */
+    private String tr2yTier;
+    /** 趋势中转二阳 · 启用成交额门 */
+    private Boolean tr2yEnableMinAmountFilter;
+    /** 趋势中转二阳 · 最低日均成交额（万） */
+    private Integer tr2yMinAmountWan;
+    /** 趋势中转破前 High · 档位 */
+    private String trphTier;
+    /** 趋势中转破前 High · 启用成交额门 */
+    private Boolean trphEnableMinAmountFilter;
+    /** 趋势中转破前 High · 最低日均成交额（万） */
+    private Integer trphMinAmountWan;
+    /** 趋势中转破末 High · 档位 */
+    private String trbhTier;
+    /** 趋势中转破末 High · 启用成交额门 */
+    private Boolean trbhEnableMinAmountFilter;
+    /** 趋势中转破末 High · 最低日均成交额（万） */
+    private Integer trbhMinAmountWan;
+    /** 底部波段突破 · 档位 */
+    private String bbhTier;
+    /** 底部波段突破 · 启用成交额门 */
+    private Boolean bbhEnableMinAmountFilter;
+    /** 底部波段突破 · 最低日均成交额（万） */
+    private Integer bbhMinAmountWan;
+    /** 底部 High 突破 · 档位 */
+    private String bp2hTier;
+    /** 底部 High 突破 · 启用成交额门 */
+    private Boolean bp2hEnableMinAmountFilter;
+    /** 底部 High 突破 · 最低日均成交额（万） */
+    private Integer bp2hMinAmountWan;
+    /** 均线多头突破 · 档位 */
+    private String malTier;
+    /** 均线多头突破 · 启用成交额门 */
+    private Boolean malEnableMinAmountFilter;
+    /** 均线多头突破 · 最低日均成交额（万） */
+    private Integer malMinAmountWan;
+    /** 均线空头突破 · 档位 */
+    private String mbrTier;
+    /** 均线空头突破 · 启用成交额门 */
+    private Boolean mbrEnableMinAmountFilter;
+    /** 均线空头突破 · 最低日均成交额（万） */
+    private Integer mbrMinAmountWan;
     /** @deprecated */
     private Boolean wpgEnableWeekGate;
     /** @deprecated */
@@ -2223,12 +2315,21 @@ public class StockPageQuery extends PageQuery {
         if (m60wccbSignalRisePct != null && m60wccbSignalRisePct > 0) {
             b.signalRisePct(m60wccbSignalRisePct / 100D);
         }
+        if (m60wccbRequireCurrentBreakout != null) {
+            b.requireCurrentBreakout(m60wccbRequireCurrentBreakout);
+        }
         return Min60WaveCcBreakoutStrategyParams.merge(b.build());
     }
 
     public DayWaveCcBreakoutStrategyParams toDayWaveCcBreakoutParams() {
         DayWaveCcBreakoutStrategyParams.DayWaveCcBreakoutStrategyParamsBuilder b =
                 DayWaveCcBreakoutStrategyParams.builder();
+        if (dwccbPrevDays != null && dwccbPrevDays >= 0) {
+            b.prevDays(dwccbPrevDays);
+        }
+        if (dwccbMaxBarsPerDay != null && dwccbMaxBarsPerDay >= 1) {
+            b.maxBarsPerDay(dwccbMaxBarsPerDay);
+        }
         if (dwccbLookbackBars != null && dwccbLookbackBars >= 10) {
             b.lookbackBars(dwccbLookbackBars);
         }
@@ -2243,6 +2344,9 @@ public class StockPageQuery extends PageQuery {
         }
         if (dwccbSignalRisePct != null && dwccbSignalRisePct > 0) {
             b.signalRisePct(dwccbSignalRisePct / 100D);
+        }
+        if (dwccbRequireCurrentBreakout != null) {
+            b.requireCurrentBreakout(dwccbRequireCurrentBreakout);
         }
         return DayWaveCcBreakoutStrategyParams.merge(b.build());
     }
@@ -2293,6 +2397,202 @@ public class StockPageQuery extends PageQuery {
             b.maxRetestGapPct(mwccbMaxRetestGapPct / 100D);
         }
         return MonthWaveCcBreakoutStrategyParams.merge(b.build());
+    }
+
+    public TrendWaveCcBreakoutStrategyParams toTrendWaveCcBreakoutParams() {
+        TrendWaveCcBreakoutStrategyParams.TrendWaveCcBreakoutStrategyParamsBuilder b =
+                TrendWaveCcBreakoutStrategyParams.builder();
+        if (twccbSignalPeriod != null && !twccbSignalPeriod.isEmpty()) {
+            b.signalPeriod(twccbSignalPeriod);
+        }
+        if (twccbPrevDays != null && twccbPrevDays >= 0) {
+            b.prevDays(twccbPrevDays);
+        }
+        if (twccbMaxBarsPerDay != null && twccbMaxBarsPerDay >= 1) {
+            b.maxBarsPerDay(twccbMaxBarsPerDay);
+        }
+        if (twccbLookbackBars != null && twccbLookbackBars >= 10) {
+            b.lookbackBars(twccbLookbackBars);
+        }
+        if (twccbEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(twccbEnableMinAmountFilter);
+        }
+        if (twccbMinAmountWan != null && twccbMinAmountWan >= 0) {
+            b.minAvgAmount(twccbMinAmountWan * 10_000D);
+        }
+        if (twccbEnableSignalRiseGate != null) {
+            b.enableSignalRiseGate(twccbEnableSignalRiseGate);
+        }
+        if (twccbSignalRisePct != null && twccbSignalRisePct > 0) {
+            b.signalRisePct(twccbSignalRisePct / 100D);
+        }
+        if (twccbRequireDayMacd != null) {
+            b.requireDayMacd(twccbRequireDayMacd);
+        }
+        if (twccbRequireWeekMacd != null) {
+            b.requireWeekMacd(twccbRequireWeekMacd);
+        }
+        if (twccbRequireMonthMacd != null) {
+            b.requireMonthMacd(twccbRequireMonthMacd);
+        }
+        return TrendWaveCcBreakoutStrategyParams.merge(b.build());
+    }
+
+    public TrendLiftStrategyParams toTrendLiftParams() {
+        TrendLiftStrategyParams.TrendLiftStrategyParamsBuilder b = TrendLiftStrategyParams.builder();
+        if (tlEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(tlEnableMinAmountFilter);
+        }
+        if (tlMinAmountWan != null && tlMinAmountWan >= 0) {
+            b.minAvgAmount(tlMinAmountWan * 10_000D);
+        }
+        return TrendLiftStrategyParams.merge(b.build());
+    }
+
+    public TrendMaStrategyParams toTrendMaParams() {
+        TrendMaStrategyParams.TrendMaStrategyParamsBuilder b = TrendMaStrategyParams.builder();
+        if (tmaEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(tmaEnableMinAmountFilter);
+        }
+        if (tmaMinAmountWan != null && tmaMinAmountWan >= 0) {
+            b.minAvgAmount(tmaMinAmountWan * 10_000D);
+        }
+        return TrendMaStrategyParams.merge(b.build());
+    }
+
+    public TrendRetestLowStrategyParams toTrendRetestLowParams() {
+        TrendRetestLowStrategyParams.TrendRetestLowStrategyParamsBuilder b =
+                TrendRetestLowStrategyParams.builder();
+        if (trlTier != null && !trlTier.trim().isEmpty()) {
+            b.tier(TrendRetestLowStrategyParams.parseTier(trlTier));
+        }
+        if (trlEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(trlEnableMinAmountFilter);
+        }
+        if (trlMinAmountWan != null && trlMinAmountWan >= 0) {
+            b.minAvgAmount(trlMinAmountWan * 10_000D);
+        }
+        return TrendRetestLowStrategyParams.merge(b.build());
+    }
+
+    public TrendRetestHighStrategyParams toTrendRetestHighParams() {
+        TrendRetestHighStrategyParams.TrendRetestHighStrategyParamsBuilder b =
+                TrendRetestHighStrategyParams.builder();
+        if (trhTier != null && !trhTier.trim().isEmpty()) {
+            b.tier(TrendRetestHighStrategyParams.parseTier(trhTier));
+        }
+        if (trhEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(trhEnableMinAmountFilter);
+        }
+        if (trhMinAmountWan != null && trhMinAmountWan >= 0) {
+            b.minAvgAmount(trhMinAmountWan * 10_000D);
+        }
+        return TrendRetestHighStrategyParams.merge(b.build());
+    }
+
+    public TrendRelay2YangStrategyParams toTrendRelay2YangParams() {
+        TrendRelay2YangStrategyParams.TrendRelay2YangStrategyParamsBuilder b =
+                TrendRelay2YangStrategyParams.builder();
+        if (tr2yTier != null && !tr2yTier.trim().isEmpty()) {
+            b.tier(TrendRelay2YangStrategyParams.parseTier(tr2yTier));
+        }
+        if (tr2yEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(tr2yEnableMinAmountFilter);
+        }
+        if (tr2yMinAmountWan != null && tr2yMinAmountWan >= 0) {
+            b.minAvgAmount(tr2yMinAmountWan * 10_000D);
+        }
+        return TrendRelay2YangStrategyParams.merge(b.build());
+    }
+
+    public TrendRelayPrevHighStrategyParams toTrendRelayPrevHighParams() {
+        TrendRelayPrevHighStrategyParams.TrendRelayPrevHighStrategyParamsBuilder b =
+                TrendRelayPrevHighStrategyParams.builder();
+        if (trphTier != null && !trphTier.trim().isEmpty()) {
+            b.tier(TrendRelayPrevHighStrategyParams.parseTier(trphTier));
+        }
+        if (trphEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(trphEnableMinAmountFilter);
+        }
+        if (trphMinAmountWan != null && trphMinAmountWan >= 0) {
+            b.minAvgAmount(trphMinAmountWan * 10_000D);
+        }
+        return TrendRelayPrevHighStrategyParams.merge(b.build());
+    }
+
+    public TrendRelayBandHighStrategyParams toTrendRelayBandHighParams() {
+        TrendRelayBandHighStrategyParams.TrendRelayBandHighStrategyParamsBuilder b =
+                TrendRelayBandHighStrategyParams.builder();
+        if (trbhTier != null && !trbhTier.trim().isEmpty()) {
+            b.tier(TrendRelayBandHighStrategyParams.parseTier(trbhTier));
+        }
+        if (trbhEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(trbhEnableMinAmountFilter);
+        }
+        if (trbhMinAmountWan != null && trbhMinAmountWan >= 0) {
+            b.minAvgAmount(trbhMinAmountWan * 10_000D);
+        }
+        return TrendRelayBandHighStrategyParams.merge(b.build());
+    }
+
+    public BottomBandHighStrategyParams toBottomBandHighParams() {
+        BottomBandHighStrategyParams.BottomBandHighStrategyParamsBuilder b =
+                BottomBandHighStrategyParams.builder();
+        if (bbhTier != null && !bbhTier.trim().isEmpty()) {
+            b.tier(BottomBandHighStrategyParams.parseTier(bbhTier));
+        }
+        if (bbhEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(bbhEnableMinAmountFilter);
+        }
+        if (bbhMinAmountWan != null && bbhMinAmountWan >= 0) {
+            b.minAvgAmount(bbhMinAmountWan * 10_000D);
+        }
+        return BottomBandHighStrategyParams.merge(b.build());
+    }
+
+    public BottomPrev2HighStrategyParams toBottomPrev2HighParams() {
+        BottomPrev2HighStrategyParams.BottomPrev2HighStrategyParamsBuilder b =
+                BottomPrev2HighStrategyParams.builder();
+        if (bp2hTier != null && !bp2hTier.trim().isEmpty()) {
+            b.tier(BottomPrev2HighStrategyParams.parseTier(bp2hTier));
+        }
+        if (bp2hEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(bp2hEnableMinAmountFilter);
+        }
+        if (bp2hMinAmountWan != null && bp2hMinAmountWan >= 0) {
+            b.minAvgAmount(bp2hMinAmountWan * 10_000D);
+        }
+        return BottomPrev2HighStrategyParams.merge(b.build());
+    }
+
+    public MaAlignLiftStrategyParams toMaAlignLiftParams() {
+        MaAlignLiftStrategyParams.MaAlignLiftStrategyParamsBuilder b =
+                MaAlignLiftStrategyParams.builder();
+        if (malTier != null && !malTier.trim().isEmpty()) {
+            b.tier(MaAlignLiftStrategyParams.parseTier(malTier));
+        }
+        if (malEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(malEnableMinAmountFilter);
+        }
+        if (malMinAmountWan != null && malMinAmountWan >= 0) {
+            b.minAvgAmount(malMinAmountWan * 10_000D);
+        }
+        return MaAlignLiftStrategyParams.merge(b.build());
+    }
+
+    public MaBearBreakStrategyParams toMaBearBreakParams() {
+        MaBearBreakStrategyParams.MaBearBreakStrategyParamsBuilder b =
+                MaBearBreakStrategyParams.builder();
+        if (mbrTier != null && !mbrTier.trim().isEmpty()) {
+            b.tier(MaBearBreakStrategyParams.parseTier(mbrTier));
+        }
+        if (mbrEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(mbrEnableMinAmountFilter);
+        }
+        if (mbrMinAmountWan != null && mbrMinAmountWan >= 0) {
+            b.minAvgAmount(mbrMinAmountWan * 10_000D);
+        }
+        return MaBearBreakStrategyParams.merge(b.build());
     }
 
     /** @deprecated 兼容旧 waveband 参数 */

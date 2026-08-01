@@ -114,7 +114,35 @@ const MARKET_SENTIMENT = {
   bond: { label: '利差', value: '211bp', sub: '中美10Y利差', extra: '收益率曲线 正常' }
 };
 
-const STRATEGIES = [];
+const STRATEGIES = [
+  { id: 'trendretestlowShort', name: '趋势回踩破Low·日' },
+  { id: 'trendretestlowMedium', name: '趋势回踩破Low·周' },
+  { id: 'trendretestlowLong', name: '趋势回踩破Low·月' },
+  { id: 'trendretesthighShort', name: '趋势回踩破High·日' },
+  { id: 'trendretesthighMedium', name: '趋势回踩破High·周' },
+  { id: 'trendretesthighLong', name: '趋势回踩破High·月' },
+  { id: 'trendrelay2yangShort', name: '趋势中转二阳·日' },
+  { id: 'trendrelay2yangMedium', name: '趋势中转二阳·周' },
+  { id: 'trendrelay2yangLong', name: '趋势中转二阳·月' },
+  { id: 'trendrelayprevhighShort', name: '趋势中转破前High·日' },
+  { id: 'trendrelayprevhighMedium', name: '趋势中转破前High·周' },
+  { id: 'trendrelayprevhighLong', name: '趋势中转破前High·月' },
+  { id: 'trendrelaybandhighShort', name: '趋势中转破末High·日' },
+  { id: 'trendrelaybandhighMedium', name: '趋势中转破末High·周' },
+  { id: 'trendrelaybandhighLong', name: '趋势中转破末High·月' },
+  { id: 'bottombandhighShort', name: '底部波段突破·日' },
+  { id: 'bottombandhighMedium', name: '底部波段突破·周' },
+  { id: 'bottombandhighLong', name: '底部波段突破·月' },
+  { id: 'bottomprev2highShort', name: '底部High突破·日' },
+  { id: 'bottomprev2highMedium', name: '底部High突破·周' },
+  { id: 'bottomprev2highLong', name: '底部High突破·月' },
+  { id: 'maalignliftShort', name: '均线多头突破·日' },
+  { id: 'maalignliftMedium', name: '均线多头突破·周' },
+  { id: 'maalignliftLong', name: '均线多头突破·月' },
+  { id: 'mabearbreakShort', name: '均线空头突破·日' },
+  { id: 'mabearbreakMedium', name: '均线空头突破·周' },
+  { id: 'mabearbreakLong', name: '均线空头突破·月' }
+];
 
 const { formatDataUpdatedLabel, todayDayStr } = require('./time');
 

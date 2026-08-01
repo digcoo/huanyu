@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * 连续阳 K 完整波段：严格 close&gt;open，以严格阴 K（close≤open）完结，且完结 K 不能是序列最后一根。
  * <p>
- * 波段底 = 首阳 low；波段顶 = max(波段内所有阳 K high, 紧跟阳段后的完结阴 K high)。
+ * 波段底 = min(波段内所有阳 K low)；波段顶 = max(波段内所有阳 K high, 紧跟阳段后的完结阴 K high)。
  */
 public final class YangBandTools {
 
@@ -187,9 +187,15 @@ public final class YangBandTools {
         if (terminator != null && terminator.getHigh() != null) {
             high = Math.max(high, terminator.getHigh());
         }
-        double low = Double.NaN;
-        if (first != null && first.getLow() != null) {
-            low = first.getLow();
+        double low = Double.POSITIVE_INFINITY;
+        for (int k = from; k <= to; k++) {
+            Trade bar = trades.get(k);
+            if (isStrictYang(bar) && bar.getLow() != null) {
+                low = Math.min(low, bar.getLow());
+            }
+        }
+        if (low == Double.POSITIVE_INFINITY) {
+            low = Double.NaN;
         }
         Trade bandHighBar = resolveBandHighBar(trades, from, to, terminator, high);
         return new CompleteYangBand(first, last, terminator, bandHighBar, high, low);

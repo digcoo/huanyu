@@ -40,7 +40,7 @@ function buildNavState(strategyId) {
  */
 
 function createContext(strategyId, period, marketId) {
-  var sid = strategyId || 'min60wavecc';
+  var sid = strategyId || strategyNav.TIER_SHORT;
   return {
     strategyId: sid,
     period: normalizePeriod(sid, period),

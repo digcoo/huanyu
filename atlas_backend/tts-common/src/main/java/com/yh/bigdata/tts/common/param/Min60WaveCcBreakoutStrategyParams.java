@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 分时凹凸突破（min60wavecc）：Min60/日/周 MACD 至少 2 个 &gt;0 + 末根 Min60 凸凹边沿突破。
+ * 分时凹凸突破（min60wavecc）：Min60/日/周 MACD 至少 2 个 &gt;0 + Min60 凸凹边沿突破。
  */
 @Data
 @Builder
@@ -41,6 +41,10 @@ public class Min60WaveCcBreakoutStrategyParams {
     @Builder.Default
     private double signalRisePct = DEFAULT_SIGNAL_RISE_PCT;
 
+    /** true=须末根 Min60 K 突破；false=当日任一根 Min60 满足即可（多根取最后一根） */
+    @Builder.Default
+    private boolean requireCurrentBreakout = true;
+
     public static Min60WaveCcBreakoutStrategyParams defaults() {
         return Min60WaveCcBreakoutStrategyParams.builder().build();
     }
@@ -67,6 +71,7 @@ public class Min60WaveCcBreakoutStrategyParams {
         if (incoming.signalRisePct > 0) {
             d.signalRisePct = incoming.signalRisePct;
         }
+        d.requireCurrentBreakout = incoming.requireCurrentBreakout;
         return d;
     }
 }

@@ -8,7 +8,7 @@ Component({
     },
     strategyId: {
       type: String,
-      value: 'trend'
+      value: 'trendretestlowShort'
     },
     strategyTitle: {
       type: String,

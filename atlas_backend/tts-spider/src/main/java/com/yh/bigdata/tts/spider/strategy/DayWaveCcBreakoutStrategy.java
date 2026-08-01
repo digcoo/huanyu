@@ -26,7 +26,7 @@ public class DayWaveCcBreakoutStrategy extends AbstractStrategy {
 
     @Override
     public PeriodTypeEnum getOpPeriodType() {
-        return PeriodTypeEnum.DAY;
+        return PeriodTypeEnum.MIN60;
     }
 
     @Override
@@ -49,7 +49,7 @@ public class DayWaveCcBreakoutStrategy extends AbstractStrategy {
             checkResult.setHasSignal(true);
             checkResult.setSortValue(50);
             checkResult.setTrendPeriodType(PeriodTypeEnum.MONTH);
-            checkResult.setOpPeriodType(PeriodTypeEnum.DAY);
+            checkResult.setOpPeriodType(PeriodTypeEnum.MIN60);
         } catch (Exception ex) {
             log.error("{} - check exception : stock = {}", getClass().getName(), stockBase.getCode(), ex);
         } finally {

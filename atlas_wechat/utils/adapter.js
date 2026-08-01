@@ -5,38 +5,59 @@ const { MARKETS } = require('./mock');
 const { formatDataUpdatedLabel } = require('./time');
 
 const STRATEGY_API = {
-  ultra: { strategy: 'ultra', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' },
-  ultragc: { strategy: 'ultragc', trendPeriodTypes: 'week,day,min30', opPeriodType: 'min30' },
-  min60wavecc: { strategy: 'min60wavecc', trendPeriodTypes: 'week,day,min60', opPeriodType: 'min60' },
-  daywavecc: { strategy: 'daywavecc', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  trend: { strategy: 'trend', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  medium: { strategy: 'medium', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
-  long: { strategy: 'long', trendPeriodTypes: 'year,month', opPeriodType: 'month' },
-  nrf: { strategy: 'nrf', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  cascade: { strategy: 'cascade', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  macedge: { strategy: 'macedge', trendPeriodTypes: 'year,month,week,day,min30', opPeriodType: 'day' },
-  cascadewaveconvex: { strategy: 'cascadewaveconvex', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  cascadewaveconcave: { strategy: 'cascadewaveconcave', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  cascadewaveconvexday: { strategy: 'cascadewaveconvexday', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  cascadewaveconcaveday: { strategy: 'cascadewaveconcaveday', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  cascadewaveShort: { strategy: 'cascadewaveShort', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  cascadewaveMedium: { strategy: 'cascadewaveMedium', trendPeriodTypes: 'year,month,week', opPeriodType: 'week' },
-  cascadewaveLong: { strategy: 'cascadewaveLong', trendPeriodTypes: 'year,month', opPeriodType: 'month' }
+  trendretestlow: { strategy: 'trendretestlow', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  trendretestlowShort: { strategy: 'trendretestlow', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  trendretestlowMedium: { strategy: 'trendretestlow', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
+  trendretestlowLong: { strategy: 'trendretestlow', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
+  trendretesthigh: { strategy: 'trendretesthigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  trendretesthighShort: { strategy: 'trendretesthigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  trendretesthighMedium: { strategy: 'trendretesthigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
+  trendretesthighLong: { strategy: 'trendretesthigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
+  trendrelay2yang: { strategy: 'trendrelay2yang', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  trendrelay2yangShort: { strategy: 'trendrelay2yang', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  trendrelay2yangMedium: { strategy: 'trendrelay2yang', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
+  trendrelay2yangLong: { strategy: 'trendrelay2yang', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
+  trendrelayprevhigh: { strategy: 'trendrelayprevhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  trendrelayprevhighShort: { strategy: 'trendrelayprevhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  trendrelayprevhighMedium: { strategy: 'trendrelayprevhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
+  trendrelayprevhighLong: { strategy: 'trendrelayprevhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
+  trendrelaybandhigh: { strategy: 'trendrelaybandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  trendrelaybandhighShort: { strategy: 'trendrelaybandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  trendrelaybandhighMedium: { strategy: 'trendrelaybandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
+  trendrelaybandhighLong: { strategy: 'trendrelaybandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
+  bottombandhigh: { strategy: 'bottombandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  bottombandhighShort: { strategy: 'bottombandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  bottombandhighMedium: { strategy: 'bottombandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
+  bottombandhighLong: { strategy: 'bottombandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
+  bottomprev2high: { strategy: 'bottomprev2high', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  bottomprev2highShort: { strategy: 'bottomprev2high', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  bottomprev2highMedium: { strategy: 'bottomprev2high', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
+  bottomprev2highLong: { strategy: 'bottomprev2high', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
+  maalignlift: { strategy: 'maalignlift', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  maalignliftShort: { strategy: 'maalignlift', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  maalignliftMedium: { strategy: 'maalignlift', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
+  maalignliftLong: { strategy: 'maalignlift', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
+  mabearbreak: { strategy: 'mabearbreak', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  mabearbreakShort: { strategy: 'mabearbreak', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
+  mabearbreakMedium: { strategy: 'mabearbreak', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
+  mabearbreakLong: { strategy: 'mabearbreak', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' }
 };
 
 function normalizeStrategyId(strategyId) {
-  if (!strategyId) return strategyId;
-  if (strategyId === 'ultraLow' || strategyId === 'ladder') return 'nrf';
-  if (strategyId === 'weekwavecc' || strategyId === 'monthwavecc'
-      || strategyId === 'macdgcwh' || strategyId === 'macdgcwhShort'
-      || strategyId === 'macdgcwhMedium' || strategyId === 'macdgcwhLong'
-      || strategyId === 'macdgcwhu' || strategyId === 'macdgcwhuShort'
-      || strategyId === 'macdgcwhuMedium' || strategyId === 'macdgcwhuLong') {
-    return 'min60wavecc';
+  if (!strategyId) return 'trendretestlowShort';
+  if (strategyId === 'trendretestlow') return 'trendretestlowShort';
+  if (strategyId === 'trendretesthigh') return 'trendretesthighShort';
+  if (strategyId === 'trendrelay2yang') return 'trendrelay2yangShort';
+  if (strategyId === 'trendrelayprevhigh') return 'trendrelayprevhighShort';
+  if (strategyId === 'trendrelaybandhigh') return 'trendrelaybandhighShort';
+  if (strategyId === 'bottombandhigh') return 'bottombandhighShort';
+  if (strategyId === 'bottomprev2high') return 'bottomprev2highShort';
+  if (strategyId === 'maalignlift') return 'maalignliftShort';
+  if (strategyId === 'mabearbreak') return 'mabearbreakShort';
+  if (/^trendretest(low|high)|^trendrelay2yang|^trendrelayprevhigh|^trendrelaybandhigh|^bottombandhigh|^bottomprev2high|^maalignlift|^mabearbreak/.test(strategyId)) {
+    return strategyId;
   }
-  if (strategyId === 'macddcb' || strategyId === 'macddcbShort'
-      || strategyId === 'macddcbMedium' || strategyId === 'macddcbLong') return 'ultra';
-  return strategyId;
+  return 'trendretestlowShort';
 }
 
 function normalizeCode(code) {
@@ -71,8 +92,8 @@ function extractCode(idOrCode) {
 }
 
 function extractStrategy(id) {
-  if (!id || id.indexOf('-') < 0) return 'ultra';
-  return normalizeStrategyId(id.split('-')[0] || 'ultra');
+  if (!id || id.indexOf('-') < 0) return 'trendretestlowShort';
+  return normalizeStrategyId(id.split('-')[0] || 'trendretestlowShort');
 }
 
 function findMarketLabel(marketId) {
@@ -552,118 +573,69 @@ function buildCascadeSummary(item) {
 }
 
 function mapRecommendation(item, strategyId) {
-  strategyId = normalizeStrategyId(strategyId || 'ultra');
+  strategyId = normalizeStrategyId(strategyId || 'trendretestlowShort');
   var code = normalizeCode(item.code);
   var changePct = normalizeChangePct(item);
   var tags = [];
   if (item.newFlag) tags.push('今日新推');
-  if (strategyId === 'trend') {
-    tags = tags.concat(buildTrendV2Tags(item));
-  } else if (strategyId === 'medium') {
-    tags = tags.concat(buildMediumTags(item));
-  } else if (strategyId === 'long') {
-    tags = tags.concat(buildLongTags(item));
-  } else if (strategyId === 'resonance') {
-    tags = tags.concat(buildResonanceTags(item));
-  } else if (strategyId === 'rebound') {
-    tags = tags.concat(buildReboundTags(item));
-  } else if (strategyId === 'retest') {
-    tags = tags.concat(buildRetestTags(item));
-  } else if (strategyId === 'gc2') {
-    tags = tags.concat(buildGc2Tags(item));
-  } else if (strategyId === 'dc2') {
-    tags = tags.concat(buildDc2Tags(item));
-  } else if (strategyId === 'nrf') {
-    tags = tags.concat(buildNrfTags(item));
-  } else if (strategyId === 'cascade') {
-    tags = tags.concat(buildCascadeTags(item));
-  } else if (strategyId === 'macedge') {
-    tags = tags.concat(buildMacdEdgeTags(item));
-  } else if (strategyId === 'cascadewaveconvex') {
-    tags = tags.concat(buildCascadewaveconvexTags(item));
-  } else if (strategyId === 'cascadewaveconcave') {
-    tags = tags.concat(buildCascadewaveconcaveTags(item));
-  } else if (strategyId === 'cascadewaveconvexday') {
-    tags = tags.concat(buildCascadewaveconvexdayTags(item));
-  } else if (strategyId === 'cascadewaveconcaveday') {
-    tags = tags.concat(buildCascadewaveconcavedayTags(item));
-  } else if (strategyId === 'cascadewaveShort' || strategyId === 'cascadewaveMedium'
-      || strategyId === 'cascadewaveLong') {
-    var hitSource = item.cascadeHitSource || strategyId;
-    if (hitSource === 'cascadewaveconcave') {
-      tags = tags.concat(buildCascadewaveconcaveTags(item));
-    } else if (hitSource === 'cascadewaveconvexday') {
-      tags = tags.concat(buildCascadewaveconvexdayTags(item));
-    } else if (hitSource === 'cascadewaveconcaveday') {
-      tags = tags.concat(buildCascadewaveconcavedayTags(item));
-    } else {
-      tags = tags.concat(buildCascadewaveconvexTags(item));
-    }
-  } else if (strategyId === 'ultra') {
-    tags = tags.concat(buildUltraTags(item));
-  } else if (strategyId === 'min60wavecc') {
-    tags = tags.concat(['分时凹凸突破']);
-    if (/shape=CONVEX/.test(item.signalMessage || '')) tags.push('凸突破');
-    if (/shape=CONCAVE/.test(item.signalMessage || '')) tags.push('凹突破');
-  } else if (strategyId === 'daywavecc') {
-    tags = tags.concat(['日凹凸突破']);
-    if (/shape=CONVEX|hitMode=CONVEX_BREAKOUT/.test(item.signalMessage || '')) tags.push('凸突破');
-    if (/shape=CONCAVE|hitMode=CONCAVE_BREAKOUT/.test(item.signalMessage || '')) tags.push('凹突破');
-  } else if (strategyId === 'ultragc') {
-    tags = tags.concat(['MACD金叉K突破']);
-  } else {
-    if (item.signalMessage) tags.push('信号');
-    else if (item.trendMessage) tags.push('趋势');
+  if (/^trendretestlow/.test(strategyId) || strategyId === 'trendretestlow') {
+    tags.push('趋势回踩破Low');
+    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (/^trendretesthigh/.test(strategyId) || strategyId === 'trendretesthigh') {
+    tags.push('趋势回踩破High');
+    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (/^trendrelay2yang/.test(strategyId) || strategyId === 'trendrelay2yang') {
+    tags.push('趋势中转二阳');
+    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (/^trendrelayprevhigh/.test(strategyId) || strategyId === 'trendrelayprevhigh') {
+    tags.push('趋势中转破前High');
+    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (/^trendrelaybandhigh/.test(strategyId) || strategyId === 'trendrelaybandhigh') {
+    tags.push('趋势中转破末High');
+    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (/^bottombandhigh/.test(strategyId) || strategyId === 'bottombandhigh') {
+    tags.push('底部波段突破');
+    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (/^bottomprev2high/.test(strategyId) || strategyId === 'bottomprev2high') {
+    tags.push('底部High突破');
+    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (/^maalignlift/.test(strategyId) || strategyId === 'maalignlift') {
+    tags.push('均线多头突破');
+    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (/^mabearbreak/.test(strategyId) || strategyId === 'mabearbreak') {
+    tags.push('均线空头突破');
+    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (item.signalMessage) {
+    tags.push('信号');
+  } else if (item.trendMessage) {
+    tags.push('趋势');
   }
   tags = tags.filter(function (t, i) { return tags.indexOf(t) === i; });
 
-  var summaryParts = (strategyId === 'rebound'
-    ? [buildReboundSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'trend'
-    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
-    : strategyId === 'medium'
-    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
-    : strategyId === 'long'
-    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
-    : strategyId === 'nrf'
-    ? [buildNrfSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'cascade'
-    ? [buildCascadeSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'macedge'
-    ? [buildMacdEdgeSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'cascadewaveconvex'
-    ? [buildCascadewaveconvexSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'cascadewaveconcave'
-    ? [buildCascadewaveconcaveSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'cascadewaveconvexday'
-    ? [buildCascadewaveconvexdaySummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'cascadewaveconcaveday'
-    ? [buildCascadewaveconcavedaySummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'cascadewaveShort' || strategyId === 'cascadewaveMedium'
-      || strategyId === 'cascadewaveLong'
-    ? [(item.cascadeHitSource === 'cascadewaveconcave'
-        ? buildCascadewaveconcaveSummary(item)
-        : item.cascadeHitSource === 'cascadewaveconvexday'
-        ? buildCascadewaveconvexdaySummary(item)
-        : item.cascadeHitSource === 'cascadewaveconcaveday'
-        ? buildCascadewaveconcavedaySummary(item)
-        : buildCascadewaveconvexSummary(item)), item.mainBusiness, item.summary]
-    : strategyId === 'ultra'
-    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
-    : strategyId === 'min60wavecc'
-    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
-    : strategyId === 'daywavecc'
-    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
-    : strategyId === 'ultragc'
-    ? [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
-    : strategyId === 'retest'
-    ? [buildRetestSummary(item), item.mainBusiness, item.summary]
-    : strategyId === 'gc2'
-    ? [buildGc2Summary(item), item.mainBusiness, item.summary]
-    : strategyId === 'dc2'
-    ? [buildDc2Summary(item), item.mainBusiness, item.summary]
-    : [parseUnilateralTrendLabel(item.trendMessage), item.signalMessage, item.mainBusiness, item.summary]
-  ).filter(function (s) { return s && String(s).trim(); });
+  var summaryParts = [
+    parseUnilateralTrendLabel(item.trendMessage),
+    item.signalMessage,
+    item.mainBusiness,
+    item.summary
+  ].filter(function (s) { return s && String(s).trim(); });
   return {
     id: makeStockId(strategyId, 'cn', code),
     strategy: strategyId,
@@ -789,7 +761,7 @@ function mapMarketIndices(list, period) {
 }
 
 function getStrategyApiParams(strategyId) {
-  return STRATEGY_API[normalizeStrategyId(strategyId)] || STRATEGY_API.ultra;
+  return STRATEGY_API[normalizeStrategyId(strategyId)] || STRATEGY_API.trendretestlowShort;
 }
 
 module.exports = {

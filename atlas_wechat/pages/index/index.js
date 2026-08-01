@@ -14,7 +14,7 @@ const listMemory = require('../../utils/list-memory');
 const listViewCtx = require('../../utils/list-view-context');
 
 const app = getApp();
-const DEFAULT_STRATEGY = 'min60wavecc';
+const DEFAULT_STRATEGY = 'trendretestlowShort';
 
 const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
 
@@ -259,9 +259,9 @@ Page({
 
     markets: buildMarketsForUI(),
     activeStrategy: DEFAULT_STRATEGY,
-    activeStrategyFamily: strategyNav.FAMILY_ULTRA,
-    activeCascadeTier: strategyNav.TIER_MIN60_WAVE_CC,
-    showCascadeTierRow: true,
+    activeStrategyFamily: strategyNav.STRATEGY_TREND_RETEST_LOW,
+    activeCascadeTier: strategyNav.TIER_SHORT,
+    showCascadeTierRow: false,
     allowedPeriods: listViewCtx.allowedPeriods(),
     strategyTitle: strategyNav.strategyTitleFor(DEFAULT_STRATEGY),
 
@@ -696,18 +696,22 @@ Page({
   onStrategyFamilyChange(e) {
     var family = e.detail && e.detail.family;
     if (!family || family === this.data.activeStrategyFamily) return;
-    if (!strategyNav.showTierRow(family)) {
-      this.switchStrategy(strategyNav.strategyIdFor(family, 'short'));
-      return;
+    var curTier = strategyNav.tierForStrategyId(listViewCtx.readContext(this).strategyId);
+    var tabs = strategyNav.tierTabsForFamily(family);
+    var tierId = strategyNav.strategyIdFor(family, null);
+    for (var i = 0; i < tabs.length; i++) {
+      if (strategyNav.tierForStrategyId(tabs[i].id) === curTier) {
+        tierId = tabs[i].id;
+        break;
+      }
     }
-    var tier = this.data.activeCascadeTier || 'short';
-    this.switchStrategy(strategyNav.strategyIdFor(family, tier));
+    this.switchStrategy(tierId);
   },
 
   onStrategyTierChange(e) {
     var tier = e.detail && e.detail.tier;
     if (!tier || tier === this.data.activeCascadeTier) return;
-    this.switchStrategy(strategyNav.strategyIdFor(this.data.activeStrategyFamily, tier));
+    this.switchStrategy(tier);
   },
 
   onStrategyChange(e) {

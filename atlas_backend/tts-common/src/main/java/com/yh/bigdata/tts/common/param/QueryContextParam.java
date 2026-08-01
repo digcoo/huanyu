@@ -162,6 +162,42 @@ public class QueryContextParam extends PageQuery {
     /** 月凹凸突破（monthwavecc） */
     private MonthWaveCcBreakoutStrategyParams monthWaveCcBreakout;
 
+    /** 趋势内凹凸突破（trendwavecc） */
+    private TrendWaveCcBreakoutStrategyParams trendWaveCcBreakout;
+
+    /** 趋势上移（trendlift） */
+    private TrendLiftStrategyParams trendLift;
+
+    /** 趋势MA（trendma） */
+    private TrendMaStrategyParams trendMa;
+
+    /** 趋势回踩破 Low（trendretestlow） */
+    private TrendRetestLowStrategyParams trendRetestLow;
+
+    /** 趋势回踩破 High（trendretesthigh） */
+    private TrendRetestHighStrategyParams trendRetestHigh;
+
+    /** 趋势中转二阳（trendrelay2yang） */
+    private TrendRelay2YangStrategyParams trendRelay2Yang;
+
+    /** 趋势中转突破前 High（trendrelayprevhigh） */
+    private TrendRelayPrevHighStrategyParams trendRelayPrevHigh;
+
+    /** 趋势中转突破末波段 High（trendrelaybandhigh） */
+    private TrendRelayBandHighStrategyParams trendRelayBandHigh;
+
+    /** 底部波段突破（bottombandhigh） */
+    private BottomBandHighStrategyParams bottomBandHigh;
+
+    /** 底部 High 突破（bottomprev2high） */
+    private BottomPrev2HighStrategyParams bottomPrev2High;
+
+    /** 均线多头突破（maalignlift） */
+    private MaAlignLiftStrategyParams maAlignLift;
+
+    /** 均线空头突破（mabearbreak） */
+    private MaBearBreakStrategyParams maBearBreak;
+
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
                 .lianBanDays(1)
@@ -213,6 +249,18 @@ public class QueryContextParam extends PageQuery {
                 .dayWaveCcBreakout(DayWaveCcBreakoutStrategyParams.defaults())
                 .weekWaveCcBreakout(WeekWaveCcBreakoutStrategyParams.defaults())
                 .monthWaveCcBreakout(MonthWaveCcBreakoutStrategyParams.defaults())
+                .trendWaveCcBreakout(TrendWaveCcBreakoutStrategyParams.defaults())
+                .trendLift(TrendLiftStrategyParams.defaults())
+                .trendMa(TrendMaStrategyParams.defaults())
+                .trendRetestLow(TrendRetestLowStrategyParams.defaults())
+                .trendRetestHigh(TrendRetestHighStrategyParams.defaults())
+                .trendRelay2Yang(TrendRelay2YangStrategyParams.defaults())
+                .trendRelayPrevHigh(TrendRelayPrevHighStrategyParams.defaults())
+                .trendRelayBandHigh(TrendRelayBandHighStrategyParams.defaults())
+                .bottomBandHigh(BottomBandHighStrategyParams.defaults())
+                .bottomPrev2High(BottomPrev2HighStrategyParams.defaults())
+                .maAlignLift(MaAlignLiftStrategyParams.defaults())
+                .maBearBreak(MaBearBreakStrategyParams.defaults())
                 .build();
     }
 	

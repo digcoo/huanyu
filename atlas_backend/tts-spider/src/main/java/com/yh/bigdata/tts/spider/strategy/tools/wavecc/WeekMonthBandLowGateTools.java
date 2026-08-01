@@ -10,7 +10,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.List;
 
 /**
- * 周/月末波段底门：收盘价须 &gt; 末完整波段的波段底（首阳 low）。
+ * 周/月末波段底门：收盘价须 &gt; 末完整波段的波段底（波段内阳 K low 最小值）。
  */
 public final class WeekMonthBandLowGateTools {
 

@@ -10,7 +10,7 @@ import com.yh.bigdata.tts.spider.strategy.tools.wavecc.WeekMonthBandLowGateTools
 import java.util.List;
 
 /**
- * 日档附加门：周、月收盘价须同时 &gt; 各周期末完整波段的波段底（首阳 low）。
+ * 日档附加门：周、月收盘价须同时 &gt; 各周期末完整波段的波段底（波段内阳 K low 最小值）。
  */
 public final class MacdCrossTierBandLowGateTools {
 

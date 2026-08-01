@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 日凹凸突破（daywavecc）：日/周/月 MACD 至少 2 个 &gt;0 + 日 K 凸凹边沿突破（信号限末根日 K）。
+ * 日凹凸突破（daywavecc）：日/周/月 MACD 至少 2 个 &gt;0 + Min60 凸凹边沿突破。
  */
 @Data
 @Builder
@@ -14,9 +14,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DayWaveCcBreakoutStrategyParams {
 
+    public static final int DEFAULT_PREV_DAYS = 2;
+    public static final int DEFAULT_MAX_BARS_PER_DAY = 4;
     public static final int DEFAULT_LOOKBACK_BARS = 120;
     public static final double DEFAULT_MIN_AVG_AMOUNT = 3000D * 10_000D;
     public static final double DEFAULT_SIGNAL_RISE_PCT = 0.015;
+
+    @Builder.Default
+    private int prevDays = DEFAULT_PREV_DAYS;
+
+    @Builder.Default
+    private int maxBarsPerDay = DEFAULT_MAX_BARS_PER_DAY;
 
     @Builder.Default
     private int lookbackBars = DEFAULT_LOOKBACK_BARS;
@@ -33,6 +41,10 @@ public class DayWaveCcBreakoutStrategyParams {
     @Builder.Default
     private double signalRisePct = DEFAULT_SIGNAL_RISE_PCT;
 
+    /** true=须末根 Min60 K 突破；false=当日任一根 Min60 满足即可（多根取最后一根） */
+    @Builder.Default
+    private boolean requireCurrentBreakout = true;
+
     public static DayWaveCcBreakoutStrategyParams defaults() {
         return DayWaveCcBreakoutStrategyParams.builder().build();
     }
@@ -42,6 +54,12 @@ public class DayWaveCcBreakoutStrategyParams {
             return defaults();
         }
         DayWaveCcBreakoutStrategyParams d = defaults();
+        if (incoming.prevDays >= 0) {
+            d.prevDays = incoming.prevDays;
+        }
+        if (incoming.maxBarsPerDay >= 1) {
+            d.maxBarsPerDay = incoming.maxBarsPerDay;
+        }
         if (incoming.lookbackBars >= 10) {
             d.lookbackBars = incoming.lookbackBars;
         }
@@ -53,6 +71,7 @@ public class DayWaveCcBreakoutStrategyParams {
         if (incoming.signalRisePct > 0) {
             d.signalRisePct = incoming.signalRisePct;
         }
+        d.requireCurrentBreakout = incoming.requireCurrentBreakout;
         return d;
     }
 }
