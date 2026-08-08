@@ -859,24 +859,6 @@ public class StockPageQuery extends PageQuery {
     private Boolean trhEnableMinAmountFilter;
     /** 趋势回踩破 High · 最低日均成交额（万） */
     private Integer trhMinAmountWan;
-    /** 趋势中转二阳 · 档位 */
-    private String tr2yTier;
-    /** 趋势中转二阳 · 启用成交额门 */
-    private Boolean tr2yEnableMinAmountFilter;
-    /** 趋势中转二阳 · 最低日均成交额（万） */
-    private Integer tr2yMinAmountWan;
-    /** 趋势中转破前 High · 档位 */
-    private String trphTier;
-    /** 趋势中转破前 High · 启用成交额门 */
-    private Boolean trphEnableMinAmountFilter;
-    /** 趋势中转破前 High · 最低日均成交额（万） */
-    private Integer trphMinAmountWan;
-    /** 趋势中转破末 High · 档位 */
-    private String trbhTier;
-    /** 趋势中转破末 High · 启用成交额门 */
-    private Boolean trbhEnableMinAmountFilter;
-    /** 趋势中转破末 High · 最低日均成交额（万） */
-    private Integer trbhMinAmountWan;
     /** 底部波段突破 · 档位 */
     private String bbhTier;
     /** 底部波段突破 · 启用成交额门 */
@@ -889,18 +871,36 @@ public class StockPageQuery extends PageQuery {
     private Boolean bp2hEnableMinAmountFilter;
     /** 底部 High 突破 · 最低日均成交额（万） */
     private Integer bp2hMinAmountWan;
-    /** 均线多头突破 · 档位 */
-    private String malTier;
-    /** 均线多头突破 · 启用成交额门 */
-    private Boolean malEnableMinAmountFilter;
-    /** 均线多头突破 · 最低日均成交额（万） */
-    private Integer malMinAmountWan;
-    /** 均线空头突破 · 档位 */
-    private String mbrTier;
-    /** 均线空头突破 · 启用成交额门 */
-    private Boolean mbrEnableMinAmountFilter;
-    /** 均线空头突破 · 最低日均成交额（万） */
-    private Integer mbrMinAmountWan;
+    /** MA多头3M突破 · 档位 min60/day/week/month */
+    private String m3mTier;
+    /** MA多头3M突破 · 启用成交额门 */
+    private Boolean m3mEnableMinAmountFilter;
+    /** MA多头3M突破 · 最低日均成交额（万） */
+    private Integer m3mMinAmountWan;
+    /** MA多头破MA · 档位 min30/day/week/month */
+    private String mbmTier;
+    /** MA多头破MA · 启用成交额门 */
+    private Boolean mbmEnableMinAmountFilter;
+    /** MA多头破MA · 最低日均成交额（万） */
+    private Integer mbmMinAmountWan;
+    /** MA多头破MA · 额外要求30分也破MAX */
+    private Boolean mbmEnableMin30BreakFilter;
+    /** MA多头破MA · 要求日线3M多头 */
+    private Boolean mbmRequireDayAlign;
+    /** MA多头破MA · 要求周线3M多头 */
+    private Boolean mbmRequireWeekAlign;
+    /** MA多头破MA · 要求月线3M多头 */
+    private Boolean mbmRequireMonthAlign;
+    /** MA空头破MA · 启用成交额门 */
+    private Boolean mbbmEnableMinAmountFilter;
+    /** MA空头破MA · 最低日均成交额（万） */
+    private Integer mbbmMinAmountWan;
+    /** MA多头4M排列 · 档位 min30/day/week/month */
+    private String m4mTier;
+    /** MA多头4M排列 · 启用成交额门 */
+    private Boolean m4mEnableMinAmountFilter;
+    /** MA多头4M排列 · 最低日均成交额（万） */
+    private Integer m4mMinAmountWan;
     /** @deprecated */
     private Boolean wpgEnableWeekGate;
     /** @deprecated */
@@ -2490,51 +2490,6 @@ public class StockPageQuery extends PageQuery {
         return TrendRetestHighStrategyParams.merge(b.build());
     }
 
-    public TrendRelay2YangStrategyParams toTrendRelay2YangParams() {
-        TrendRelay2YangStrategyParams.TrendRelay2YangStrategyParamsBuilder b =
-                TrendRelay2YangStrategyParams.builder();
-        if (tr2yTier != null && !tr2yTier.trim().isEmpty()) {
-            b.tier(TrendRelay2YangStrategyParams.parseTier(tr2yTier));
-        }
-        if (tr2yEnableMinAmountFilter != null) {
-            b.enableMinAmountFilter(tr2yEnableMinAmountFilter);
-        }
-        if (tr2yMinAmountWan != null && tr2yMinAmountWan >= 0) {
-            b.minAvgAmount(tr2yMinAmountWan * 10_000D);
-        }
-        return TrendRelay2YangStrategyParams.merge(b.build());
-    }
-
-    public TrendRelayPrevHighStrategyParams toTrendRelayPrevHighParams() {
-        TrendRelayPrevHighStrategyParams.TrendRelayPrevHighStrategyParamsBuilder b =
-                TrendRelayPrevHighStrategyParams.builder();
-        if (trphTier != null && !trphTier.trim().isEmpty()) {
-            b.tier(TrendRelayPrevHighStrategyParams.parseTier(trphTier));
-        }
-        if (trphEnableMinAmountFilter != null) {
-            b.enableMinAmountFilter(trphEnableMinAmountFilter);
-        }
-        if (trphMinAmountWan != null && trphMinAmountWan >= 0) {
-            b.minAvgAmount(trphMinAmountWan * 10_000D);
-        }
-        return TrendRelayPrevHighStrategyParams.merge(b.build());
-    }
-
-    public TrendRelayBandHighStrategyParams toTrendRelayBandHighParams() {
-        TrendRelayBandHighStrategyParams.TrendRelayBandHighStrategyParamsBuilder b =
-                TrendRelayBandHighStrategyParams.builder();
-        if (trbhTier != null && !trbhTier.trim().isEmpty()) {
-            b.tier(TrendRelayBandHighStrategyParams.parseTier(trbhTier));
-        }
-        if (trbhEnableMinAmountFilter != null) {
-            b.enableMinAmountFilter(trbhEnableMinAmountFilter);
-        }
-        if (trbhMinAmountWan != null && trbhMinAmountWan >= 0) {
-            b.minAvgAmount(trbhMinAmountWan * 10_000D);
-        }
-        return TrendRelayBandHighStrategyParams.merge(b.build());
-    }
-
     public BottomBandHighStrategyParams toBottomBandHighParams() {
         BottomBandHighStrategyParams.BottomBandHighStrategyParamsBuilder b =
                 BottomBandHighStrategyParams.builder();
@@ -2565,34 +2520,73 @@ public class StockPageQuery extends PageQuery {
         return BottomPrev2HighStrategyParams.merge(b.build());
     }
 
-    public MaAlignLiftStrategyParams toMaAlignLiftParams() {
-        MaAlignLiftStrategyParams.MaAlignLiftStrategyParamsBuilder b =
-                MaAlignLiftStrategyParams.builder();
-        if (malTier != null && !malTier.trim().isEmpty()) {
-            b.tier(MaAlignLiftStrategyParams.parseTier(malTier));
+    public MaBull3mStrategyParams toMaBull3mParams() {
+        MaBull3mStrategyParams.MaBull3mStrategyParamsBuilder b =
+                MaBull3mStrategyParams.builder();
+        if (m3mTier != null && !m3mTier.trim().isEmpty()) {
+            b.tier(MaBull3mStrategyParams.parseTier(m3mTier));
         }
-        if (malEnableMinAmountFilter != null) {
-            b.enableMinAmountFilter(malEnableMinAmountFilter);
+        if (m3mEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(m3mEnableMinAmountFilter);
         }
-        if (malMinAmountWan != null && malMinAmountWan >= 0) {
-            b.minAvgAmount(malMinAmountWan * 10_000D);
+        if (m3mMinAmountWan != null && m3mMinAmountWan >= 0) {
+            b.minAvgAmount(m3mMinAmountWan * 10_000D);
         }
-        return MaAlignLiftStrategyParams.merge(b.build());
+        return MaBull3mStrategyParams.merge(b.build());
     }
 
-    public MaBearBreakStrategyParams toMaBearBreakParams() {
-        MaBearBreakStrategyParams.MaBearBreakStrategyParamsBuilder b =
-                MaBearBreakStrategyParams.builder();
-        if (mbrTier != null && !mbrTier.trim().isEmpty()) {
-            b.tier(MaBearBreakStrategyParams.parseTier(mbrTier));
+    public MaBreakMaStrategyParams toMaBreakMaParams() {
+        MaBreakMaStrategyParams.MaBreakMaStrategyParamsBuilder b =
+                MaBreakMaStrategyParams.builder();
+        if (mbmTier != null && !mbmTier.trim().isEmpty()) {
+            b.tier(MaBreakMaStrategyParams.parseTier(mbmTier));
         }
-        if (mbrEnableMinAmountFilter != null) {
-            b.enableMinAmountFilter(mbrEnableMinAmountFilter);
+        if (mbmEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(mbmEnableMinAmountFilter);
         }
-        if (mbrMinAmountWan != null && mbrMinAmountWan >= 0) {
-            b.minAvgAmount(mbrMinAmountWan * 10_000D);
+        if (mbmMinAmountWan != null && mbmMinAmountWan >= 0) {
+            b.minAvgAmount(mbmMinAmountWan * 10_000D);
         }
-        return MaBearBreakStrategyParams.merge(b.build());
+        if (mbmEnableMin30BreakFilter != null) {
+            b.enableMin30BreakFilter(mbmEnableMin30BreakFilter);
+        }
+        if (mbmRequireDayAlign != null) {
+            b.requireDayAlign(mbmRequireDayAlign);
+        }
+        if (mbmRequireWeekAlign != null) {
+            b.requireWeekAlign(mbmRequireWeekAlign);
+        }
+        if (mbmRequireMonthAlign != null) {
+            b.requireMonthAlign(mbmRequireMonthAlign);
+        }
+        return MaBreakMaStrategyParams.merge(b.build());
+    }
+
+    public MaBearBreakMaStrategyParams toMaBearBreakMaParams() {
+        MaBearBreakMaStrategyParams.MaBearBreakMaStrategyParamsBuilder b =
+                MaBearBreakMaStrategyParams.builder();
+        if (mbbmEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(mbbmEnableMinAmountFilter);
+        }
+        if (mbbmMinAmountWan != null && mbbmMinAmountWan >= 0) {
+            b.minAvgAmount(mbbmMinAmountWan * 10_000D);
+        }
+        return MaBearBreakMaStrategyParams.merge(b.build());
+    }
+
+    public MaBull4mStrategyParams toMaBull4mParams() {
+        MaBull4mStrategyParams.MaBull4mStrategyParamsBuilder b =
+                MaBull4mStrategyParams.builder();
+        if (m4mTier != null && !m4mTier.trim().isEmpty()) {
+            b.tier(MaBull4mStrategyParams.parseTier(m4mTier));
+        }
+        if (m4mEnableMinAmountFilter != null) {
+            b.enableMinAmountFilter(m4mEnableMinAmountFilter);
+        }
+        if (m4mMinAmountWan != null && m4mMinAmountWan >= 0) {
+            b.minAvgAmount(m4mMinAmountWan * 10_000D);
+        }
+        return MaBull4mStrategyParams.merge(b.build());
     }
 
     /** @deprecated 兼容旧 waveband 参数 */

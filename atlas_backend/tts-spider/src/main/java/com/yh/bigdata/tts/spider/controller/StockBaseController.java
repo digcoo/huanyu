@@ -641,9 +641,27 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getTrhTier()),
                 String.valueOf(pageQuery.getTrhEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getTrhMinAmountWan()),
-                String.valueOf(pageQuery.getTr2yTier()),
-                String.valueOf(pageQuery.getTr2yEnableMinAmountFilter()),
-                String.valueOf(pageQuery.getTr2yMinAmountWan()));
+                String.valueOf(pageQuery.getBbhTier()),
+                String.valueOf(pageQuery.getBbhEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getBbhMinAmountWan()),
+                String.valueOf(pageQuery.getBp2hTier()),
+                String.valueOf(pageQuery.getBp2hEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getBp2hMinAmountWan()),
+                String.valueOf(pageQuery.getM3mTier()),
+                String.valueOf(pageQuery.getM3mEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getM3mMinAmountWan()),
+                String.valueOf(pageQuery.getMbmTier()),
+                String.valueOf(pageQuery.getMbmEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMbmMinAmountWan()),
+                String.valueOf(pageQuery.getMbmEnableMin30BreakFilter()),
+                String.valueOf(pageQuery.getMbmRequireDayAlign()),
+                String.valueOf(pageQuery.getMbmRequireWeekAlign()),
+                String.valueOf(pageQuery.getMbmRequireMonthAlign()),
+                String.valueOf(pageQuery.getMbbmEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMbbmMinAmountWan()),
+                String.valueOf(pageQuery.getM4mTier()),
+                String.valueOf(pageQuery.getM4mEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getM4mMinAmountWan()));
     }
 
     /** 重跑后预热 findMy 缓存，避免小程序二次全市场扫描超时 */
@@ -748,13 +766,12 @@ public class StockBaseController {
                 .trendMa(stockPageQuery.toTrendMaParams())
                 .trendRetestLow(stockPageQuery.toTrendRetestLowParams())
                 .trendRetestHigh(stockPageQuery.toTrendRetestHighParams())
-                .trendRelay2Yang(stockPageQuery.toTrendRelay2YangParams())
-                .trendRelayPrevHigh(stockPageQuery.toTrendRelayPrevHighParams())
-                .trendRelayBandHigh(stockPageQuery.toTrendRelayBandHighParams())
                 .bottomBandHigh(stockPageQuery.toBottomBandHighParams())
                 .bottomPrev2High(stockPageQuery.toBottomPrev2HighParams())
-                .maAlignLift(stockPageQuery.toMaAlignLiftParams())
-                .maBearBreak(stockPageQuery.toMaBearBreakParams())
+                .maBull3m(stockPageQuery.toMaBull3mParams())
+                .maBreakMa(stockPageQuery.toMaBreakMaParams())
+                .maBearBreakMa(stockPageQuery.toMaBearBreakMaParams())
+                .maBull4m(stockPageQuery.toMaBull4mParams())
                 .build();
 
     }

@@ -9,6 +9,7 @@ function parseRefSigFromSignal(item) {
     .join('|');
   if (!text) return null;
   var refM = text.match(/refDay=([^,|]+(?:\s[^,|]+)*)/)
+    || text.match(/crossDay=([^,|]+(?:\s[^,|]+)*)/)
     || text.match(/firstYangDay=([^,|]+(?:\s[^,|]+)*)/);
   var sigM = text.match(/sigDay=([^,|]+(?:\s[^,|]+)*)/);
   if (!refM && !sigM) return null;
@@ -16,6 +17,24 @@ function parseRefSigFromSignal(item) {
     referenceDay: refM ? refM[1].trim() : '',
     signalDay: sigM ? sigM[1].trim() : ''
   };
+}
+
+function resolveRefLabelFromItem(item, fallback) {
+  var text = [item && item.signalMessage, item && item.trendMessage, item && item.summary]
+    .filter(function (s) { return s && String(s).trim(); })
+    .join('|');
+  var labelM = text.match(/refLabel=([^,|]+)/);
+  if (labelM && labelM[1]) {
+    var raw = labelM[1].trim();
+    if (raw.indexOf('金叉') >= 0) return '金叉K';
+    if (raw.indexOf('死叉') >= 0) return '死叉K';
+    if (raw.indexOf('关键') >= 0) return '关键K';
+    return raw.length > 6 ? '基准K' : raw;
+  }
+  if (/ref=GOLDEN|cross=GOLDEN/.test(text)) return '金叉K';
+  if (/ref=DEATH|cross=DEATH/.test(text)) return '死叉K';
+  if (/ref=CRITICAL/.test(text)) return '关键K';
+  return fallback || '基准K';
 }
 
 function refSigMarkersVoToBar(m, refLabel) {
@@ -64,7 +83,7 @@ function createRefSigMarkerModule(opts) {
 
   function resolveRefLabel(item) {
     if (typeof refLabel === 'function') return refLabel(item);
-    return refLabel;
+    return resolveRefLabelFromItem(item, refLabel || '基准K');
   }
 
   function markersVoToBarMarkers(m, item) {
@@ -186,6 +205,7 @@ function createRefSigMarkerModule(opts) {
 
 module.exports = {
   parseRefSigFromSignal: parseRefSigFromSignal,
+  resolveRefLabelFromItem: resolveRefLabelFromItem,
   refSigMarkersVoToBar: refSigMarkersVoToBar,
   buildMockRefSigMarkers: buildMockRefSigMarkers,
   hasRefSigParsed: hasRefSigParsed,

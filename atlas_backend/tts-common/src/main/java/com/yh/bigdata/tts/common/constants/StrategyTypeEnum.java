@@ -108,20 +108,36 @@ public enum StrategyTypeEnum {
     TREND_RETEST_LOW("trendretestlow", "趋势回踩破Low", 61),
     /** 趋势回踩破 High */
     TREND_RETEST_HIGH("trendretesthigh", "趋势回踩破High", 62),
-    /** 趋势中转二阳 */
+    /** @deprecated 趋势中转二阳已下线 */
     TREND_RELAY_2YANG("trendrelay2yang", "趋势中转二阳", 63),
-    /** 趋势中转突破前 High */
+    /** @deprecated 趋势中转破前 High 已下线 */
     TREND_RELAY_PREV_HIGH("trendrelayprevhigh", "趋势中转破前High", 64),
-    /** 趋势中转突破末波段 High */
+    /** @deprecated 趋势中转破末 High 已下线 */
     TREND_RELAY_BAND_HIGH("trendrelaybandhigh", "趋势中转破末High", 65),
     /** 底部波段突破 */
     BOTTOM_BAND_HIGH("bottombandhigh", "底部波段突破", 66),
     /** 底部 High 突破（末前 2 根 K max high） */
     BOTTOM_PREV2_HIGH("bottomprev2high", "底部High突破", 67),
-    /** 均线多头突破（MA10&gt;MA20&gt;MA30 + 边沿或开盘突破均线MAX） */
+    /** @deprecated 均线多头突破已下线 */
     MA_ALIGN_LIFT("maalignlift", "均线多头突破", 68),
-    /** 均线空头突破（MA10&lt;MA20&lt;MA30 + 边沿或开盘突破均线MAX） */
+    /** @deprecated 均线空头突破已下线 */
     MA_BEAR_BREAK("mabearbreak", "均线空头突破", 69),
+    /** @deprecated MA交叉K突破已下线 */
+    MA_CROSS_BREAK("macrossbreak", "MA交叉K突破", 70),
+    /** MA均线多头突破3M（3M1≥MA20 或 3M2≥MA30 + 边沿破金叉/死叉/关键K High） */
+    MA_BULL_3M("mabull3m", "MA多头3M突破", 73),
+    /** MA多头破MA（3M1/3M2 多头 + 边沿/开盘破均线 MAX） */
+    MA_BREAK_MA("mabreakma", "MA多头破MA", 76),
+    /** MA空头破MA（日线3M空头 + 30分3M多头破MAX） */
+    MA_BEAR_BREAK_MA("mabearbreakma", "MA空头破MA", 77),
+    /** MA多头4M排列（MA5≥MA10≥MA20≥MA30 + 收阳 + close&gt;前Low） */
+    MA_BULL_4M("mabull4m", "MA多头4M排列", 75),
+    /** @deprecated MA多头3M2已并入 mabull3m */
+    MA_BULL_3M2("mabull3m2", "MA多头3M2突破", 74),
+    /** @deprecated MA趋势中继反转已下线 */
+    MA_TREND_RELAY("matrendrelay", "MA趋势中继反转", 71),
+    /** @deprecated MA多头趋势已下线 */
+    MA_BULL_TREND("mabulltrend", "MA多头趋势", 72),
     /** @deprecated 凹波分档突破 · 短线 */
     WAVE_CONCAVE_TIER_SHORT("waveconcavetierShort", "凹波突破短线", 29),
     /** 凹波分档突破 · 中线 */
@@ -158,10 +174,10 @@ public enum StrategyTypeEnum {
     private final int groupOrder;
 
     public boolean isActive() {
-        return this == TREND_RETEST_LOW || this == TREND_RETEST_HIGH || this == TREND_RELAY_2YANG
-                || this == TREND_RELAY_PREV_HIGH || this == TREND_RELAY_BAND_HIGH
+        return this == TREND_RETEST_LOW || this == TREND_RETEST_HIGH
                 || this == BOTTOM_BAND_HIGH || this == BOTTOM_PREV2_HIGH
-                || this == MA_ALIGN_LIFT || this == MA_BEAR_BREAK;
+                || this == MA_BULL_3M || this == MA_BREAK_MA
+                || this == MA_BEAR_BREAK_MA || this == MA_BULL_4M;
     }
 
 	public static StrategyTypeEnum getByCode(String code){

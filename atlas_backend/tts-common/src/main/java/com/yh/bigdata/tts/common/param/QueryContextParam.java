@@ -177,26 +177,23 @@ public class QueryContextParam extends PageQuery {
     /** 趋势回踩破 High（trendretesthigh） */
     private TrendRetestHighStrategyParams trendRetestHigh;
 
-    /** 趋势中转二阳（trendrelay2yang） */
-    private TrendRelay2YangStrategyParams trendRelay2Yang;
-
-    /** 趋势中转突破前 High（trendrelayprevhigh） */
-    private TrendRelayPrevHighStrategyParams trendRelayPrevHigh;
-
-    /** 趋势中转突破末波段 High（trendrelaybandhigh） */
-    private TrendRelayBandHighStrategyParams trendRelayBandHigh;
-
     /** 底部波段突破（bottombandhigh） */
     private BottomBandHighStrategyParams bottomBandHigh;
 
     /** 底部 High 突破（bottomprev2high） */
     private BottomPrev2HighStrategyParams bottomPrev2High;
 
-    /** 均线多头突破（maalignlift） */
-    private MaAlignLiftStrategyParams maAlignLift;
+    /** MA均线多头突破3M（mabull3m：3M1≥MA20 或 3M2≥MA30） */
+    private MaBull3mStrategyParams maBull3m;
 
-    /** 均线空头突破（mabearbreak） */
-    private MaBearBreakStrategyParams maBearBreak;
+    /** MA多头破MA（mabreakma） */
+    private MaBreakMaStrategyParams maBreakMa;
+
+    /** MA空头破MA（mabearbreakma） */
+    private MaBearBreakMaStrategyParams maBearBreakMa;
+
+    /** MA多头4M排列（mabull4m） */
+    private MaBull4mStrategyParams maBull4m;
 
     public static QueryContextParam empty() {
         return QueryContextParam.builder()
@@ -254,13 +251,12 @@ public class QueryContextParam extends PageQuery {
                 .trendMa(TrendMaStrategyParams.defaults())
                 .trendRetestLow(TrendRetestLowStrategyParams.defaults())
                 .trendRetestHigh(TrendRetestHighStrategyParams.defaults())
-                .trendRelay2Yang(TrendRelay2YangStrategyParams.defaults())
-                .trendRelayPrevHigh(TrendRelayPrevHighStrategyParams.defaults())
-                .trendRelayBandHigh(TrendRelayBandHighStrategyParams.defaults())
                 .bottomBandHigh(BottomBandHighStrategyParams.defaults())
                 .bottomPrev2High(BottomPrev2HighStrategyParams.defaults())
-                .maAlignLift(MaAlignLiftStrategyParams.defaults())
-                .maBearBreak(MaBearBreakStrategyParams.defaults())
+                .maBull3m(MaBull3mStrategyParams.defaults())
+                .maBreakMa(MaBreakMaStrategyParams.defaults())
+                .maBearBreakMa(MaBearBreakMaStrategyParams.defaults())
+                .maBull4m(MaBull4mStrategyParams.defaults())
                 .build();
     }
 	

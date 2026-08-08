@@ -47,6 +47,22 @@ public final class LongStrategyUtil {
                     Double ma30 = candlesticks.subList(i - 30 < 0 ? 0 : i - 30, i).stream().mapToDouble(x -> x.getClose().doubleValue()).average().orElse(0.0);
                     candlestickMA.setMa30(new BigDecimal(ma30).setScale(candlestickMA.getPrecision() + 5, RoundingMode.HALF_UP));
                 }
+                if (i >= 7) {
+                    Double ma7 = candlesticks.subList(i - 7, i).stream().mapToDouble(x -> x.getClose().doubleValue()).average().orElse(0.0);
+                    candlestickMA.setMa7(new BigDecimal(ma7).setScale(candlestickMA.getPrecision() + 5, RoundingMode.HALF_UP));
+                }
+                if (i >= 14) {
+                    Double ma14 = candlesticks.subList(i - 14, i).stream().mapToDouble(x -> x.getClose().doubleValue()).average().orElse(0.0);
+                    candlestickMA.setMa14(new BigDecimal(ma14).setScale(candlestickMA.getPrecision() + 5, RoundingMode.HALF_UP));
+                }
+                if (i >= 28) {
+                    Double ma28 = candlesticks.subList(i - 28, i).stream().mapToDouble(x -> x.getClose().doubleValue()).average().orElse(0.0);
+                    candlestickMA.setMa28(new BigDecimal(ma28).setScale(candlestickMA.getPrecision() + 5, RoundingMode.HALF_UP));
+                }
+                if (i >= 42) {
+                    Double ma42 = candlesticks.subList(i - 42, i).stream().mapToDouble(x -> x.getClose().doubleValue()).average().orElse(0.0);
+                    candlestickMA.setMa42(new BigDecimal(ma42).setScale(candlestickMA.getPrecision() + 5, RoundingMode.HALF_UP));
+                }
                 candlestickMAs.add(candlestickMA);
 //                log.info("symbol=[{}], period=[{}:{}～{}], ma5~m30=[{}:{}:{}:{}]", candlestickMA.getSymbol(), candlestickMA.getPeriodTypeEnum(), candlestickMA.getOpenTimeStr(), candlestickMA.getCloseTimeStr(), candlestickMA.getMa5(), candlestickMA.getMa10(), candlestickMA.getMa20(), candlestickMA.getMa30());
             } catch (Exception ex) {

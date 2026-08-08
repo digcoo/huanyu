@@ -15,6 +15,8 @@ const ultraMarkers = require('../../utils/ultra-markers');
 const trendMarkers = require('../../utils/trend-markers');
 const mediumMarkers = require('../../utils/medium-markers');
 const longMarkers = require('../../utils/long-markers');
+const barMarkers = require('../../utils/bar-markers');
+const markerUtils = require('../../utils/marker-utils');
 
 function mapChartKlines(detail, period) {
   if (!detail || !detail.klines) return [];
@@ -188,6 +190,15 @@ function syncBarMarkers(page, detail, period, klines) {
   }
   if (retestMarkers.shouldShowRetestMarkers(strategyId, period)) {
     return syncRetestMarkers(page, detail, period, klines);
+  }
+  if (barMarkers.shouldShowBarMarkers(strategyId, period)) {
+    var parsed = markerUtils.parseRefSigFromSignal(detail);
+    var label = markerUtils.resolveRefLabelFromItem(detail, '基准K');
+    if (markerUtils.hasRefSigParsed(parsed)) {
+      return Promise.resolve(applyChartMarkers(page, markerUtils.refSigMarkersVoToBar(parsed, label)));
+    }
+    return Promise.resolve(applyChartMarkers(page,
+      barMarkers.resolveBarMarkersForItem(detail, strategyId, period, klines)));
   }
   return Promise.resolve(clearBarMarkers(page));
 }

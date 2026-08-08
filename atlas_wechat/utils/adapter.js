@@ -13,48 +13,43 @@ const STRATEGY_API = {
   trendretesthighShort: { strategy: 'trendretesthigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
   trendretesthighMedium: { strategy: 'trendretesthigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
   trendretesthighLong: { strategy: 'trendretesthigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
-  trendrelay2yang: { strategy: 'trendrelay2yang', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  trendrelay2yangShort: { strategy: 'trendrelay2yang', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  trendrelay2yangMedium: { strategy: 'trendrelay2yang', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
-  trendrelay2yangLong: { strategy: 'trendrelay2yang', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
-  trendrelayprevhigh: { strategy: 'trendrelayprevhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  trendrelayprevhighShort: { strategy: 'trendrelayprevhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  trendrelayprevhighMedium: { strategy: 'trendrelayprevhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
-  trendrelayprevhighLong: { strategy: 'trendrelayprevhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
-  trendrelaybandhigh: { strategy: 'trendrelaybandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  trendrelaybandhighShort: { strategy: 'trendrelaybandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  trendrelaybandhighMedium: { strategy: 'trendrelaybandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
-  trendrelaybandhighLong: { strategy: 'trendrelaybandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
-  bottombandhigh: { strategy: 'bottombandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  bottombandhighShort: { strategy: 'bottombandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  bottombandhighMedium: { strategy: 'bottombandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
-  bottombandhighLong: { strategy: 'bottombandhigh', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
-  bottomprev2high: { strategy: 'bottomprev2high', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  bottomprev2highShort: { strategy: 'bottomprev2high', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  bottomprev2highMedium: { strategy: 'bottomprev2high', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
-  bottomprev2highLong: { strategy: 'bottomprev2high', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
-  maalignlift: { strategy: 'maalignlift', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  maalignliftShort: { strategy: 'maalignlift', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  maalignliftMedium: { strategy: 'maalignlift', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
-  maalignliftLong: { strategy: 'maalignlift', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' },
-  mabearbreak: { strategy: 'mabearbreak', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  mabearbreakShort: { strategy: 'mabearbreak', trendPeriodTypes: 'month,week,day', opPeriodType: 'day' },
-  mabearbreakMedium: { strategy: 'mabearbreak', trendPeriodTypes: 'month,week,day', opPeriodType: 'week' },
-  mabearbreakLong: { strategy: 'mabearbreak', trendPeriodTypes: 'month,week,day', opPeriodType: 'month' }
+  mabull3m: { strategy: 'mabull3m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  mabull3mFlash: { strategy: 'mabull3m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'min30' },
+  mabull3mShort: { strategy: 'mabull3m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  mabull3mMedium: { strategy: 'mabull3m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'week' },
+  mabull3mLong: { strategy: 'mabull3m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'month' },
+  mabreakma: { strategy: 'mabreakma', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  mabreakmaFlash: { strategy: 'mabreakma', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'min30' },
+  mabreakmaShort: { strategy: 'mabreakma', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  mabreakmaMedium: { strategy: 'mabreakma', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'week' },
+  mabreakmaLong: { strategy: 'mabreakma', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'month' },
+  mabearbreakma: { strategy: 'mabearbreakma', trendPeriodTypes: 'day,min30', opPeriodType: 'min30' },
+  mabull4m: { strategy: 'mabull4m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  mabull4mFlash: { strategy: 'mabull4m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'min30' },
+  mabull4mShort: { strategy: 'mabull4m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  mabull4mMedium: { strategy: 'mabull4m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'week' },
+  mabull4mLong: { strategy: 'mabull4m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'month' }
 };
 
 function normalizeStrategyId(strategyId) {
   if (!strategyId) return 'trendretestlowShort';
   if (strategyId === 'trendretestlow') return 'trendretestlowShort';
   if (strategyId === 'trendretesthigh') return 'trendretesthighShort';
-  if (strategyId === 'trendrelay2yang') return 'trendrelay2yangShort';
-  if (strategyId === 'trendrelayprevhigh') return 'trendrelayprevhighShort';
-  if (strategyId === 'trendrelaybandhigh') return 'trendrelaybandhighShort';
-  if (strategyId === 'bottombandhigh') return 'bottombandhighShort';
-  if (strategyId === 'bottomprev2high') return 'bottomprev2highShort';
-  if (strategyId === 'maalignlift') return 'maalignliftShort';
-  if (strategyId === 'mabearbreak') return 'mabearbreakShort';
-  if (/^trendretest(low|high)|^trendrelay2yang|^trendrelayprevhigh|^trendrelaybandhigh|^bottombandhigh|^bottomprev2high|^maalignlift|^mabearbreak/.test(strategyId)) {
+  if (strategyId === 'mabull3m') return 'mabull3mFlash';
+  if (strategyId === 'mabull3mUltra') return 'mabull3mFlash';
+  if (strategyId === 'mabreakma') return 'mabreakmaFlash';
+  if (strategyId === 'mabull4m') return 'mabull4mFlash';
+  if (/^mabull3m2/.test(strategyId) || strategyId === 'mabull3m2') {
+    if (strategyId === 'mabull3m2Medium') return 'mabull3mMedium';
+    if (strategyId === 'mabull3m2Long') return 'mabull3mLong';
+    if (strategyId === 'mabull3m2Short') return 'mabull3mShort';
+    return 'mabull3mFlash';
+  }
+  // 旧下线策略本地缓存 → 回踩破Low·日
+  if (/^bottombandhigh|^bottomprev2high|^maalignlift|^macrossbreak/.test(strategyId)) {
+    return 'trendretestlowShort';
+  }
+  if (/^trendretest(low|high)|^mabull3m|^mabreakma|^mabearbreakma|^mabull4m/.test(strategyId)) {
     return strategyId;
   }
   return 'trendretestlowShort';
@@ -588,39 +583,38 @@ function mapRecommendation(item, strategyId) {
     if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
     else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
     else tags.push('日档');
-  } else if (/^trendrelay2yang/.test(strategyId) || strategyId === 'trendrelay2yang') {
-    tags.push('趋势中转二阳');
-    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+  } else if (/^mabull3m/.test(strategyId) || strategyId === 'mabull3m') {
+    tags.push('MA多头3M突破');
+    if (/align=MA30/.test(item.signalMessage || '')) tags.push('3M2');
+    else if (/align=MA20/.test(item.signalMessage || '')) tags.push('3M1');
+    if (/ref=GOLDEN|refLabel=金叉/.test(item.signalMessage || '')) tags.push('金叉K');
+    else if (/ref=DEATH|refLabel=死叉/.test(item.signalMessage || '')) tags.push('死叉K');
+    else if (/ref=CRITICAL|refLabel=关键/.test(item.signalMessage || '')) tags.push('关键K');
+    else if (/refDay=/.test(item.signalMessage || '')) tags.push('基准K');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
     else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
     else tags.push('日档');
-  } else if (/^trendrelayprevhigh/.test(strategyId) || strategyId === 'trendrelayprevhigh') {
-    tags.push('趋势中转破前High');
-    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+  } else if (/^mabreakma/.test(strategyId) || strategyId === 'mabreakma') {
+    tags.push('MA多头破MA');
+    if (/align=MA30/.test(item.signalMessage || '')) tags.push('3M2');
+    else if (/align=MA20/.test(item.signalMessage || '')) tags.push('3M1');
+    if (/break=OPEN/.test(item.signalMessage || '')) tags.push('开盘破');
+    else tags.push('边沿破');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
     else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
     else tags.push('日档');
-  } else if (/^trendrelaybandhigh/.test(strategyId) || strategyId === 'trendrelaybandhigh') {
-    tags.push('趋势中转破末High');
-    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
-    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
-    else tags.push('日档');
-  } else if (/^bottombandhigh/.test(strategyId) || strategyId === 'bottombandhigh') {
-    tags.push('底部波段突破');
-    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
-    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
-    else tags.push('日档');
-  } else if (/^bottomprev2high/.test(strategyId) || strategyId === 'bottomprev2high') {
-    tags.push('底部High突破');
-    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
-    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
-    else tags.push('日档');
-  } else if (/^maalignlift/.test(strategyId) || strategyId === 'maalignlift') {
-    tags.push('均线多头突破');
-    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
-    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
-    else tags.push('日档');
-  } else if (/^mabearbreak/.test(strategyId) || strategyId === 'mabearbreak') {
-    tags.push('均线空头突破');
-    if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+  } else if (/^mabearbreakma/.test(strategyId) || strategyId === 'mabearbreakma') {
+    tags.push('MA空头破MA');
+    if (/dayAlign=MA30/.test(item.signalMessage || '')) tags.push('日3M2空');
+    else tags.push('日3M1空');
+    if (/align=MA30/.test(item.signalMessage || '')) tags.push('30分3M2');
+    else tags.push('30分3M1');
+  } else if (/^mabull4m/.test(strategyId) || strategyId === 'mabull4m') {
+    tags.push('MA多头4M排列');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
     else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
     else tags.push('日档');
   } else if (item.signalMessage) {

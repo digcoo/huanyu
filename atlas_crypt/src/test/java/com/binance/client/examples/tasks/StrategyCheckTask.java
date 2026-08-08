@@ -7,8 +7,8 @@ import com.binance.client.examples.constants.GlobalConstants;
 import com.binance.client.examples.constants.SymbolCacheData;
 import com.binance.client.model.market.Candlestick;
 import com.binance.client.strategy.StrategyCheckResult;
-import com.binance.client.strategy.wavecc.HourWaveCcBreakdownTools;
-import com.binance.client.strategy.wavecc.HourWaveCcBreakoutTools;
+import com.binance.client.strategy.ma4m.HourMaBear4mTools;
+import com.binance.client.strategy.ma4m.HourMaBull4mTools;
 import com.binance.client.utils.MessageSenderUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 1小时凹凸突破/跌破策略（多/空对称）
+ * 1小时 MA 多头4M突破 / 空头4M跌破策略
  */
 @Slf4j
 public class StrategyCheckTask extends Thread {
@@ -40,7 +40,7 @@ public class StrategyCheckTask extends Thread {
 
     @Override
     public void run() {
-        log.info("开始执行1小时凹凸突破/跌破策略");
+        log.info("开始执行1小时MA多头4M突破/空头4M跌破策略");
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(() -> {
             try {
@@ -105,32 +105,30 @@ public class StrategyCheckTask extends Thread {
         }
 
         List<Candlestick> hour1Bars = data.get(PeriodTypeEnum.HOUR1);
-        List<Candlestick> hour4Bars = data.get(PeriodTypeEnum.HOUR4);
-        List<Candlestick> dayBars = data.get(PeriodTypeEnum.DAY1);
-        if (hour1Bars == null || hour1Bars.size() < 3) {
+        if (hour1Bars == null || hour1Bars.size() < 45) {
             return Arrays.asList(longResult, shortResult);
         }
 
         Candlestick lastBar = hour1Bars.get(hour1Bars.size() - 1);
 
-        HourWaveCcBreakoutTools.Hit longHit = HourWaveCcBreakoutTools.findHit(hour1Bars, hour4Bars, dayBars);
+        HourMaBull4mTools.Hit longHit = HourMaBull4mTools.findHit(hour1Bars);
         if (longHit != null) {
             longResult.setHit(true);
             longResult.setClose(lastBar.getClose());
             longResult.setChangeRate(lastBar.getChangeRate());
-            longResult.setLongWaveHit(longHit);
-            longResult.setTrendMessage(HourWaveCcBreakoutTools.buildTrendMessage(longHit));
-            longResult.setSignalMessage(HourWaveCcBreakoutTools.buildSignalMessage(longHit));
+            longResult.setLongMaHit(longHit);
+            longResult.setTrendMessage(HourMaBull4mTools.buildTrendMessage(longHit));
+            longResult.setSignalMessage(HourMaBull4mTools.buildSignalMessage(longHit));
         }
 
-        HourWaveCcBreakdownTools.Hit shortHit = HourWaveCcBreakdownTools.findHit(hour1Bars, hour4Bars, dayBars);
+        HourMaBear4mTools.Hit shortHit = HourMaBear4mTools.findHit(hour1Bars);
         if (shortHit != null) {
             shortResult.setHit(true);
             shortResult.setClose(lastBar.getClose());
             shortResult.setChangeRate(lastBar.getChangeRate());
-            shortResult.setShortWaveHit(shortHit);
-            shortResult.setTrendMessage(HourWaveCcBreakdownTools.buildTrendMessage(shortHit));
-            shortResult.setSignalMessage(HourWaveCcBreakdownTools.buildSignalMessage(shortHit));
+            shortResult.setShortMaHit(shortHit);
+            shortResult.setTrendMessage(HourMaBear4mTools.buildTrendMessage(shortHit));
+            shortResult.setSignalMessage(HourMaBear4mTools.buildSignalMessage(shortHit));
         }
 
         return Arrays.asList(longResult, shortResult);
