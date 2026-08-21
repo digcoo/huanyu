@@ -128,6 +128,14 @@ public enum StrategyTypeEnum {
     MA_BULL_3M("mabull3m", "MA多头3M突破", 73),
     /** MA多头破MA（3M1/3M2 多头 + 边沿/开盘破均线 MAX） */
     MA_BREAK_MA("mabreakma", "MA多头破MA", 76),
+    /** MA金叉点突破（边沿破 MA5/MA10 金叉交叉点） */
+    MA_GOLD_BREAK("magoldbreak", "MA金叉点突破", 78),
+    /** MA死叉点突破（边沿破 MA5/MA10 死叉交叉点） */
+    MA_DEATH_BREAK("madeathbreak", "MA死叉点突破", 79),
+    /** @deprecated 凹突破已下线 */
+    CONCAVE_BREAK("concavebreak", "凹突破", 80),
+    /** 突破前波段High（同档边沿破末完整阳波段 bandHigh） */
+    PREV_BAND_HIGH("prevbandhigh", "突破前波段High", 81),
     /** MA空头破MA（日线3M空头 + 30分3M多头破MAX） */
     MA_BEAR_BREAK_MA("mabearbreakma", "MA空头破MA", 77),
     /** MA多头4M排列（MA5≥MA10≥MA20≥MA30 + 收阳 + close&gt;前Low） */
@@ -177,6 +185,8 @@ public enum StrategyTypeEnum {
         return this == TREND_RETEST_LOW || this == TREND_RETEST_HIGH
                 || this == BOTTOM_BAND_HIGH || this == BOTTOM_PREV2_HIGH
                 || this == MA_BULL_3M || this == MA_BREAK_MA
+                || this == MA_GOLD_BREAK || this == MA_DEATH_BREAK
+                || this == PREV_BAND_HIGH
                 || this == MA_BEAR_BREAK_MA || this == MA_BULL_4M;
     }
 

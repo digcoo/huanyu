@@ -129,11 +129,18 @@ const STRATEGIES = [
   { id: 'mabreakmaShort', name: 'MA多头破MA·日' },
   { id: 'mabreakmaMedium', name: 'MA多头破MA·周' },
   { id: 'mabreakmaLong', name: 'MA多头破MA·月' },
-  { id: 'mabearbreakma', name: 'MA空头破MA' },
-  { id: 'mabull4mFlash', name: 'MA多头4M排列·30分' },
-  { id: 'mabull4mShort', name: 'MA多头4M排列·日' },
-  { id: 'mabull4mMedium', name: 'MA多头4M排列·周' },
-  { id: 'mabull4mLong', name: 'MA多头4M排列·月' },
+  { id: 'magoldbreakFlash', name: 'MA金叉点突破·30分' },
+  { id: 'magoldbreakShort', name: 'MA金叉点突破·日' },
+  { id: 'magoldbreakMedium', name: 'MA金叉点突破·周' },
+  { id: 'magoldbreakLong', name: 'MA金叉点突破·月' },
+  { id: 'madeathbreakFlash', name: 'MA死叉点突破·30分' },
+  { id: 'madeathbreakShort', name: 'MA死叉点突破·日' },
+  { id: 'madeathbreakMedium', name: 'MA死叉点突破·周' },
+  { id: 'madeathbreakLong', name: 'MA死叉点突破·月' },
+  { id: 'prevbandhighFlash', name: '突破前波段High·30分' },
+  { id: 'prevbandhighShort', name: '突破前波段High·日' },
+  { id: 'prevbandhighMedium', name: '突破前波段High·周' },
+  { id: 'prevbandhighLong', name: '突破前波段High·月' }
 ];
 
 const { formatDataUpdatedLabel, todayDayStr } = require('./time');

@@ -72,7 +72,7 @@
         <mini-kline
           wx:if="{{chartKlines.length}}"
           klines="{{chartKlines}}"
-          label="{{c.periodLabel(activePeriod)}} · 50根{{klineLive ? ' · 实时' : ''}}"
+          label="{{c.periodLabel(activePeriod)}} · {{c.maxBars(activePeriod)}}根{{klineLive ? ' · 实时' : ''}}"
           size="card"
           maxBars="{{c.maxBars(activePeriod)}}"
           flipped="{{klineFlipped}}"

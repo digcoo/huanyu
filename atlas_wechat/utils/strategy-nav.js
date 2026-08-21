@@ -5,8 +5,9 @@ var STRATEGY_TREND_RETEST_LOW = 'trendretestlow';
 var STRATEGY_TREND_RETEST_HIGH = 'trendretesthigh';
 var STRATEGY_MA_BULL_3M = 'mabull3m';
 var STRATEGY_MA_BREAK_MA = 'mabreakma';
-var STRATEGY_MA_BEAR_BREAK_MA = 'mabearbreakma';
-var STRATEGY_MA_BULL_4M = 'mabull4m';
+var STRATEGY_MA_GOLD_BREAK = 'magoldbreak';
+var STRATEGY_MA_DEATH_BREAK = 'madeathbreak';
+var STRATEGY_PREV_BAND_HIGH = 'prevbandhigh';
 
 var LOW_TIER_SHORT = 'trendretestlowShort';
 var LOW_TIER_MEDIUM = 'trendretestlowMedium';
@@ -26,18 +27,29 @@ var MBM_TIER_SHORT = 'mabreakmaShort';
 var MBM_TIER_MEDIUM = 'mabreakmaMedium';
 var MBM_TIER_LONG = 'mabreakmaLong';
 
-var M4M_TIER_FLASH = 'mabull4mFlash';
-var M4M_TIER_SHORT = 'mabull4mShort';
-var M4M_TIER_MEDIUM = 'mabull4mMedium';
-var M4M_TIER_LONG = 'mabull4mLong';
+var MGB_TIER_FLASH = 'magoldbreakFlash';
+var MGB_TIER_SHORT = 'magoldbreakShort';
+var MGB_TIER_MEDIUM = 'magoldbreakMedium';
+var MGB_TIER_LONG = 'magoldbreakLong';
+
+var MDB_TIER_FLASH = 'madeathbreakFlash';
+var MDB_TIER_SHORT = 'madeathbreakShort';
+var MDB_TIER_MEDIUM = 'madeathbreakMedium';
+var MDB_TIER_LONG = 'madeathbreakLong';
+
+var PBH_TIER_FLASH = 'prevbandhighFlash';
+var PBH_TIER_SHORT = 'prevbandhighShort';
+var PBH_TIER_MEDIUM = 'prevbandhighMedium';
+var PBH_TIER_LONG = 'prevbandhighLong';
 
 var STRATEGY_FAMILIES = [
   { id: STRATEGY_TREND_RETEST_LOW, name: '回踩破Low', icon: '↩' },
   { id: STRATEGY_TREND_RETEST_HIGH, name: '回踩破High', icon: '⤴' },
   { id: STRATEGY_MA_BULL_3M, name: 'MA多头3M', icon: '☰' },
   { id: STRATEGY_MA_BREAK_MA, name: 'MA多头破MA', icon: '↗' },
-  { id: STRATEGY_MA_BEAR_BREAK_MA, name: 'MA空头破MA', icon: '↘' },
-  { id: STRATEGY_MA_BULL_4M, name: 'MA多头4M', icon: '▦' }
+  { id: STRATEGY_MA_GOLD_BREAK, name: 'MA金叉点', icon: '✦' },
+  { id: STRATEGY_MA_DEATH_BREAK, name: 'MA死叉点', icon: '✧' },
+  { id: STRATEGY_PREV_BAND_HIGH, name: '前波段High', icon: '⌃' }
 ];
 
 var TIER_TABS_BY_FAMILY = {
@@ -63,11 +75,23 @@ var TIER_TABS_BY_FAMILY = {
     { id: MBM_TIER_MEDIUM, name: '周线' },
     { id: MBM_TIER_LONG, name: '月线' }
   ],
-  mabull4m: [
-    { id: M4M_TIER_FLASH, name: '30分' },
-    { id: M4M_TIER_SHORT, name: '日线' },
-    { id: M4M_TIER_MEDIUM, name: '周线' },
-    { id: M4M_TIER_LONG, name: '月线' }
+  magoldbreak: [
+    { id: MGB_TIER_FLASH, name: '30分' },
+    { id: MGB_TIER_SHORT, name: '日线' },
+    { id: MGB_TIER_MEDIUM, name: '周线' },
+    { id: MGB_TIER_LONG, name: '月线' }
+  ],
+  madeathbreak: [
+    { id: MDB_TIER_FLASH, name: '30分' },
+    { id: MDB_TIER_SHORT, name: '日线' },
+    { id: MDB_TIER_MEDIUM, name: '周线' },
+    { id: MDB_TIER_LONG, name: '月线' }
+  ],
+  prevbandhigh: [
+    { id: PBH_TIER_FLASH, name: '30分' },
+    { id: PBH_TIER_SHORT, name: '日线' },
+    { id: PBH_TIER_MEDIUM, name: '周线' },
+    { id: PBH_TIER_LONG, name: '月线' }
   ]
 };
 
@@ -90,12 +114,21 @@ var STRATEGY_TITLES = {
   mabreakmaShort: 'MA多头破MA · 日',
   mabreakmaMedium: 'MA多头破MA · 周',
   mabreakmaLong: 'MA多头破MA · 月',
-  mabearbreakma: 'MA空头破MA',
-  mabull4m: 'MA多头4M排列',
-  mabull4mFlash: 'MA多头4M排列 · 30分',
-  mabull4mShort: 'MA多头4M排列 · 日',
-  mabull4mMedium: 'MA多头4M排列 · 周',
-  mabull4mLong: 'MA多头4M排列 · 月'
+  magoldbreak: 'MA金叉点突破',
+  magoldbreakFlash: 'MA金叉点突破 · 30分',
+  magoldbreakShort: 'MA金叉点突破 · 日',
+  magoldbreakMedium: 'MA金叉点突破 · 周',
+  magoldbreakLong: 'MA金叉点突破 · 月',
+  madeathbreak: 'MA死叉点突破',
+  madeathbreakFlash: 'MA死叉点突破 · 30分',
+  madeathbreakShort: 'MA死叉点突破 · 日',
+  madeathbreakMedium: 'MA死叉点突破 · 周',
+  madeathbreakLong: 'MA死叉点突破 · 月',
+  prevbandhigh: '突破前波段High',
+  prevbandhighFlash: '突破前波段High · 30分',
+  prevbandhighShort: '突破前波段High · 日',
+  prevbandhighMedium: '突破前波段High · 周',
+  prevbandhighLong: '突破前波段High · 月'
 };
 
 var ACTIVE_STRATEGY_IDS = {
@@ -113,11 +146,18 @@ var ACTIVE_STRATEGY_IDS = {
   mabreakmaShort: true,
   mabreakmaMedium: true,
   mabreakmaLong: true,
-  mabearbreakma: true,
-  mabull4mFlash: true,
-  mabull4mShort: true,
-  mabull4mMedium: true,
-  mabull4mLong: true
+  magoldbreakFlash: true,
+  magoldbreakShort: true,
+  magoldbreakMedium: true,
+  magoldbreakLong: true,
+  madeathbreakFlash: true,
+  madeathbreakShort: true,
+  madeathbreakMedium: true,
+  madeathbreakLong: true,
+  prevbandhighFlash: true,
+  prevbandhighShort: true,
+  prevbandhighMedium: true,
+  prevbandhighLong: true
 };
 
 var TIER_BY_STRATEGY = {
@@ -135,14 +175,20 @@ var TIER_BY_STRATEGY = {
   mabreakmaShort: 'day',
   mabreakmaMedium: 'week',
   mabreakmaLong: 'month',
-  mabearbreakma: 'min30',
-  mabull4mFlash: 'min30',
-  mabull4mShort: 'day',
-  mabull4mMedium: 'week',
-  mabull4mLong: 'month'
+  magoldbreakFlash: 'min30',
+  magoldbreakShort: 'day',
+  magoldbreakMedium: 'week',
+  magoldbreakLong: 'month',
+  madeathbreakFlash: 'min30',
+  madeathbreakShort: 'day',
+  madeathbreakMedium: 'week',
+  madeathbreakLong: 'month',
+  prevbandhighFlash: 'min30',
+  prevbandhighShort: 'day',
+  prevbandhighMedium: 'week',
+  prevbandhighLong: 'month'
 };
 
-/** 旧 mabull3m2* / mabull3mUltra → 合并后的 mabull3m*（首档改为 30 分） */
 var M32_MIGRATION = {
   mabull3m2: M3M_TIER_FLASH,
   mabull3m2Ultra: M3M_TIER_FLASH,
@@ -154,14 +200,17 @@ var M32_MIGRATION = {
 
 function familyForStrategyId(strategyId) {
   var id = String(strategyId || '');
-  if (id.indexOf('mabearbreakma') === 0) {
-    return STRATEGY_MA_BEAR_BREAK_MA;
+  if (id.indexOf('prevbandhigh') === 0) {
+    return STRATEGY_PREV_BAND_HIGH;
+  }
+  if (id.indexOf('madeathbreak') === 0) {
+    return STRATEGY_MA_DEATH_BREAK;
+  }
+  if (id.indexOf('magoldbreak') === 0) {
+    return STRATEGY_MA_GOLD_BREAK;
   }
   if (id.indexOf('mabreakma') === 0) {
     return STRATEGY_MA_BREAK_MA;
-  }
-  if (id.indexOf('mabull4m') === 0) {
-    return STRATEGY_MA_BULL_4M;
   }
   if (id.indexOf('mabull3m') === 0) {
     return STRATEGY_MA_BULL_3M;
@@ -176,11 +225,14 @@ function strategyIdFor(family, tier) {
   if (tier && ACTIVE_STRATEGY_IDS[tier]) {
     return tier;
   }
-  if (family === STRATEGY_MA_BEAR_BREAK_MA) {
-    return STRATEGY_MA_BEAR_BREAK_MA;
+  if (family === STRATEGY_PREV_BAND_HIGH) {
+    return PBH_TIER_FLASH;
   }
-  if (family === STRATEGY_MA_BULL_4M) {
-    return M4M_TIER_FLASH;
+  if (family === STRATEGY_MA_DEATH_BREAK) {
+    return MDB_TIER_FLASH;
+  }
+  if (family === STRATEGY_MA_GOLD_BREAK) {
+    return MGB_TIER_FLASH;
   }
   if (family === STRATEGY_MA_BREAK_MA) {
     return MBM_TIER_FLASH;
@@ -221,11 +273,13 @@ function migrateSavedStrategy(strategyId) {
   if (M32_MIGRATION[id]) {
     return { strategy: M32_MIGRATION[id] };
   }
-  // 旧下线策略 → 回踩破Low·日
   if (id.indexOf('bottombandhigh') === 0
       || id.indexOf('bottomprev2high') === 0
       || id.indexOf('maalignlift') === 0
-      || id.indexOf('macrossbreak') === 0) {
+      || id.indexOf('macrossbreak') === 0
+      || id.indexOf('mabearbreakma') === 0
+      || id.indexOf('mabull4m') === 0
+      || id.indexOf('concavebreak') === 0) {
     return { strategy: LOW_TIER_SHORT };
   }
   if (ACTIVE_STRATEGY_IDS[id]) {
@@ -247,8 +301,9 @@ module.exports = {
   STRATEGY_TREND_RETEST_HIGH: STRATEGY_TREND_RETEST_HIGH,
   STRATEGY_MA_BULL_3M: STRATEGY_MA_BULL_3M,
   STRATEGY_MA_BREAK_MA: STRATEGY_MA_BREAK_MA,
-  STRATEGY_MA_BEAR_BREAK_MA: STRATEGY_MA_BEAR_BREAK_MA,
-  STRATEGY_MA_BULL_4M: STRATEGY_MA_BULL_4M,
+  STRATEGY_MA_GOLD_BREAK: STRATEGY_MA_GOLD_BREAK,
+  STRATEGY_MA_DEATH_BREAK: STRATEGY_MA_DEATH_BREAK,
+  STRATEGY_PREV_BAND_HIGH: STRATEGY_PREV_BAND_HIGH,
   TIER_SHORT: LOW_TIER_SHORT,
   TIER_MEDIUM: LOW_TIER_MEDIUM,
   TIER_LONG: LOW_TIER_LONG,

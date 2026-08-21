@@ -891,6 +891,30 @@ public class StockPageQuery extends PageQuery {
     private Boolean mbmRequireWeekAlign;
     /** MA多头破MA · 要求月线3M多头 */
     private Boolean mbmRequireMonthAlign;
+    /** MA金叉点突破 · 档位 */
+    private String mgbTier;
+    /** MA金叉点突破 · 启用成交额门 */
+    private Boolean mgbEnableMinAmountFilter;
+    /** MA金叉点突破 · 最低日均成交额（万） */
+    private Integer mgbMinAmountWan;
+    /** MA金叉点突破 · 右侧趋势 MA5&gt;MA60 */
+    private Boolean mgbEnableRightTrend;
+    /** MA死叉点突破 · 档位 */
+    private String mdbTier;
+    /** MA死叉点突破 · 启用成交额门 */
+    private Boolean mdbEnableMinAmountFilter;
+    /** MA死叉点突破 · 最低日均成交额（万） */
+    private Integer mdbMinAmountWan;
+    /** MA死叉点突破 · 右侧趋势 MA5&gt;MA60 */
+    private Boolean mdbEnableRightTrend;
+    /** 突破前波段High · 档位 */
+    private String pbhTier;
+    /** 突破前波段High · 启用成交额门 */
+    private Boolean pbhEnableMinAmountFilter;
+    /** 突破前波段High · 最低日均成交额（万） */
+    private Integer pbhMinAmountWan;
+    /** 突破前波段High · 右侧趋势 MA5&gt;MA60 */
+    private Boolean pbhEnableRightTrend;
     /** MA空头破MA · 启用成交额门 */
     private Boolean mbbmEnableMinAmountFilter;
     /** MA空头破MA · 最低日均成交额（万） */
@@ -2560,6 +2584,37 @@ public class StockPageQuery extends PageQuery {
             b.requireMonthAlign(mbmRequireMonthAlign);
         }
         return MaBreakMaStrategyParams.merge(b.build());
+    }
+
+    public MaCrossPointStrategyParams toMaGoldBreakParams() {
+        return toMaCrossPointParams(mgbTier, mgbEnableMinAmountFilter, mgbMinAmountWan, mgbEnableRightTrend);
+    }
+
+    public MaCrossPointStrategyParams toMaDeathBreakParams() {
+        return toMaCrossPointParams(mdbTier, mdbEnableMinAmountFilter, mdbMinAmountWan, mdbEnableRightTrend);
+    }
+
+    public MaCrossPointStrategyParams toPrevBandHighParams() {
+        return toMaCrossPointParams(pbhTier, pbhEnableMinAmountFilter, pbhMinAmountWan, pbhEnableRightTrend);
+    }
+
+    private MaCrossPointStrategyParams toMaCrossPointParams(String tier, Boolean enableMinAmountFilter,
+                                                           Integer minAmountWan, Boolean enableRightTrend) {
+        MaCrossPointStrategyParams.MaCrossPointStrategyParamsBuilder b =
+                MaCrossPointStrategyParams.builder();
+        if (tier != null && !tier.trim().isEmpty()) {
+            b.tier(MaCrossPointStrategyParams.parseTier(tier));
+        }
+        if (enableMinAmountFilter != null) {
+            b.enableMinAmountFilter(enableMinAmountFilter);
+        }
+        if (minAmountWan != null && minAmountWan >= 0) {
+            b.minAvgAmount(minAmountWan * 10_000D);
+        }
+        if (enableRightTrend != null) {
+            b.enableRightTrend(enableRightTrend);
+        }
+        return MaCrossPointStrategyParams.merge(b.build());
     }
 
     public MaBearBreakMaStrategyParams toMaBearBreakMaParams() {

@@ -189,6 +189,15 @@ public class QueryContextParam extends PageQuery {
     /** MA多头破MA（mabreakma） */
     private MaBreakMaStrategyParams maBreakMa;
 
+    /** MA金叉点突破（magoldbreak） */
+    private MaCrossPointStrategyParams maGoldBreak;
+
+    /** MA死叉点突破（madeathbreak） */
+    private MaCrossPointStrategyParams maDeathBreak;
+
+    /** 突破前波段High（prevbandhigh） */
+    private MaCrossPointStrategyParams prevBandHigh;
+
     /** MA空头破MA（mabearbreakma） */
     private MaBearBreakMaStrategyParams maBearBreakMa;
 
@@ -255,6 +264,9 @@ public class QueryContextParam extends PageQuery {
                 .bottomPrev2High(BottomPrev2HighStrategyParams.defaults())
                 .maBull3m(MaBull3mStrategyParams.defaults())
                 .maBreakMa(MaBreakMaStrategyParams.defaults())
+                .maGoldBreak(MaCrossPointStrategyParams.defaults())
+                .maDeathBreak(MaCrossPointStrategyParams.defaults())
+                .prevBandHigh(MaCrossPointStrategyParams.defaults())
                 .maBearBreakMa(MaBearBreakMaStrategyParams.defaults())
                 .maBull4m(MaBull4mStrategyParams.defaults())
                 .build();

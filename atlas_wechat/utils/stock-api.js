@@ -4,11 +4,21 @@ const strategyParams = require('./strategy-params');
 const listMemory = require('./list-memory');
 
 var RECOMMEND_PAGE_SIZE = 12;
-/** 列表卡片 K 线条数上限（与 list-memory 一致） */
-var MIN30_KLINE_LIMIT = 24;
+/** 列表卡片可见根数；拉取根数见 list-memory（含 MA60 预热） */
+var MIN30_KLINE_LIMIT = 64;
+
+/** 详情可见约 80 根；拉取 = 可见 + 59 预热，使 MA60 铺满 */
+var DETAIL_KLINE_LIMIT = {
+  year: 140,
+  month: 140,
+  week: 140,
+  day: 140,
+  min30: 160,
+  min60: 160
+};
 
 function klineLimitForPeriod(period) {
-  return listMemory.klineLimitForList(period || 'week');
+  return DETAIL_KLINE_LIMIT[period] || 80;
 }
 
 function klineLimitForList(period) {

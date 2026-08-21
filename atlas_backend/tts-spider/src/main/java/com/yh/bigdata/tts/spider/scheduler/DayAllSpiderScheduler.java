@@ -66,13 +66,13 @@ public class DayAllSpiderScheduler {
 //				return;
 //			}
             String code = "";
-            int days = 5;
+            int days = 15;
             if (StringUtils.isEmpty(code)) {
-                stockBaseCrawler.run();
+//                stockBaseCrawler.run();
                 stockDayCrawler.run(null, days);
                 stockMin30Crawler.run(null, days * 8);
                 stockMin60Crawler.run(null, days * 4);
-                stockWeekCrawler.run(null, 2);
+                stockWeekCrawler.run(null, days / 5);
                 stockMonthCrawler.run(null, 2);
                 stockQuarterCrawler.run(null, 2);
                 stockYearCrawler.run(null, 2);

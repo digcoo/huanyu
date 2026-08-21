@@ -100,6 +100,99 @@ var MBM_DEFAULTS = {
   mbmRequireMonthAlign: false
 };
 
+var MCP_DEFAULTS = {
+  mcpEnableMinAmountFilter: true,
+  mcpMinAmountWan: 3000,
+  mcpEnableRightTrend: false
+};
+
+var MGB_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '边沿突破金叉波段顶（阳线金叉取所在完整波段High；阴线金叉取往前第一个完整波段High），且本档MA5>MA10'
+  },
+  {
+    key: 'mcpEnableMinAmountFilter',
+    label: '成交额门',
+    type: 'switch'
+  },
+  {
+    key: 'mcpMinAmountWan',
+    label: '最低日均成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'mcpEnableRightTrend',
+    label: '右侧趋势',
+    hint: '末K满足 MA5 > MA60',
+    type: 'switch'
+  }
+];
+
+var MDB_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '边沿突破最近死叉交叉点（MA5下穿MA10插值价）'
+  },
+  {
+    key: 'mcpEnableMinAmountFilter',
+    label: '成交额门',
+    type: 'switch'
+  },
+  {
+    key: 'mcpMinAmountWan',
+    label: '最低日均成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'mcpEnableRightTrend',
+    label: '右侧趋势',
+    hint: '末K满足 MA5 > MA60',
+    type: 'switch'
+  }
+];
+
+var PBH_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '同档边沿突破末一个完整阳波段（末波段）High'
+  },
+  {
+    key: 'mcpEnableMinAmountFilter',
+    label: '成交额门',
+    type: 'switch'
+  },
+  {
+    key: 'mcpMinAmountWan',
+    label: '最低日均成交额',
+    hint: '近6日日均成交额（万）',
+    type: 'slider',
+    min: 0,
+    max: 10000,
+    step: 500,
+    unit: '万'
+  },
+  {
+    key: 'mcpEnableRightTrend',
+    label: '右侧趋势',
+    hint: '末K满足 MA5 > MA60',
+    type: 'switch'
+  }
+];
+
 var MBM_SCHEMA = [
   {
     type: 'section',
@@ -144,69 +237,14 @@ var MBM_SCHEMA = [
   }
 ];
 
-var MBBM_DEFAULTS = {
-  mbbmEnableMinAmountFilter: true,
-  mbbmMinAmountWan: 3000
-};
-
-var MBBM_SCHEMA = [
-  {
-    type: 'section',
-    label: '命中条件',
-    hint: '日线3M空头且close>max(MA5,MA10)；30分3M多头+边沿/开盘破MAX'
-  },
-  {
-    key: 'mbbmEnableMinAmountFilter',
-    label: '成交额门',
-    type: 'switch'
-  },
-  {
-    key: 'mbbmMinAmountWan',
-    label: '最低日均成交额',
-    hint: '近6日日均成交额（万）',
-    type: 'slider',
-    min: 0,
-    max: 10000,
-    step: 500,
-    unit: '万'
-  }
-];
-
-var M4M_DEFAULTS = {
-  m4mEnableMinAmountFilter: true,
-  m4mMinAmountWan: 3000
-};
-
-var M4M_SCHEMA = [
-  {
-    type: 'section',
-    label: '命中条件',
-    hint: 'MA5≥MA10≥MA20≥MA30；收阳；末K close>前一根Low'
-  },
-  {
-    key: 'm4mEnableMinAmountFilter',
-    label: '成交额门',
-    type: 'switch'
-  },
-  {
-    key: 'm4mMinAmountWan',
-    label: '最低日均成交额',
-    hint: '近6日日均成交额（万）',
-    type: 'slider',
-    min: 0,
-    max: 10000,
-    step: 500,
-    unit: '万'
-  }
-];
-
 var NRF_TIERS = [];
 
 function strategyKind(strategyId) {
   var id = String(strategyId || '');
-  if (/^mabearbreakma/.test(id)) return 'mbbm';
+  if (/^prevbandhigh/.test(id)) return 'pbh';
+  if (/^madeathbreak/.test(id)) return 'mdb';
+  if (/^magoldbreak/.test(id)) return 'mgb';
   if (/^mabreakma/.test(id)) return 'mbm';
-  if (/^mabull4m/.test(id)) return 'm4m';
   if (/^mabull3m/.test(id)) return 'm3m';
   if (/^trendretesthigh/.test(id)) return 'high';
   return 'low';
@@ -234,9 +272,8 @@ function clone(obj) {
 
 function getDefaults(strategyId) {
   var kind = strategyKind(strategyId);
-  if (kind === 'mbbm') return clone(MBBM_DEFAULTS);
+  if (kind === 'pbh' || kind === 'mdb' || kind === 'mgb') return clone(MCP_DEFAULTS);
   if (kind === 'mbm') return clone(MBM_DEFAULTS);
-  if (kind === 'm4m') return clone(M4M_DEFAULTS);
   if (kind === 'm3m') return clone(M3M_DEFAULTS);
   if (kind === 'high') return clone(HIGH_DEFAULTS);
   return clone(LOW_DEFAULTS);
@@ -248,12 +285,15 @@ function normalize(strategyId, raw) {
     return d;
   }
   var kind = strategyKind(strategyId);
-  if (kind === 'mbbm') {
-    if (raw.mbbmEnableMinAmountFilter != null) {
-      d.mbbmEnableMinAmountFilter = !!raw.mbbmEnableMinAmountFilter;
+  if (kind === 'pbh' || kind === 'mdb' || kind === 'mgb') {
+    if (raw.mcpEnableMinAmountFilter != null) {
+      d.mcpEnableMinAmountFilter = !!raw.mcpEnableMinAmountFilter;
     }
-    if (raw.mbbmMinAmountWan != null && raw.mbbmMinAmountWan >= 0) {
-      d.mbbmMinAmountWan = raw.mbbmMinAmountWan;
+    if (raw.mcpMinAmountWan != null && raw.mcpMinAmountWan >= 0) {
+      d.mcpMinAmountWan = raw.mcpMinAmountWan;
+    }
+    if (raw.mcpEnableRightTrend != null) {
+      d.mcpEnableRightTrend = !!raw.mcpEnableRightTrend;
     }
   } else if (kind === 'mbm') {
     if (raw.mbmEnableMinAmountFilter != null) {
@@ -273,13 +313,6 @@ function normalize(strategyId, raw) {
     }
     if (raw.mbmRequireMonthAlign != null) {
       d.mbmRequireMonthAlign = !!raw.mbmRequireMonthAlign;
-    }
-  } else if (kind === 'm4m') {
-    if (raw.m4mEnableMinAmountFilter != null) {
-      d.m4mEnableMinAmountFilter = !!raw.m4mEnableMinAmountFilter;
-    }
-    if (raw.m4mMinAmountWan != null && raw.m4mMinAmountWan >= 0) {
-      d.m4mMinAmountWan = raw.m4mMinAmountWan;
     }
   } else if (kind === 'm3m') {
     if (raw.m3mEnableMinAmountFilter != null) {
@@ -332,9 +365,10 @@ function reset(strategyId) {
 
 function getSchema(strategyId) {
   var kind = strategyKind(strategyId);
-  if (kind === 'mbbm') return MBBM_SCHEMA.slice();
+  if (kind === 'pbh') return PBH_SCHEMA.slice();
+  if (kind === 'mdb') return MDB_SCHEMA.slice();
+  if (kind === 'mgb') return MGB_SCHEMA.slice();
   if (kind === 'mbm') return MBM_SCHEMA.slice();
-  if (kind === 'm4m') return M4M_SCHEMA.slice();
   if (kind === 'm3m') return M3M_SCHEMA.slice();
   if (kind === 'high') return HIGH_SCHEMA.slice();
   return LOW_SCHEMA.slice();
@@ -350,9 +384,10 @@ function hasCustomParams() {
 
 function resolveApiStrategyId(strategyId) {
   var kind = strategyKind(strategyId);
-  if (kind === 'mbbm') return 'mabearbreakma';
+  if (kind === 'pbh') return 'prevbandhigh';
+  if (kind === 'mdb') return 'madeathbreak';
+  if (kind === 'mgb') return 'magoldbreak';
   if (kind === 'mbm') return 'mabreakma';
-  if (kind === 'm4m') return 'mabull4m';
   if (kind === 'm3m') return 'mabull3m';
   if (kind === 'high') return 'trendretesthigh';
   return 'trendretestlow';
@@ -366,10 +401,28 @@ function toApiParams(strategyId) {
   var p = load(strategyId);
   var tier = tierToApi(strategyId);
   var kind = strategyKind(strategyId);
-  if (kind === 'mbbm') {
+  if (kind === 'pbh') {
     return {
-      mbbmEnableMinAmountFilter: p.mbbmEnableMinAmountFilter !== false,
-      mbbmMinAmountWan: p.mbbmMinAmountWan != null ? p.mbbmMinAmountWan : 3000
+      pbhTier: tier,
+      pbhEnableMinAmountFilter: p.mcpEnableMinAmountFilter !== false,
+      pbhMinAmountWan: p.mcpMinAmountWan != null ? p.mcpMinAmountWan : 3000,
+      pbhEnableRightTrend: !!p.mcpEnableRightTrend
+    };
+  }
+  if (kind === 'mdb') {
+    return {
+      mdbTier: tier,
+      mdbEnableMinAmountFilter: p.mcpEnableMinAmountFilter !== false,
+      mdbMinAmountWan: p.mcpMinAmountWan != null ? p.mcpMinAmountWan : 3000,
+      mdbEnableRightTrend: !!p.mcpEnableRightTrend
+    };
+  }
+  if (kind === 'mgb') {
+    return {
+      mgbTier: tier,
+      mgbEnableMinAmountFilter: p.mcpEnableMinAmountFilter !== false,
+      mgbMinAmountWan: p.mcpMinAmountWan != null ? p.mcpMinAmountWan : 3000,
+      mgbEnableRightTrend: !!p.mcpEnableRightTrend
     };
   }
   if (kind === 'mbm') {
@@ -381,13 +434,6 @@ function toApiParams(strategyId) {
       mbmRequireDayAlign: !!p.mbmRequireDayAlign,
       mbmRequireWeekAlign: !!p.mbmRequireWeekAlign,
       mbmRequireMonthAlign: !!p.mbmRequireMonthAlign
-    };
-  }
-  if (kind === 'm4m') {
-    return {
-      m4mTier: tier,
-      m4mEnableMinAmountFilter: p.m4mEnableMinAmountFilter !== false,
-      m4mMinAmountWan: p.m4mMinAmountWan != null ? p.m4mMinAmountWan : 3000
     };
   }
   if (kind === 'm3m') {
@@ -426,12 +472,29 @@ function formatSummary(strategyId) {
   var tier = tierToApi(strategyId);
   var tierLabel = tier === 'min30' ? '30分' : (tier === 'min60' ? '60分' : (tier === 'week' ? '周' : (tier === 'month' ? '月' : '日')));
   var kind = strategyKind(strategyId);
-  if (kind === 'mbbm') {
-    var mbbmParts = ['日3M空头', '30分破MAX'];
-    if (p.mbbmEnableMinAmountFilter !== false) {
-      mbbmParts.push((p.mbbmMinAmountWan != null ? p.mbbmMinAmountWan : 3000) + '万');
+  if (kind === 'pbh') {
+    var pbhParts = [tierLabel + '线', '边沿破末波段High'];
+    if (p.mcpEnableRightTrend) pbhParts.push('MA5>MA60');
+    if (p.mcpEnableMinAmountFilter !== false) {
+      pbhParts.push((p.mcpMinAmountWan != null ? p.mcpMinAmountWan : 3000) + '万');
     }
-    return mbbmParts.join(' · ');
+    return pbhParts.join(' · ');
+  }
+  if (kind === 'mdb') {
+    var mdbParts = [tierLabel + '线', '边沿破死叉点'];
+    if (p.mcpEnableRightTrend) mdbParts.push('MA5>MA60');
+    if (p.mcpEnableMinAmountFilter !== false) {
+      mdbParts.push((p.mcpMinAmountWan != null ? p.mcpMinAmountWan : 3000) + '万');
+    }
+    return mdbParts.join(' · ');
+  }
+  if (kind === 'mgb') {
+    var mgbParts = [tierLabel + '线', '边沿破金叉波段顶', 'MA5>MA10'];
+    if (p.mcpEnableRightTrend) mgbParts.push('MA5>MA60');
+    if (p.mcpEnableMinAmountFilter !== false) {
+      mgbParts.push((p.mcpMinAmountWan != null ? p.mcpMinAmountWan : 3000) + '万');
+    }
+    return mgbParts.join(' · ');
   }
   if (kind === 'mbm') {
     var mbmParts = [tierLabel + '线', '3M多头', '破MAX'];
@@ -443,13 +506,6 @@ function formatSummary(strategyId) {
       mbmParts.push((p.mbmMinAmountWan != null ? p.mbmMinAmountWan : 3000) + '万');
     }
     return mbmParts.join(' · ');
-  }
-  if (kind === 'm4m') {
-    var m4mParts = [tierLabel + '线', '4M多头', '收阳', 'close>前Low'];
-    if (p.m4mEnableMinAmountFilter !== false) {
-      m4mParts.push((p.m4mMinAmountWan != null ? p.m4mMinAmountWan : 3000) + '万');
-    }
-    return m4mParts.join(' · ');
   }
   if (kind === 'm3m') {
     var m3mParts = [tierLabel + '线', '3M1≥MA20或3M2≥MA30', '边沿破金叉/死叉/关键K'];

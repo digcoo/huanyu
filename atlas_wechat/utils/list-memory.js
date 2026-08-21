@@ -5,21 +5,27 @@ var MAX_HELD_RECOMMENDATIONS = 48;
 /** 分页去重 id 记录上限 */
 var MAX_SEEN_RECOMMENDATION_IDS = 400;
 
+/**
+ * 列表拉取 = 可见根数 + MA 预热。
+ * 可见 64 根时需再多 59 根才能让 MA60 铺满整段可见区。
+ */
+var LIST_VISIBLE_BARS = 64;
+var LIST_MA_WARMUP = 59;
 var LIST_KLINE_LIMIT = {
-  min30: 24,
-  min60: 24,
-  day: 16,
-  week: 16,
-  month: 16,
-  year: 16
+  min30: LIST_VISIBLE_BARS + LIST_MA_WARMUP,
+  min60: LIST_VISIBLE_BARS + LIST_MA_WARMUP,
+  day: LIST_VISIBLE_BARS + LIST_MA_WARMUP,
+  week: LIST_VISIBLE_BARS + LIST_MA_WARMUP,
+  month: LIST_VISIBLE_BARS + LIST_MA_WARMUP,
+  year: LIST_VISIBLE_BARS + LIST_MA_WARMUP
 };
 
 function klineLimitForList(period) {
-  return LIST_KLINE_LIMIT[period] || 24;
+  return LIST_KLINE_LIMIT[period] || (LIST_VISIBLE_BARS + LIST_MA_WARMUP);
 }
 
 function cardMaxBars(period) {
-  return klineLimitForList(period);
+  return LIST_VISIBLE_BARS;
 }
 
 /** 只保留当前周期 chartKlines，丢弃 klines 多周期 map 与标记缓存 */

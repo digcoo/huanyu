@@ -192,21 +192,45 @@ function buildMacdHistBars(hist, range, count) {
 const MA_LINE_CONFIGS = [
   { period: 5, color: '#f0b90b', lineWidth: 0.75 },
   { period: 10, color: '#e040fb', lineWidth: 0.75 },
-  { period: 20, color: '#00d4ff', lineWidth: 0.75 },
-  { period: 30, color: '#ff9500', lineWidth: 0.75 }
+  { period: 60, color: '#26a69a', lineWidth: 0.75 }
 ];
 
+/** 完整画出最长均线所需的左侧预热根数（period-1） */
+function maWarmupBars(configs) {
+  const list = configs || MA_LINE_CONFIGS;
+  let maxPeriod = 1;
+  list.forEach(function (cfg) {
+    if (cfg && cfg.period > maxPeriod) maxPeriod = cfg.period;
+  });
+  return Math.max(0, maxPeriod - 1);
+}
+
+/**
+ * 在 source 上算 MA，再裁到与 displayKlines 对齐的末段，使可见区每根都有值。
+ */
+function maSeriesForDisplay(displayKlines, period, sourceKlines) {
+  const display = displayKlines || [];
+  const source = sourceKlines && sourceKlines.length ? sourceKlines : display;
+  if (!display.length || period < 1) return [];
+  const full = calcCloseMASeries(source, period);
+  if (full.length <= display.length) {
+    return full;
+  }
+  return full.slice(full.length - display.length);
+}
+
 /** 按像素坐标生成 CSS 均线线段（与 K 线同层，避免 canvas 滚动遮挡） */
-function buildCloseMaSegments(klines, range, width, height, configs) {
+function buildCloseMaSegments(klines, range, width, height, configs, sourceKlines) {
   if (!klines || !klines.length || !width || !height) return [];
   const count = klines.length;
   const slotW = width / count;
   const list = configs || MA_LINE_CONFIGS;
+  const source = sourceKlines && sourceKlines.length ? sourceKlines : klines;
   const segments = [];
 
   list.forEach(function (cfg) {
-    if (count < cfg.period) return;
-    const series = calcCloseMASeries(klines, cfg.period);
+    if (source.length < cfg.period) return;
+    const series = maSeriesForDisplay(klines, cfg.period, source);
     const points = [];
     series.forEach(function (v, i) {
       if (v == null) return;
@@ -236,16 +260,17 @@ function buildCloseMaSegments(klines, range, width, height, configs) {
 }
 
 /** 在 canvas 上按收盘价 MA 平滑绘线 */
-function drawCloseMaLines(ctx, klines, width, height, range, configs, offset) {
+function drawCloseMaLines(ctx, klines, width, height, range, configs, offset, sourceKlines) {
   if (!ctx || !klines || !klines.length || !width || !height) return;
   offset = offset || { left: 0, top: 0 };
   const count = klines.length;
   const slotW = width / count;
   const list = configs || MA_LINE_CONFIGS;
+  const source = sourceKlines && sourceKlines.length ? sourceKlines : klines;
 
   list.forEach(function (cfg) {
-    if (count < cfg.period) return;
-    const series = calcCloseMASeries(klines, cfg.period);
+    if (source.length < cfg.period) return;
+    const series = maSeriesForDisplay(klines, cfg.period, source);
     ctx.strokeStyle = cfg.color;
     ctx.lineWidth = cfg.lineWidth != null ? cfg.lineWidth : 0.75;
     ctx.lineJoin = 'round';
@@ -569,11 +594,12 @@ module.exports = {
   BINANCE_COLORS: BINANCE,
   COLORS: BINANCE,
   PERIOD_MAX_BARS: {
-    year: 50,
-    month: 50,
-    week: 50,
-    day: 50,
-    min30: 64
+    year: 80,
+    month: 80,
+    week: 80,
+    day: 80,
+    min30: 96,
+    min60: 96
   },
   calcPriceRange,
   calcCloseMASeries,
@@ -584,6 +610,8 @@ module.exports = {
   buildMacdSegments,
   buildMacdHistBars,
   MA_LINE_CONFIGS,
+  maWarmupBars,
+  maSeriesForDisplay,
   buildCloseMaSegments,
   findBarIndexByTimestamp,
   findBarIndexByDay,

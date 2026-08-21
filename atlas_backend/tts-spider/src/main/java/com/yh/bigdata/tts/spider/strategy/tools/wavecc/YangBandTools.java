@@ -173,6 +173,46 @@ public final class YangBandTools {
         return -1;
     }
 
+    /** 阳 K 是否落在完整波段的阳段内（不含完结阴 K）。 */
+    public static CompleteYangBand findBandContainingYangBar(List<Trade> trades, int yangIdx) {
+        if (CollectionUtils.isEmpty(trades) || yangIdx < 0 || yangIdx >= trades.size()) {
+            return null;
+        }
+        if (!isStrictYang(trades.get(yangIdx))) {
+            return null;
+        }
+        List<CompleteYangBand> bands = findCompleteBands(trades, trades.size());
+        for (CompleteYangBand band : bands) {
+            int from = indexOfBar(trades, band.getFirstYang());
+            int to = indexOfBar(trades, band.getLastYang());
+            if (from >= 0 && to >= from && yangIdx >= from && yangIdx <= to) {
+                return band;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 从 index 往前（含当日若为完结阴）找最近一个完整波段。
+     * 即 terminatorIdx ≤ index 中 terminator 最大者。
+     */
+    public static CompleteYangBand findNearestCompleteBandAtOrBefore(List<Trade> trades, int index) {
+        if (CollectionUtils.isEmpty(trades) || index < 0) {
+            return null;
+        }
+        List<CompleteYangBand> bands = findCompleteBands(trades, trades.size());
+        CompleteYangBand best = null;
+        int bestTerm = -1;
+        for (CompleteYangBand band : bands) {
+            int termIdx = indexOfBar(trades, band.getTerminatorBar());
+            if (termIdx >= 0 && termIdx <= index && termIdx > bestTerm) {
+                best = band;
+                bestTerm = termIdx;
+            }
+        }
+        return best;
+    }
+
     private static CompleteYangBand buildBand(List<Trade> trades, int from, int to, int terminatorIdx) {
         Trade first = trades.get(from);
         Trade last = trades.get(to);

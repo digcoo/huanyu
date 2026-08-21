@@ -23,12 +23,21 @@ const STRATEGY_API = {
   mabreakmaShort: { strategy: 'mabreakma', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
   mabreakmaMedium: { strategy: 'mabreakma', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'week' },
   mabreakmaLong: { strategy: 'mabreakma', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'month' },
-  mabearbreakma: { strategy: 'mabearbreakma', trendPeriodTypes: 'day,min30', opPeriodType: 'min30' },
-  mabull4m: { strategy: 'mabull4m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
-  mabull4mFlash: { strategy: 'mabull4m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'min30' },
-  mabull4mShort: { strategy: 'mabull4m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
-  mabull4mMedium: { strategy: 'mabull4m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'week' },
-  mabull4mLong: { strategy: 'mabull4m', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'month' }
+  magoldbreak: { strategy: 'magoldbreak', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  magoldbreakFlash: { strategy: 'magoldbreak', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'min30' },
+  magoldbreakShort: { strategy: 'magoldbreak', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  magoldbreakMedium: { strategy: 'magoldbreak', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'week' },
+  magoldbreakLong: { strategy: 'magoldbreak', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'month' },
+  madeathbreak: { strategy: 'madeathbreak', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  madeathbreakFlash: { strategy: 'madeathbreak', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'min30' },
+  madeathbreakShort: { strategy: 'madeathbreak', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  madeathbreakMedium: { strategy: 'madeathbreak', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'week' },
+  madeathbreakLong: { strategy: 'madeathbreak', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'month' },
+  prevbandhigh: { strategy: 'prevbandhigh', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  prevbandhighFlash: { strategy: 'prevbandhigh', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'min30' },
+  prevbandhighShort: { strategy: 'prevbandhigh', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'day' },
+  prevbandhighMedium: { strategy: 'prevbandhigh', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'week' },
+  prevbandhighLong: { strategy: 'prevbandhigh', trendPeriodTypes: 'month,week,day,min30', opPeriodType: 'month' }
 };
 
 function normalizeStrategyId(strategyId) {
@@ -38,7 +47,9 @@ function normalizeStrategyId(strategyId) {
   if (strategyId === 'mabull3m') return 'mabull3mFlash';
   if (strategyId === 'mabull3mUltra') return 'mabull3mFlash';
   if (strategyId === 'mabreakma') return 'mabreakmaFlash';
-  if (strategyId === 'mabull4m') return 'mabull4mFlash';
+  if (strategyId === 'magoldbreak') return 'magoldbreakFlash';
+  if (strategyId === 'madeathbreak') return 'madeathbreakFlash';
+  if (strategyId === 'prevbandhigh') return 'prevbandhighFlash';
   if (/^mabull3m2/.test(strategyId) || strategyId === 'mabull3m2') {
     if (strategyId === 'mabull3m2Medium') return 'mabull3mMedium';
     if (strategyId === 'mabull3m2Long') return 'mabull3mLong';
@@ -46,10 +57,10 @@ function normalizeStrategyId(strategyId) {
     return 'mabull3mFlash';
   }
   // 旧下线策略本地缓存 → 回踩破Low·日
-  if (/^bottombandhigh|^bottomprev2high|^maalignlift|^macrossbreak/.test(strategyId)) {
+  if (/^bottombandhigh|^bottomprev2high|^maalignlift|^macrossbreak|^mabearbreakma|^mabull4m|^concavebreak/.test(strategyId)) {
     return 'trendretestlowShort';
   }
-  if (/^trendretest(low|high)|^mabull3m|^mabreakma|^mabearbreakma|^mabull4m/.test(strategyId)) {
+  if (/^trendretest(low|high)|^mabull3m|^mabreakma|^magoldbreak|^madeathbreak|^prevbandhigh/.test(strategyId)) {
     return strategyId;
   }
   return 'trendretestlowShort';
@@ -605,14 +616,20 @@ function mapRecommendation(item, strategyId) {
     else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
     else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
     else tags.push('日档');
-  } else if (/^mabearbreakma/.test(strategyId) || strategyId === 'mabearbreakma') {
-    tags.push('MA空头破MA');
-    if (/dayAlign=MA30/.test(item.signalMessage || '')) tags.push('日3M2空');
-    else tags.push('日3M1空');
-    if (/align=MA30/.test(item.signalMessage || '')) tags.push('30分3M2');
-    else tags.push('30分3M1');
-  } else if (/^mabull4m/.test(strategyId) || strategyId === 'mabull4m') {
-    tags.push('MA多头4M排列');
+  } else if (/^magoldbreak/.test(strategyId) || strategyId === 'magoldbreak') {
+    tags.push('MA金叉点突破');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (/^madeathbreak/.test(strategyId) || strategyId === 'madeathbreak') {
+    tags.push('MA死叉点突破');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else tags.push('日档');
+  } else if (/^prevbandhigh/.test(strategyId) || strategyId === 'prevbandhigh') {
+    tags.push('突破前波段High');
     if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
     else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
     else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');

@@ -6,6 +6,7 @@ const {
   buildMacdSegments,
   buildMacdHistBars,
   MA_LINE_CONFIGS,
+  maWarmupBars,
   findBarIndexByTimestamp,
   findBarIndexByDay
 } = require('../../utils/kline');
@@ -19,9 +20,9 @@ const MA_LEGEND = MA_LINE_CONFIGS.map(function (cfg) {
   };
 });
 
-function buildMaLegend(count) {
+function buildMaLegend(sourceCount) {
   return MA_LEGEND.filter(function (item) {
-    return count >= item.period;
+    return sourceCount >= item.period;
   });
 }
 
@@ -182,6 +183,12 @@ Component({
       const full = klines.slice();
       const sliceOffset = klines.length > limit ? klines.length - limit : 0;
       const sliced = sliceOffset > 0 ? klines.slice(-limit) : full.slice();
+      // 预热：用可见区左侧更多历史算 MA，使可见每根都有完整 MA60
+      const warmup = maWarmupBars(MA_LINE_CONFIGS);
+      const maSourceLen = limit + warmup;
+      const maSource = full.length > maSourceLen
+        ? full.slice(-maSourceLen)
+        : full.slice();
 
       const marginRatio = isCard ? 0.04 : 0.05;
       const range = calcPriceRange(sliced, marginRatio);
@@ -283,9 +290,9 @@ Component({
         markerLegend.push({ type: line.type, label: line.label });
       });
 
-      const showMA = isCard && count >= 5;
+      const showMA = isCard && maSource.length >= 5;
       const showMacd = isCard && this.properties.showMacd && count >= 10;
-      this._maBuild = showMA ? { sliced: sliced, range: range } : null;
+      this._maBuild = showMA ? { sliced: sliced, maSource: maSource, range: range } : null;
 
       var macdBars = [];
       var macdZeroPct = 50;
@@ -310,7 +317,7 @@ Component({
         macdBars: macdBars,
         macdSegments: [],
         macdZeroPct: macdZeroPct,
-        maLines: showMA ? buildMaLegend(count) : [],
+        maLines: showMA ? buildMaLegend(maSource.length) : [],
         maSegments: []
       }, () => {
         if (showMA) {
@@ -334,7 +341,8 @@ Component({
           payload.range,
           rect.width,
           rect.height,
-          MA_LINE_CONFIGS
+          MA_LINE_CONFIGS,
+          payload.maSource || payload.sliced
         );
         this.setData({ maSegments: segments });
       }).exec();
