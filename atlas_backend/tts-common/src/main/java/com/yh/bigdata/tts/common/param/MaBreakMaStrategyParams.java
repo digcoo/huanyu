@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * MA多头破MA（mabreakma）：3M1/3M2 多头 + 边沿/开盘突破均线 MAX。
+ * MA破MAX 共用参数（原 mabreakma 已下线；MaBreakMaTools / mabearbreakma 仍使用）。
  */
 @Data
 @Builder

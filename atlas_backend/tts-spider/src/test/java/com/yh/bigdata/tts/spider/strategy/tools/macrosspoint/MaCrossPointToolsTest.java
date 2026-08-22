@@ -30,11 +30,27 @@ public class MaCrossPointToolsTest {
     }
 
     @Test
-    public void findHitOnBars_goldenYang_missWhenBandIncomplete() {
-        // 金叉阳在未完结阳段（无完结阴）→ 方案 A 不命中
+    public void findHitOnBars_goldenYang_unfinishedUsesPrevCompleteBand() {
+        // 波段1完结 high=10.4；d3 阳线金叉落在未完结段 → 取前一波段 10.4
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.0, 10.4, 9.9, 10.2, 9.5, 10.0),
+                ohlc("d2", 10.2, 10.3, 10.0, 10.05, 9.8, 10.0),
+                ohlc("d3", 10.1, 10.2, 10.0, 10.15, 10.2, 10.0),
+                ohlc("d4", 10.15, 10.3, 10.0, 10.2, 10.3, 10.1),
+                ohlc("d5", 10.2, 10.8, 10.1, 10.5, 10.5, 10.3)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findHitOnBars(
+                bars, PeriodTypeEnum.DAY, MaCrossPointCore.CrossKind.GOLDEN);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(10.4, hit.getBreakLine(), 1e-6);
+        Assert.assertEquals("d3", hit.getCrossBar().getDay());
+    }
+
+    @Test
+    public void findHitOnBars_goldenYang_missWhenUnfinishedAndNoPrevBand() {
         List<Trade> bars = Arrays.asList(
                 ohlc("d1", 10.0, 10.5, 9.9, 10.2, 9.5, 10.0),
-                ohlc("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0), // 金叉阳，后面无完结
+                ohlc("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0),
                 ohlc("d3", 10.5, 10.7, 10.2, 10.6, 10.3, 10.1),
                 ohlc("d4", 10.6, 10.9, 10.3, 10.8, 10.4, 10.2)
         );
@@ -92,13 +108,30 @@ public class MaCrossPointToolsTest {
     }
 
     @Test
-    public void passesRightTrend_requiresMa5AboveMa60() {
+    public void passesMaBull_requiresMa5AboveMa60() {
         Trade ok = flat("d1", 10.5, 10.0, 10.2);
         ok.setMa60(10.0);
-        Assert.assertTrue(MaCrossPointCore.passesRightTrend(ok));
+        Assert.assertTrue(MaCrossPointCore.passesMaBull(ok));
         Trade bad = flat("d1", 9.5, 10.0, 9.8);
         bad.setMa60(10.0);
-        Assert.assertFalse(MaCrossPointCore.passesRightTrend(bad));
+        Assert.assertFalse(MaCrossPointCore.passesMaBull(bad));
+    }
+
+    @Test
+    public void passesAboveMa_requiresCloseAboveMaxMa5Ma10() {
+        Trade ok = flat("d1", 10.0, 10.2, 10.5);
+        Assert.assertTrue(MaCrossPointCore.passesAboveMa(ok));
+        Trade bad = flat("d1", 10.5, 10.2, 10.3);
+        Assert.assertFalse(MaCrossPointCore.passesAboveMa(bad));
+    }
+
+    @Test
+    public void resolveParentPeriod_followsDocPairs() {
+        Assert.assertEquals(PeriodTypeEnum.DAY, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.MIN30));
+        Assert.assertEquals(PeriodTypeEnum.WEEK, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.DAY));
+        Assert.assertEquals(PeriodTypeEnum.MONTH, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.WEEK));
+        Assert.assertEquals(PeriodTypeEnum.QUARTER, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.MONTH));
+        Assert.assertEquals(PeriodTypeEnum.YEAR, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.QUARTER));
     }
 
     private static Trade flat(String day, double ma5, double ma10, double close) {

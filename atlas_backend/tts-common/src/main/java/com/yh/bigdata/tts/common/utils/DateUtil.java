@@ -5,6 +5,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Calendar;
 import java.util.Date;
@@ -146,15 +147,15 @@ public class DateUtil extends DateUtils {
 	}
 	
 	public static String parse2QuarterLastDay(String someDay) throws ParseException {
-		String year = someDay.substring(0, 4);
-		int month = Integer.parseInt(someDay.substring(5, 7));
-		String day = someDay.substring(8, 10);
-
-		int quarter = (month + 2) / 3;
-		int lastQuarterMonth = quarter * 3;
-		String lastQuarterMonthString = lastQuarterMonth < 10?"0"+lastQuarterMonth : String.valueOf(lastQuarterMonth);
-		
-		return parse2MonthLastDay(year + "-" + lastQuarterMonthString + "-" + day);
+		try {
+			LocalDate localDate = LocalDate.parse(someDay.substring(0, 10), DateTimeFormatter.ISO_LOCAL_DATE);
+			int lastMonthOfQuarter = ((localDate.getMonthValue() - 1) / 3) * 3 + 3;
+			return LocalDate.of(localDate.getYear(), lastMonthOfQuarter, 1)
+					.with(TemporalAdjusters.lastDayOfMonth())
+					.format(DateTimeFormatter.ISO_LOCAL_DATE);
+		} catch (Exception e) {
+			throw new ParseException("parse2QuarterLastDay failed: " + someDay, 0);
+		}
 	}
 	
 	
@@ -310,7 +311,7 @@ public class DateUtil extends DateUtils {
 			int month2 = calendar2.get(Calendar.MONTH);
 			
 			return year1 == year2
-					&& (month1 + 2) % 3 == (month2 + 2) % 3
+					&& month1 / 3 == month2 / 3
 					;
 			
 		} catch (Exception e) {

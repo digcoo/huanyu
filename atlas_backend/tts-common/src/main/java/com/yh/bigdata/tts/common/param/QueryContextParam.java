@@ -171,32 +171,17 @@ public class QueryContextParam extends PageQuery {
     /** 趋势MA（trendma） */
     private TrendMaStrategyParams trendMa;
 
-    /** 趋势回踩破 Low（trendretestlow） */
-    private TrendRetestLowStrategyParams trendRetestLow;
-
-    /** 趋势回踩破 High（trendretesthigh） */
-    private TrendRetestHighStrategyParams trendRetestHigh;
-
     /** 底部波段突破（bottombandhigh） */
     private BottomBandHighStrategyParams bottomBandHigh;
 
     /** 底部 High 突破（bottomprev2high） */
     private BottomPrev2HighStrategyParams bottomPrev2High;
 
-    /** MA均线多头突破3M（mabull3m：3M1≥MA20 或 3M2≥MA30） */
-    private MaBull3mStrategyParams maBull3m;
-
-    /** MA多头破MA（mabreakma） */
-    private MaBreakMaStrategyParams maBreakMa;
-
     /** MA金叉点突破（magoldbreak） */
     private MaCrossPointStrategyParams maGoldBreak;
 
     /** MA死叉点突破（madeathbreak） */
     private MaCrossPointStrategyParams maDeathBreak;
-
-    /** 突破前波段High（prevbandhigh） */
-    private MaCrossPointStrategyParams prevBandHigh;
 
     /** MA空头破MA（mabearbreakma） */
     private MaBearBreakMaStrategyParams maBearBreakMa;
@@ -258,15 +243,10 @@ public class QueryContextParam extends PageQuery {
                 .trendWaveCcBreakout(TrendWaveCcBreakoutStrategyParams.defaults())
                 .trendLift(TrendLiftStrategyParams.defaults())
                 .trendMa(TrendMaStrategyParams.defaults())
-                .trendRetestLow(TrendRetestLowStrategyParams.defaults())
-                .trendRetestHigh(TrendRetestHighStrategyParams.defaults())
                 .bottomBandHigh(BottomBandHighStrategyParams.defaults())
                 .bottomPrev2High(BottomPrev2HighStrategyParams.defaults())
-                .maBull3m(MaBull3mStrategyParams.defaults())
-                .maBreakMa(MaBreakMaStrategyParams.defaults())
                 .maGoldBreak(MaCrossPointStrategyParams.defaults())
                 .maDeathBreak(MaCrossPointStrategyParams.defaults())
-                .prevBandHigh(MaCrossPointStrategyParams.defaults())
                 .maBearBreakMa(MaBearBreakMaStrategyParams.defaults())
                 .maBull4m(MaBull4mStrategyParams.defaults())
                 .build();

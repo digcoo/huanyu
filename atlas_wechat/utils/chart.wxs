@@ -1,6 +1,6 @@
-var LABELS = { year: '年K', month: '月K', week: '周K', day: '日K', min30: '30分', min60: '60分' };
+var LABELS = { year: '年K', quarter: '季K', month: '月K', week: '周K', day: '日K', min30: '30分', min60: '60分' };
 /** 详情可见根数：需 ≥60 才能画出 MA60（与 kline.PERIOD_MAX_BARS 对齐） */
-var MAX = { year: 80, month: 80, week: 80, day: 80, min30: 96, min60: 96 };
+var MAX = { year: 80, quarter: 80, month: 80, week: 80, day: 80, min30: 96, min60: 96 };
 
 function periodLabel(period) {
   return LABELS[period] || '周K';
@@ -11,7 +11,7 @@ function maxBars(period) {
 }
 
 function cardMaxBars(period) {
-  var CARD = { year: 64, month: 64, week: 64, day: 64, min30: 64, min60: 64 };
+  var CARD = { year: 64, quarter: 64, month: 64, week: 64, day: 64, min30: 64, min60: 64 };
   return CARD[period] || 64;
 }
 

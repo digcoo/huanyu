@@ -1,6 +1,6 @@
 const { PERIOD_MAX_BARS } = require('../../utils/kline');
 
-const PERIOD_LABELS = { year: '年K', month: '月K', week: '周K', day: '日K', min30: '30分' };
+const PERIOD_LABELS = { year: '年K', quarter: '季K', month: '月K', week: '周K', day: '日K', min30: '30分', min60: '60分' };
 
 function periodLabel(period) {
   return PERIOD_LABELS[period] || '周K';

@@ -1,5 +1,5 @@
 /**
- * 列表/详情 K 线标记：MA多头3M、MA交叉K突破 — 标注基准K + 突破K
+ * 列表/详情 K 线标记：MA金叉点 / MA死叉点 — 标注基准K + 突破K
  */
 const adapter = require('./adapter');
 const strategyNav = require('./strategy-nav');
@@ -11,8 +11,7 @@ function normalizeId(strategyId) {
 
 function isMarkedStrategy(strategyId) {
   var id = normalizeId(strategyId);
-  return /^mabull3m/.test(id) || /^mabreakma/.test(id)
-      || /^magoldbreak/.test(id) || /^madeathbreak/.test(id) || /^prevbandhigh/.test(id);
+  return /^magoldbreak/.test(id) || /^madeathbreak/.test(id);
 }
 
 function chartPeriodForStrategy(strategyId) {

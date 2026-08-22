@@ -10,6 +10,7 @@ var MIN30_KLINE_LIMIT = 64;
 /** 详情可见约 80 根；拉取 = 可见 + 59 预热，使 MA60 铺满 */
 var DETAIL_KLINE_LIMIT = {
   year: 140,
+  quarter: 140,
   month: 140,
   week: 140,
   day: 140,
@@ -40,9 +41,6 @@ function buildStrategyQueryParams(strategyId) {
   );
   if (strategyId === 'nrf') {
     Object.assign(params, strategyParams.toApiParams('ultra'));
-  }
-  if (adapterKey === 'trendretestlow' || /^trendretestlow/.test(String(strategyId || ''))) {
-    // tier 由 strategy-params.toApiParams 注入 trlTier
   }
   return params;
 }

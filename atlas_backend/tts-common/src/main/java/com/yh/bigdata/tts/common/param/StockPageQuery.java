@@ -847,18 +847,6 @@ public class StockPageQuery extends PageQuery {
     private Boolean tmaEnableMinAmountFilter;
     /** 趋势MA · 最低日均成交额（万） */
     private Integer tmaMinAmountWan;
-    /** 趋势回踩破 Low · 档位 day/week/month */
-    private String trlTier;
-    /** 趋势回踩破 Low · 启用成交额门 */
-    private Boolean trlEnableMinAmountFilter;
-    /** 趋势回踩破 Low · 最低日均成交额（万） */
-    private Integer trlMinAmountWan;
-    /** 趋势回踩破 High · 档位 day/week/month */
-    private String trhTier;
-    /** 趋势回踩破 High · 启用成交额门 */
-    private Boolean trhEnableMinAmountFilter;
-    /** 趋势回踩破 High · 最低日均成交额（万） */
-    private Integer trhMinAmountWan;
     /** 底部波段突破 · 档位 */
     private String bbhTier;
     /** 底部波段突破 · 启用成交额门 */
@@ -871,50 +859,32 @@ public class StockPageQuery extends PageQuery {
     private Boolean bp2hEnableMinAmountFilter;
     /** 底部 High 突破 · 最低日均成交额（万） */
     private Integer bp2hMinAmountWan;
-    /** MA多头3M突破 · 档位 min60/day/week/month */
-    private String m3mTier;
-    /** MA多头3M突破 · 启用成交额门 */
-    private Boolean m3mEnableMinAmountFilter;
-    /** MA多头3M突破 · 最低日均成交额（万） */
-    private Integer m3mMinAmountWan;
-    /** MA多头破MA · 档位 min30/day/week/month */
-    private String mbmTier;
-    /** MA多头破MA · 启用成交额门 */
-    private Boolean mbmEnableMinAmountFilter;
-    /** MA多头破MA · 最低日均成交额（万） */
-    private Integer mbmMinAmountWan;
-    /** MA多头破MA · 额外要求30分也破MAX */
-    private Boolean mbmEnableMin30BreakFilter;
-    /** MA多头破MA · 要求日线3M多头 */
-    private Boolean mbmRequireDayAlign;
-    /** MA多头破MA · 要求周线3M多头 */
-    private Boolean mbmRequireWeekAlign;
-    /** MA多头破MA · 要求月线3M多头 */
-    private Boolean mbmRequireMonthAlign;
     /** MA金叉点突破 · 档位 */
     private String mgbTier;
     /** MA金叉点突破 · 启用成交额门 */
     private Boolean mgbEnableMinAmountFilter;
     /** MA金叉点突破 · 最低日均成交额（万） */
     private Integer mgbMinAmountWan;
-    /** MA金叉点突破 · 右侧趋势 MA5&gt;MA60 */
+    /** @deprecated 已拆为日～年均线多头开关 */
     private Boolean mgbEnableRightTrend;
+    private Boolean mgbRequireDayMaBull;
+    private Boolean mgbRequireWeekMaBull;
+    private Boolean mgbRequireMonthMaBull;
+    private Boolean mgbRequireQuarterMaBull;
+    private Boolean mgbRequireYearMaBull;
     /** MA死叉点突破 · 档位 */
     private String mdbTier;
     /** MA死叉点突破 · 启用成交额门 */
     private Boolean mdbEnableMinAmountFilter;
     /** MA死叉点突破 · 最低日均成交额（万） */
     private Integer mdbMinAmountWan;
-    /** MA死叉点突破 · 右侧趋势 MA5&gt;MA60 */
+    /** @deprecated 已拆为日～年均线多头开关 */
     private Boolean mdbEnableRightTrend;
-    /** 突破前波段High · 档位 */
-    private String pbhTier;
-    /** 突破前波段High · 启用成交额门 */
-    private Boolean pbhEnableMinAmountFilter;
-    /** 突破前波段High · 最低日均成交额（万） */
-    private Integer pbhMinAmountWan;
-    /** 突破前波段High · 右侧趋势 MA5&gt;MA60 */
-    private Boolean pbhEnableRightTrend;
+    private Boolean mdbRequireDayMaBull;
+    private Boolean mdbRequireWeekMaBull;
+    private Boolean mdbRequireMonthMaBull;
+    private Boolean mdbRequireQuarterMaBull;
+    private Boolean mdbRequireYearMaBull;
     /** MA空头破MA · 启用成交额门 */
     private Boolean mbbmEnableMinAmountFilter;
     /** MA空头破MA · 最低日均成交额（万） */
@@ -2484,36 +2454,6 @@ public class StockPageQuery extends PageQuery {
         return TrendMaStrategyParams.merge(b.build());
     }
 
-    public TrendRetestLowStrategyParams toTrendRetestLowParams() {
-        TrendRetestLowStrategyParams.TrendRetestLowStrategyParamsBuilder b =
-                TrendRetestLowStrategyParams.builder();
-        if (trlTier != null && !trlTier.trim().isEmpty()) {
-            b.tier(TrendRetestLowStrategyParams.parseTier(trlTier));
-        }
-        if (trlEnableMinAmountFilter != null) {
-            b.enableMinAmountFilter(trlEnableMinAmountFilter);
-        }
-        if (trlMinAmountWan != null && trlMinAmountWan >= 0) {
-            b.minAvgAmount(trlMinAmountWan * 10_000D);
-        }
-        return TrendRetestLowStrategyParams.merge(b.build());
-    }
-
-    public TrendRetestHighStrategyParams toTrendRetestHighParams() {
-        TrendRetestHighStrategyParams.TrendRetestHighStrategyParamsBuilder b =
-                TrendRetestHighStrategyParams.builder();
-        if (trhTier != null && !trhTier.trim().isEmpty()) {
-            b.tier(TrendRetestHighStrategyParams.parseTier(trhTier));
-        }
-        if (trhEnableMinAmountFilter != null) {
-            b.enableMinAmountFilter(trhEnableMinAmountFilter);
-        }
-        if (trhMinAmountWan != null && trhMinAmountWan >= 0) {
-            b.minAvgAmount(trhMinAmountWan * 10_000D);
-        }
-        return TrendRetestHighStrategyParams.merge(b.build());
-    }
-
     public BottomBandHighStrategyParams toBottomBandHighParams() {
         BottomBandHighStrategyParams.BottomBandHighStrategyParamsBuilder b =
                 BottomBandHighStrategyParams.builder();
@@ -2544,62 +2484,25 @@ public class StockPageQuery extends PageQuery {
         return BottomPrev2HighStrategyParams.merge(b.build());
     }
 
-    public MaBull3mStrategyParams toMaBull3mParams() {
-        MaBull3mStrategyParams.MaBull3mStrategyParamsBuilder b =
-                MaBull3mStrategyParams.builder();
-        if (m3mTier != null && !m3mTier.trim().isEmpty()) {
-            b.tier(MaBull3mStrategyParams.parseTier(m3mTier));
-        }
-        if (m3mEnableMinAmountFilter != null) {
-            b.enableMinAmountFilter(m3mEnableMinAmountFilter);
-        }
-        if (m3mMinAmountWan != null && m3mMinAmountWan >= 0) {
-            b.minAvgAmount(m3mMinAmountWan * 10_000D);
-        }
-        return MaBull3mStrategyParams.merge(b.build());
-    }
-
-    public MaBreakMaStrategyParams toMaBreakMaParams() {
-        MaBreakMaStrategyParams.MaBreakMaStrategyParamsBuilder b =
-                MaBreakMaStrategyParams.builder();
-        if (mbmTier != null && !mbmTier.trim().isEmpty()) {
-            b.tier(MaBreakMaStrategyParams.parseTier(mbmTier));
-        }
-        if (mbmEnableMinAmountFilter != null) {
-            b.enableMinAmountFilter(mbmEnableMinAmountFilter);
-        }
-        if (mbmMinAmountWan != null && mbmMinAmountWan >= 0) {
-            b.minAvgAmount(mbmMinAmountWan * 10_000D);
-        }
-        if (mbmEnableMin30BreakFilter != null) {
-            b.enableMin30BreakFilter(mbmEnableMin30BreakFilter);
-        }
-        if (mbmRequireDayAlign != null) {
-            b.requireDayAlign(mbmRequireDayAlign);
-        }
-        if (mbmRequireWeekAlign != null) {
-            b.requireWeekAlign(mbmRequireWeekAlign);
-        }
-        if (mbmRequireMonthAlign != null) {
-            b.requireMonthAlign(mbmRequireMonthAlign);
-        }
-        return MaBreakMaStrategyParams.merge(b.build());
-    }
-
     public MaCrossPointStrategyParams toMaGoldBreakParams() {
-        return toMaCrossPointParams(mgbTier, mgbEnableMinAmountFilter, mgbMinAmountWan, mgbEnableRightTrend);
+        return toMaCrossPointParams(
+                mgbTier, mgbEnableMinAmountFilter, mgbMinAmountWan, mgbEnableRightTrend,
+                mgbRequireDayMaBull, mgbRequireWeekMaBull, mgbRequireMonthMaBull,
+                mgbRequireQuarterMaBull, mgbRequireYearMaBull);
     }
 
     public MaCrossPointStrategyParams toMaDeathBreakParams() {
-        return toMaCrossPointParams(mdbTier, mdbEnableMinAmountFilter, mdbMinAmountWan, mdbEnableRightTrend);
-    }
-
-    public MaCrossPointStrategyParams toPrevBandHighParams() {
-        return toMaCrossPointParams(pbhTier, pbhEnableMinAmountFilter, pbhMinAmountWan, pbhEnableRightTrend);
+        return toMaCrossPointParams(
+                mdbTier, mdbEnableMinAmountFilter, mdbMinAmountWan, mdbEnableRightTrend,
+                mdbRequireDayMaBull, mdbRequireWeekMaBull, mdbRequireMonthMaBull,
+                mdbRequireQuarterMaBull, mdbRequireYearMaBull);
     }
 
     private MaCrossPointStrategyParams toMaCrossPointParams(String tier, Boolean enableMinAmountFilter,
-                                                           Integer minAmountWan, Boolean enableRightTrend) {
+                                                           Integer minAmountWan, Boolean legacyRightTrend,
+                                                           Boolean requireDayMaBull, Boolean requireWeekMaBull,
+                                                           Boolean requireMonthMaBull, Boolean requireQuarterMaBull,
+                                                           Boolean requireYearMaBull) {
         MaCrossPointStrategyParams.MaCrossPointStrategyParamsBuilder b =
                 MaCrossPointStrategyParams.builder();
         if (tier != null && !tier.trim().isEmpty()) {
@@ -2611,9 +2514,13 @@ public class StockPageQuery extends PageQuery {
         if (minAmountWan != null && minAmountWan >= 0) {
             b.minAvgAmount(minAmountWan * 10_000D);
         }
-        if (enableRightTrend != null) {
-            b.enableRightTrend(enableRightTrend);
-        }
+        boolean dayBull = Boolean.TRUE.equals(requireDayMaBull)
+                || (requireDayMaBull == null && Boolean.TRUE.equals(legacyRightTrend));
+        b.requireDayMaBull(dayBull);
+        b.requireWeekMaBull(Boolean.TRUE.equals(requireWeekMaBull));
+        b.requireMonthMaBull(Boolean.TRUE.equals(requireMonthMaBull));
+        b.requireQuarterMaBull(Boolean.TRUE.equals(requireQuarterMaBull));
+        b.requireYearMaBull(Boolean.TRUE.equals(requireYearMaBull));
         return MaCrossPointStrategyParams.merge(b.build());
     }
 

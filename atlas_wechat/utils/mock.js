@@ -115,32 +115,16 @@ const MARKET_SENTIMENT = {
 };
 
 const STRATEGIES = [
-  { id: 'trendretestlowShort', name: '趋势回踩破Low·日' },
-  { id: 'trendretestlowMedium', name: '趋势回踩破Low·周' },
-  { id: 'trendretestlowLong', name: '趋势回踩破Low·月' },
-  { id: 'trendretesthighShort', name: '趋势回踩破High·日' },
-  { id: 'trendretesthighMedium', name: '趋势回踩破High·周' },
-  { id: 'trendretesthighLong', name: '趋势回踩破High·月' },
-  { id: 'mabull3mFlash', name: 'MA多头3M突破·30分' },
-  { id: 'mabull3mShort', name: 'MA多头3M突破·日' },
-  { id: 'mabull3mMedium', name: 'MA多头3M突破·周' },
-  { id: 'mabull3mLong', name: 'MA多头3M突破·月' },
-  { id: 'mabreakmaFlash', name: 'MA多头破MA·30分' },
-  { id: 'mabreakmaShort', name: 'MA多头破MA·日' },
-  { id: 'mabreakmaMedium', name: 'MA多头破MA·周' },
-  { id: 'mabreakmaLong', name: 'MA多头破MA·月' },
   { id: 'magoldbreakFlash', name: 'MA金叉点突破·30分' },
   { id: 'magoldbreakShort', name: 'MA金叉点突破·日' },
   { id: 'magoldbreakMedium', name: 'MA金叉点突破·周' },
   { id: 'magoldbreakLong', name: 'MA金叉点突破·月' },
+  { id: 'magoldbreakQuarter', name: 'MA金叉点突破·季' },
   { id: 'madeathbreakFlash', name: 'MA死叉点突破·30分' },
   { id: 'madeathbreakShort', name: 'MA死叉点突破·日' },
   { id: 'madeathbreakMedium', name: 'MA死叉点突破·周' },
   { id: 'madeathbreakLong', name: 'MA死叉点突破·月' },
-  { id: 'prevbandhighFlash', name: '突破前波段High·30分' },
-  { id: 'prevbandhighShort', name: '突破前波段High·日' },
-  { id: 'prevbandhighMedium', name: '突破前波段High·周' },
-  { id: 'prevbandhighLong', name: '突破前波段High·月' }
+  { id: 'madeathbreakQuarter', name: 'MA死叉点突破·季' }
 ];
 
 const { formatDataUpdatedLabel, todayDayStr } = require('./time');

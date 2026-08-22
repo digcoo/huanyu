@@ -28,6 +28,10 @@ public final class MaCrossPointEvaluator {
             return MaCrossPointEvaluation.miss();
         }
 
+        if (!MaCrossPointTools.passesParentAboveMa(stock, checkResult, tag, period)) {
+            return MaCrossPointEvaluation.miss();
+        }
+
         if (!MaCrossPointTools.passesOptionalGates(stock, checkResult, p, hit)) {
             return MaCrossPointEvaluation.miss();
         }

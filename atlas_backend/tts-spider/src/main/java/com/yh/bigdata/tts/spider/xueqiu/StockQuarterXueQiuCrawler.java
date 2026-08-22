@@ -141,11 +141,9 @@ public class StockQuarterXueQiuCrawler {
 		if (StringUtils.isNotBlank(ret_day) && !ret_day.equals("null")) {
 			days = XueQiuHttpUtils.parseStockTrades(ret_day, stockBase, StockQuarter.class);
 		}
-		
-//		stockBase.setTrade(days.get(days.size() - 1).getTrade());
-//		stockBase.setDay(days.get(days.size() - 1).getDay());
-//		
-//		stockBaseMapper.updateByPrimaryKeySelective(stockBase);
+		if (CollectionUtils.isEmpty(days)) {
+			return;
+		}
 		
 		for (StockQuarter stockYear : days) {
 			try {
@@ -154,9 +152,7 @@ public class StockQuarterXueQiuCrawler {
 					continue;
 				}
 
-//				if (DateUtil.isSameMonth(stockYear.getDay())) {
-					stockYear.setDay(DateUtil.parse2QuarterLastDay(stockYear.getDay()));
-//				}
+				stockYear.setDay(DateUtil.parse2QuarterLastDay(stockYear.getDay()));
 				
 //				logger.info("spider month : " + JSON.toJSONString(stockYear));
 				

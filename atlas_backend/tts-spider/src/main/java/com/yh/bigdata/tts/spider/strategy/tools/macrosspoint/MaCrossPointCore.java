@@ -108,11 +108,25 @@ public final class MaCrossPointCore {
         return bar.getMa5() > bar.getMa10() + EPS;
     }
 
-    /** 右侧趋势：MA5 &gt; MA60 */
-    public static boolean passesRightTrend(Trade bar) {
+    /** 均线多头：MA5 &gt; MA60（60 周期支撑均线） */
+    public static boolean passesMaBull(Trade bar) {
         if (bar == null || bar.getMa5() == null || bar.getMa60() == null) {
             return false;
         }
         return bar.getMa5() > bar.getMa60() + EPS;
+    }
+
+    /** @deprecated 使用 {@link #passesMaBull(Trade)} */
+    public static boolean passesRightTrend(Trade bar) {
+        return passesMaBull(bar);
+    }
+
+    /** 均价之上：close &gt; max(MA5, MA10) */
+    public static boolean passesAboveMa(Trade bar) {
+        if (bar == null || bar.getClose() == null || bar.getMa5() == null || bar.getMa10() == null) {
+            return false;
+        }
+        double maxMa = Math.max(bar.getMa5(), bar.getMa10());
+        return bar.getClose() > maxMa + EPS;
     }
 }

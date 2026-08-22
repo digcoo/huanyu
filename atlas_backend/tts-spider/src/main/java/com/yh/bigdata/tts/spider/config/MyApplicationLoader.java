@@ -85,7 +85,7 @@ public class MyApplicationLoader {
         List<StockBase> targetStocks = Lists.newArrayList();
         int notBidNum = 0;
 
-        double minAvgAmount = 6000_0000;
+        double minAvgAmount = 5000_0000;
         double minShockRate = 0.035;
         double minChangeRate = 0.025;
 

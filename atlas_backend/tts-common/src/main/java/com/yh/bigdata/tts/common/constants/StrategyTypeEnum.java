@@ -104,9 +104,9 @@ public enum StrategyTypeEnum {
     TREND_LIFT("trendlift", "趋势上移", 58),
     /** 趋势MA（日/周/月 MACD&gt;0 且 close&gt;max(MA5~30) 且收阳，至少 2 档） */
     TREND_MA("trendma", "趋势MA", 59),
-    /** 趋势回踩破 Low */
+    /** @deprecated 趋势回踩破 Low 已下线 */
     TREND_RETEST_LOW("trendretestlow", "趋势回踩破Low", 61),
-    /** 趋势回踩破 High */
+    /** @deprecated 趋势回踩破 High 已下线 */
     TREND_RETEST_HIGH("trendretesthigh", "趋势回踩破High", 62),
     /** @deprecated 趋势中转二阳已下线 */
     TREND_RELAY_2YANG("trendrelay2yang", "趋势中转二阳", 63),
@@ -124,9 +124,9 @@ public enum StrategyTypeEnum {
     MA_BEAR_BREAK("mabearbreak", "均线空头突破", 69),
     /** @deprecated MA交叉K突破已下线 */
     MA_CROSS_BREAK("macrossbreak", "MA交叉K突破", 70),
-    /** MA均线多头突破3M（3M1≥MA20 或 3M2≥MA30 + 边沿破金叉/死叉/关键K High） */
+    /** @deprecated MA多头3M突破已下线 */
     MA_BULL_3M("mabull3m", "MA多头3M突破", 73),
-    /** MA多头破MA（3M1/3M2 多头 + 边沿/开盘破均线 MAX） */
+    /** @deprecated MA多头破MA已下线（MaBreakMaTools 仍供 mabearbreakma 复用） */
     MA_BREAK_MA("mabreakma", "MA多头破MA", 76),
     /** MA金叉点突破（边沿破 MA5/MA10 金叉交叉点） */
     MA_GOLD_BREAK("magoldbreak", "MA金叉点突破", 78),
@@ -134,7 +134,7 @@ public enum StrategyTypeEnum {
     MA_DEATH_BREAK("madeathbreak", "MA死叉点突破", 79),
     /** @deprecated 凹突破已下线 */
     CONCAVE_BREAK("concavebreak", "凹突破", 80),
-    /** 突破前波段High（同档边沿破末完整阳波段 bandHigh） */
+    /** @deprecated 突破前波段High已下线 */
     PREV_BAND_HIGH("prevbandhigh", "突破前波段High", 81),
     /** MA空头破MA（日线3M空头 + 30分3M多头破MAX） */
     MA_BEAR_BREAK_MA("mabearbreakma", "MA空头破MA", 77),
@@ -182,11 +182,8 @@ public enum StrategyTypeEnum {
     private final int groupOrder;
 
     public boolean isActive() {
-        return this == TREND_RETEST_LOW || this == TREND_RETEST_HIGH
-                || this == BOTTOM_BAND_HIGH || this == BOTTOM_PREV2_HIGH
-                || this == MA_BULL_3M || this == MA_BREAK_MA
+        return this == BOTTOM_BAND_HIGH || this == BOTTOM_PREV2_HIGH
                 || this == MA_GOLD_BREAK || this == MA_DEATH_BREAK
-                || this == PREV_BAND_HIGH
                 || this == MA_BEAR_BREAK_MA || this == MA_BULL_4M;
     }
 

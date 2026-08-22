@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * MA 金叉波段顶 / 死叉交叉点 边沿突破。
  * <ul>
- *   <li>金叉：边沿破金叉波段顶（阳线金叉取所在完整波段 High；阴线金叉取往前第一个完整波段 High），且末K MA5&gt;MA10</li>
+ *   <li>金叉：边沿破金叉波段顶（完结阳线取所在波段 High；未完结阳线或阴线取前一完整波段 High），且末K MA5&gt;MA10</li>
  *   <li>死叉：边沿破死叉交叉点价（MA5/MA10 插值）</li>
  * </ul>
  */
@@ -95,12 +95,16 @@ public final class MaCrossPointTools {
     }
 
     /**
-     * 阳线金叉：所在完整波段；未完结则 null。
-     * 阴线金叉：从该阴往前（含完结于本 K）第一个完整波段。
+     * 阳线且不在末未完结波段：所在完整波段 High。
+     * 阳线落在末未完结波段，或阴线：此前一个完整波段 High。
      */
     static YangBandTools.CompleteYangBand resolveGoldenBand(List<Trade> trades, int crossIdx, Trade crossBar) {
         if (YangBandTools.isStrictYang(crossBar)) {
-            return YangBandTools.findBandContainingYangBar(trades, crossIdx);
+            YangBandTools.CompleteYangBand containing = YangBandTools.findBandContainingYangBar(trades, crossIdx);
+            if (containing != null) {
+                return containing;
+            }
+            return YangBandTools.findNearestCompleteBandAtOrBefore(trades, crossIdx);
         }
         if (YangBandTools.isStrictYin(crossBar)) {
             return YangBandTools.findNearestCompleteBandAtOrBefore(trades, crossIdx);
@@ -137,15 +141,81 @@ public final class MaCrossPointTools {
             appendMessage(checkResult, PeriodTypeEnum.DAY, tag, "成交额不足");
             return false;
         }
-        if (p.isEnableRightTrend()) {
-            Trade signal = hit != null ? hit.getSignalBar() : null;
-            if (!MaCrossPointCore.passesRightTrend(signal)) {
-                appendMessage(checkResult, hit != null ? hit.getPeriod() : PeriodTypeEnum.DAY,
-                        tag, "未满足右侧趋势MA5>MA60");
-                return false;
-            }
+        PeriodTypeEnum msgPeriod = hit != null ? hit.getPeriod() : PeriodTypeEnum.DAY;
+        if (!passMaBullGate(stock, checkResult, tag, msgPeriod, p.isRequireDayMaBull(), PeriodTypeEnum.DAY, "日")) {
+            return false;
+        }
+        if (!passMaBullGate(stock, checkResult, tag, msgPeriod, p.isRequireWeekMaBull(), PeriodTypeEnum.WEEK, "周")) {
+            return false;
+        }
+        if (!passMaBullGate(stock, checkResult, tag, msgPeriod, p.isRequireMonthMaBull(), PeriodTypeEnum.MONTH, "月")) {
+            return false;
+        }
+        if (!passMaBullGate(stock, checkResult, tag, msgPeriod, p.isRequireQuarterMaBull(), PeriodTypeEnum.QUARTER, "季")) {
+            return false;
+        }
+        if (!passMaBullGate(stock, checkResult, tag, msgPeriod, p.isRequireYearMaBull(), PeriodTypeEnum.YEAR, "年")) {
+            return false;
         }
         return true;
+    }
+
+    private static boolean passMaBullGate(StockBase stock, CheckResult checkResult, String tag,
+                                          PeriodTypeEnum msgPeriod, boolean enabled,
+                                          PeriodTypeEnum period, String label) {
+        if (!enabled) {
+            return true;
+        }
+        if (!MaCrossPointCore.passesMaBull(lastBarOf(stock, period))) {
+            appendMessage(checkResult, msgPeriod, tag, "未满足" + label + "均线多头MA5>MA60");
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 父子周期：30分→日，日→周，周→月，月→季，季→年。
+     */
+    public static PeriodTypeEnum resolveParentPeriod(PeriodTypeEnum period) {
+        if (period == PeriodTypeEnum.MIN30) {
+            return PeriodTypeEnum.DAY;
+        }
+        if (period == PeriodTypeEnum.DAY) {
+            return PeriodTypeEnum.WEEK;
+        }
+        if (period == PeriodTypeEnum.WEEK) {
+            return PeriodTypeEnum.MONTH;
+        }
+        if (period == PeriodTypeEnum.MONTH) {
+            return PeriodTypeEnum.QUARTER;
+        }
+        if (period == PeriodTypeEnum.QUARTER) {
+            return PeriodTypeEnum.YEAR;
+        }
+        return null;
+    }
+
+    /** 硬性：父周期末 K 收盘价 &gt; max(MA5, MA10) */
+    public static boolean passesParentAboveMa(StockBase stock, CheckResult checkResult,
+                                              String tag, PeriodTypeEnum period) {
+        PeriodTypeEnum parent = resolveParentPeriod(period);
+        if (parent == null) {
+            appendMessage(checkResult, period != null ? period : PeriodTypeEnum.DAY, tag, "未满足父级均价之上");
+            return false;
+        }
+        if (!MaCrossPointCore.passesAboveMa(lastBarOf(stock, parent))) {
+            appendMessage(checkResult, period != null ? period : parent, tag,
+                    "未满足父级均价之上" + periodLabel(parent) + "close>max(MA5,MA10)");
+            return false;
+        }
+        return true;
+    }
+
+    private static Trade lastBarOf(StockBase stock, PeriodTypeEnum period) {
+        if (stock == null || period == null) {
+            return null;
+        }
+        return RealtimeStockCache.getLastTrade(stock, period, 0);
     }
 
     public static String buildTrendMessage(Hit hit) {
@@ -157,7 +227,7 @@ public final class MaCrossPointTools {
         String tag = death ? "MDB" : "MGB";
         String target = death ? "死叉交叉点" : "金叉波段顶";
         String maGate = death ? "" : ",MA5>MA10";
-        return String.format("[%s]%s|%s边沿破%s%s|breakLine=%.2f,crossDay=%s",
+        return String.format("[%s]%s|%s边沿破%s%s,父级均价之上|breakLine=%.2f,crossDay=%s",
                 tag, name, periodLabel(hit.getPeriod()), target, maGate,
                 hit.getBreakLine(),
                 dayOf(hit.getCrossBar()));
@@ -193,6 +263,9 @@ public final class MaCrossPointTools {
         if (tier == MaCrossPointStrategyParams.Tier.MONTH) {
             return PeriodTypeEnum.MONTH;
         }
+        if (tier == MaCrossPointStrategyParams.Tier.QUARTER) {
+            return PeriodTypeEnum.QUARTER;
+        }
         return PeriodTypeEnum.DAY;
     }
 
@@ -207,6 +280,9 @@ public final class MaCrossPointTools {
         if (p.getTier() == MaCrossPointStrategyParams.Tier.MONTH) {
             return p.getLookbackMonth();
         }
+        if (p.getTier() == MaCrossPointStrategyParams.Tier.QUARTER) {
+            return p.getLookbackQuarter();
+        }
         return p.getLookbackDay();
     }
 
@@ -216,6 +292,12 @@ public final class MaCrossPointTools {
         }
         if (period == PeriodTypeEnum.MONTH) {
             return "月";
+        }
+        if (period == PeriodTypeEnum.YEAR) {
+            return "年";
+        }
+        if (period == PeriodTypeEnum.QUARTER) {
+            return "季";
         }
         if (period == PeriodTypeEnum.WEEK) {
             return "周";

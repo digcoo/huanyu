@@ -14,7 +14,7 @@ const listMemory = require('../../utils/list-memory');
 const listViewCtx = require('../../utils/list-view-context');
 
 const app = getApp();
-const DEFAULT_STRATEGY = 'trendretestlowShort';
+const DEFAULT_STRATEGY = strategyNav.DEFAULT_STRATEGY;
 
 const RECOMMEND_PAGE_SIZE = stockApi.RECOMMEND_PAGE_SIZE || 12;
 
@@ -259,8 +259,8 @@ Page({
 
     markets: buildMarketsForUI(),
     activeStrategy: DEFAULT_STRATEGY,
-    activeStrategyFamily: strategyNav.STRATEGY_TREND_RETEST_LOW,
-    activeCascadeTier: strategyNav.TIER_SHORT,
+    activeStrategyFamily: strategyNav.STRATEGY_MA_GOLD_BREAK,
+    activeCascadeTier: strategyNav.DEFAULT_STRATEGY,
     showCascadeTierRow: false,
     allowedPeriods: listViewCtx.allowedPeriods(),
     strategyTitle: strategyNav.strategyTitleFor(DEFAULT_STRATEGY),

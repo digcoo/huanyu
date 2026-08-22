@@ -595,6 +595,7 @@ module.exports = {
   COLORS: BINANCE,
   PERIOD_MAX_BARS: {
     year: 80,
+    quarter: 80,
     month: 80,
     week: 80,
     day: 80,

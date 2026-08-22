@@ -4,7 +4,7 @@ Component({
   properties: {
     activeFamily: {
       type: String,
-      value: strategyNav.STRATEGY_TREND_RETEST_LOW
+      value: strategyNav.STRATEGY_MA_GOLD_BREAK
     },
     activeTier: {
       type: String,

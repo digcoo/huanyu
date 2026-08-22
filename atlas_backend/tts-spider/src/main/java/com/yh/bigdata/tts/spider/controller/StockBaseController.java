@@ -635,36 +635,28 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getTlMinAmountWan()),
                 String.valueOf(pageQuery.getTmaEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getTmaMinAmountWan()),
-                String.valueOf(pageQuery.getTrlTier()),
-                String.valueOf(pageQuery.getTrlEnableMinAmountFilter()),
-                String.valueOf(pageQuery.getTrlMinAmountWan()),
-                String.valueOf(pageQuery.getTrhTier()),
-                String.valueOf(pageQuery.getTrhEnableMinAmountFilter()),
-                String.valueOf(pageQuery.getTrhMinAmountWan()),
                 String.valueOf(pageQuery.getBbhTier()),
                 String.valueOf(pageQuery.getBbhEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getBbhMinAmountWan()),
                 String.valueOf(pageQuery.getBp2hTier()),
                 String.valueOf(pageQuery.getBp2hEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getBp2hMinAmountWan()),
-                String.valueOf(pageQuery.getM3mTier()),
-                String.valueOf(pageQuery.getM3mEnableMinAmountFilter()),
-                String.valueOf(pageQuery.getM3mMinAmountWan()),
-                String.valueOf(pageQuery.getMbmTier()),
-                String.valueOf(pageQuery.getMbmEnableMinAmountFilter()),
-                String.valueOf(pageQuery.getMbmMinAmountWan()),
-                String.valueOf(pageQuery.getMbmEnableMin30BreakFilter()),
-                String.valueOf(pageQuery.getMbmRequireDayAlign()),
-                String.valueOf(pageQuery.getMbmRequireWeekAlign()),
-                String.valueOf(pageQuery.getMbmRequireMonthAlign()),
                 String.valueOf(pageQuery.getMgbTier()),
                 String.valueOf(pageQuery.getMgbEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getMgbMinAmountWan()),
-                String.valueOf(pageQuery.getMgbEnableRightTrend()),
+                String.valueOf(pageQuery.getMgbRequireDayMaBull()),
+                String.valueOf(pageQuery.getMgbRequireWeekMaBull()),
+                String.valueOf(pageQuery.getMgbRequireMonthMaBull()),
+                String.valueOf(pageQuery.getMgbRequireQuarterMaBull()),
+                String.valueOf(pageQuery.getMgbRequireYearMaBull()),
                 String.valueOf(pageQuery.getMdbTier()),
                 String.valueOf(pageQuery.getMdbEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getMdbMinAmountWan()),
-                String.valueOf(pageQuery.getMdbEnableRightTrend()),
+                String.valueOf(pageQuery.getMdbRequireDayMaBull()),
+                String.valueOf(pageQuery.getMdbRequireWeekMaBull()),
+                String.valueOf(pageQuery.getMdbRequireMonthMaBull()),
+                String.valueOf(pageQuery.getMdbRequireQuarterMaBull()),
+                String.valueOf(pageQuery.getMdbRequireYearMaBull()),
                 String.valueOf(pageQuery.getMbbmEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getMbbmMinAmountWan()),
                 String.valueOf(pageQuery.getM4mTier()),
@@ -772,15 +764,10 @@ public class StockBaseController {
                 .trendWaveCcBreakout(stockPageQuery.toTrendWaveCcBreakoutParams())
                 .trendLift(stockPageQuery.toTrendLiftParams())
                 .trendMa(stockPageQuery.toTrendMaParams())
-                .trendRetestLow(stockPageQuery.toTrendRetestLowParams())
-                .trendRetestHigh(stockPageQuery.toTrendRetestHighParams())
                 .bottomBandHigh(stockPageQuery.toBottomBandHighParams())
                 .bottomPrev2High(stockPageQuery.toBottomPrev2HighParams())
-                .maBull3m(stockPageQuery.toMaBull3mParams())
-                .maBreakMa(stockPageQuery.toMaBreakMaParams())
                 .maGoldBreak(stockPageQuery.toMaGoldBreakParams())
                 .maDeathBreak(stockPageQuery.toMaDeathBreakParams())
-                .prevBandHigh(stockPageQuery.toPrevBandHighParams())
                 .maBearBreakMa(stockPageQuery.toMaBearBreakMaParams())
                 .maBull4m(stockPageQuery.toMaBull4mParams())
                 .build();

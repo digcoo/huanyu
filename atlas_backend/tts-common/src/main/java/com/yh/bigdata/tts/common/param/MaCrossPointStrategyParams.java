@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * MA 金叉/死叉点突破及突破前波段High共用参数（magoldbreak / madeathbreak / prevbandhigh）。
+ * MA 金叉/死叉点突破共用参数（magoldbreak / madeathbreak）。
  */
 @Data
 @Builder
@@ -15,13 +15,14 @@ import lombok.NoArgsConstructor;
 public class MaCrossPointStrategyParams {
 
     public enum Tier {
-        MIN30, DAY, WEEK, MONTH
+        MIN30, DAY, WEEK, MONTH, QUARTER
     }
 
     public static final int DEFAULT_LOOKBACK_MIN30 = 200;
     public static final int DEFAULT_LOOKBACK_DAY = 120;
     public static final int DEFAULT_LOOKBACK_WEEK = 52;
     public static final int DEFAULT_LOOKBACK_MONTH = 36;
+    public static final int DEFAULT_LOOKBACK_QUARTER = 24;
     public static final double DEFAULT_MIN_AVG_AMOUNT = 3000D * 10_000D;
 
     @Builder.Default
@@ -40,14 +41,25 @@ public class MaCrossPointStrategyParams {
     private int lookbackMonth = DEFAULT_LOOKBACK_MONTH;
 
     @Builder.Default
+    private int lookbackQuarter = DEFAULT_LOOKBACK_QUARTER;
+
+    @Builder.Default
     private boolean enableMinAmountFilter = true;
 
     @Builder.Default
     private double minAvgAmount = DEFAULT_MIN_AVG_AMOUNT;
 
-    /** 可选：末K 满足 MA5 &gt; MA60 */
+    /** 可选：日/周/月/季/年末 K 满足 MA5 &gt; MA60，多选取交集 */
     @Builder.Default
-    private boolean enableRightTrend = false;
+    private boolean requireDayMaBull = false;
+    @Builder.Default
+    private boolean requireWeekMaBull = false;
+    @Builder.Default
+    private boolean requireMonthMaBull = false;
+    @Builder.Default
+    private boolean requireQuarterMaBull = false;
+    @Builder.Default
+    private boolean requireYearMaBull = false;
 
     public static MaCrossPointStrategyParams defaults() {
         return MaCrossPointStrategyParams.builder().build();
@@ -73,11 +85,18 @@ public class MaCrossPointStrategyParams {
         if (incoming.lookbackMonth >= 6) {
             d.lookbackMonth = incoming.lookbackMonth;
         }
+        if (incoming.lookbackQuarter >= 6) {
+            d.lookbackQuarter = incoming.lookbackQuarter;
+        }
         d.enableMinAmountFilter = incoming.enableMinAmountFilter;
         if (incoming.minAvgAmount > 0) {
             d.minAvgAmount = incoming.minAvgAmount;
         }
-        d.enableRightTrend = incoming.enableRightTrend;
+        d.requireDayMaBull = incoming.requireDayMaBull;
+        d.requireWeekMaBull = incoming.requireWeekMaBull;
+        d.requireMonthMaBull = incoming.requireMonthMaBull;
+        d.requireQuarterMaBull = incoming.requireQuarterMaBull;
+        d.requireYearMaBull = incoming.requireYearMaBull;
         return d;
     }
 
@@ -94,6 +113,9 @@ public class MaCrossPointStrategyParams {
         }
         if ("month".equals(s) || "long".equals(s)) {
             return Tier.MONTH;
+        }
+        if ("quarter".equals(s) || "season".equals(s) || "q".equals(s)) {
+            return Tier.QUARTER;
         }
         return Tier.DAY;
     }

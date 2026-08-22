@@ -1,5 +1,6 @@
 const PERIODS = [
   { id: 'year', label: '年K' },
+  { id: 'quarter', label: '季K' },
   { id: 'month', label: '月K' },
   { id: 'week', label: '周K' },
   { id: 'day', label: '日K' },
