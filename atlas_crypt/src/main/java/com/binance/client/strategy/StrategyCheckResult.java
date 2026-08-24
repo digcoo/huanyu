@@ -2,8 +2,7 @@ package com.binance.client.strategy;
 
 import com.binance.client.enums.PeriodTypeEnum;
 import com.binance.client.enums.SideTypeEnum;
-import com.binance.client.strategy.ma4m.HourMaBear4mTools;
-import com.binance.client.strategy.ma4m.HourMaBull4mTools;
+import com.binance.client.strategy.macross.HourMaCrossBreakTools;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -19,8 +18,7 @@ public class StrategyCheckResult {
     private PeriodTypeEnum opPeriodType = PeriodTypeEnum.HOUR1;
     private String trendMessage;
     private String signalMessage;
-    private HourMaBull4mTools.Hit longMaHit;
-    private HourMaBear4mTools.Hit shortMaHit;
+    private HourMaCrossBreakTools.Hit maCrossHit;
 
     public StrategyCheckResult(String symbol, SideTypeEnum sideType) {
         this.symbol = symbol;

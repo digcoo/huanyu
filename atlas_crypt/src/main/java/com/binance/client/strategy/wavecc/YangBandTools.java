@@ -72,6 +72,44 @@ public final class YangBandTools {
         return bands;
     }
 
+    public static CompleteYangBand findBandContainingYangBar(List<Ticker> bars, int yangIdx) {
+        if (bars == null || yangIdx < 0 || yangIdx >= bars.size()) {
+            return null;
+        }
+        if (!isStrictYang(bars.get(yangIdx))) {
+            return null;
+        }
+        List<CompleteYangBand> bands = findCompleteBands(bars, bars.size());
+        for (CompleteYangBand band : bands) {
+            int from = indexOfBar(bars, band.getFirstYang());
+            int to = indexOfBar(bars, band.getLastYang());
+            if (from >= 0 && to >= from && yangIdx >= from && yangIdx <= to) {
+                return band;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 从 index 往前（含当日若为完结阴）找最近一个完整波段。
+     */
+    public static CompleteYangBand findNearestCompleteBandAtOrBefore(List<Ticker> bars, int index) {
+        if (bars == null || index < 0) {
+            return null;
+        }
+        List<CompleteYangBand> bands = findCompleteBands(bars, bars.size());
+        CompleteYangBand best = null;
+        int bestTerm = -1;
+        for (CompleteYangBand band : bands) {
+            int termIdx = indexOfBar(bars, band.getTerminatorBar());
+            if (termIdx >= 0 && termIdx <= index && termIdx > bestTerm) {
+                best = band;
+                bestTerm = termIdx;
+            }
+        }
+        return best;
+    }
+
     private static int indexOfBar(List<Ticker> bars, Ticker target) {
         if (target == null) {
             return -1;

@@ -47,6 +47,10 @@ public final class LongStrategyUtil {
                     Double ma30 = candlesticks.subList(i - 30 < 0 ? 0 : i - 30, i).stream().mapToDouble(x -> x.getClose().doubleValue()).average().orElse(0.0);
                     candlestickMA.setMa30(new BigDecimal(ma30).setScale(candlestickMA.getPrecision() + 5, RoundingMode.HALF_UP));
                 }
+                if (i >= 60) {
+                    Double ma60 = candlesticks.subList(i - 60, i).stream().mapToDouble(x -> x.getClose().doubleValue()).average().orElse(0.0);
+                    candlestickMA.setMa60(new BigDecimal(ma60).setScale(candlestickMA.getPrecision() + 5, RoundingMode.HALF_UP));
+                }
                 if (i >= 7) {
                     Double ma7 = candlesticks.subList(i - 7, i).stream().mapToDouble(x -> x.getClose().doubleValue()).average().orElse(0.0);
                     candlestickMA.setMa7(new BigDecimal(ma7).setScale(candlestickMA.getPrecision() + 5, RoundingMode.HALF_UP));

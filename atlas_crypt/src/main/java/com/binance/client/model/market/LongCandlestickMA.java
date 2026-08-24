@@ -31,7 +31,9 @@ public class LongCandlestickMA extends Candlestick {
 
     private BigDecimal ma30;
 
-    /** crypto 4M 策略用 */
+    private BigDecimal ma60;
+
+    /** 旧 4M 策略字段，策略3 不再使用 */
     private BigDecimal ma7;
 
     private BigDecimal ma14;

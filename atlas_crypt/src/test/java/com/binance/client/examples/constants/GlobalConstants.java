@@ -10,6 +10,6 @@ public class GlobalConstants {
     public static final PeriodTypeEnum OP_PERIOD = PeriodTypeEnum.HOUR1;
 
     public static final List<PeriodTypeEnum> SPIDER_PERIODS = Arrays.asList(
-            PeriodTypeEnum.HOUR1, PeriodTypeEnum.HOUR4, PeriodTypeEnum.DAY1
+            PeriodTypeEnum.HOUR1, PeriodTypeEnum.HOUR4
     );
 }

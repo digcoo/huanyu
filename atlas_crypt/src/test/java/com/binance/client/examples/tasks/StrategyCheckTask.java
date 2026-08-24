@@ -7,8 +7,7 @@ import com.binance.client.examples.constants.GlobalConstants;
 import com.binance.client.examples.constants.SymbolCacheData;
 import com.binance.client.model.market.Candlestick;
 import com.binance.client.strategy.StrategyCheckResult;
-import com.binance.client.strategy.ma4m.HourMaBear4mTools;
-import com.binance.client.strategy.ma4m.HourMaBull4mTools;
+import com.binance.client.strategy.macross.HourMaCrossBreakTools;
 import com.binance.client.utils.MessageSenderUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.StopWatch;
@@ -25,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 1小时 MA 多头4M突破 / 空头4M跌破策略
+ * 策略3：1H MA 金叉波段突破或死叉点突破，父级 4H 均价之上。
  */
 @Slf4j
 public class StrategyCheckTask extends Thread {
@@ -40,7 +39,7 @@ public class StrategyCheckTask extends Thread {
 
     @Override
     public void run() {
-        log.info("开始执行1小时MA多头4M突破/空头4M跌破策略");
+        log.info("开始执行1小时MA交叉突破策略（金叉波段或死叉点，父级4H）");
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(() -> {
             try {
@@ -105,30 +104,20 @@ public class StrategyCheckTask extends Thread {
         }
 
         List<Candlestick> hour1Bars = data.get(PeriodTypeEnum.HOUR1);
-        if (hour1Bars == null || hour1Bars.size() < 45) {
+        List<Candlestick> hour4Bars = data.get(PeriodTypeEnum.HOUR4);
+        if (hour1Bars == null || hour1Bars.size() < 12 || hour4Bars == null || hour4Bars.size() < 12) {
             return Arrays.asList(longResult, shortResult);
         }
 
         Candlestick lastBar = hour1Bars.get(hour1Bars.size() - 1);
-
-        HourMaBull4mTools.Hit longHit = HourMaBull4mTools.findHit(hour1Bars);
-        if (longHit != null) {
+        HourMaCrossBreakTools.Hit hit = HourMaCrossBreakTools.findHit(hour1Bars, hour4Bars);
+        if (hit != null) {
             longResult.setHit(true);
             longResult.setClose(lastBar.getClose());
             longResult.setChangeRate(lastBar.getChangeRate());
-            longResult.setLongMaHit(longHit);
-            longResult.setTrendMessage(HourMaBull4mTools.buildTrendMessage(longHit));
-            longResult.setSignalMessage(HourMaBull4mTools.buildSignalMessage(longHit));
-        }
-
-        HourMaBear4mTools.Hit shortHit = HourMaBear4mTools.findHit(hour1Bars);
-        if (shortHit != null) {
-            shortResult.setHit(true);
-            shortResult.setClose(lastBar.getClose());
-            shortResult.setChangeRate(lastBar.getChangeRate());
-            shortResult.setShortMaHit(shortHit);
-            shortResult.setTrendMessage(HourMaBear4mTools.buildTrendMessage(shortHit));
-            shortResult.setSignalMessage(HourMaBear4mTools.buildSignalMessage(shortHit));
+            longResult.setMaCrossHit(hit);
+            longResult.setTrendMessage(HourMaCrossBreakTools.buildTrendMessage(hit));
+            longResult.setSignalMessage(HourMaCrossBreakTools.buildSignalMessage(hit));
         }
 
         return Arrays.asList(longResult, shortResult);
