@@ -6,7 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * MA 金叉/死叉点突破共用参数（magoldbreak / madeathbreak）。
+ * MA 金叉/死叉点突破、多头趋势突破、空头趋势启动共用参数
+ * （magoldbreak / madeathbreak / mabullbreak / mabearstart）。
  */
 @Data
 @Builder

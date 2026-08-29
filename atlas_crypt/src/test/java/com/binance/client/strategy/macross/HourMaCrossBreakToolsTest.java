@@ -102,8 +102,105 @@ public class HourMaCrossBreakToolsTest {
         Assert.assertFalse(MaCrossPointCore.passesAboveMa(ohlc(1L, 10.0, 10.2, 9.8, 10.3, 10.5, 10.2)));
     }
 
+    @Test
+    public void shortDeathYin_usesContainingBandLow() {
+        List<LongCandlestickMA> bars = Arrays.asList(
+                ohlc(1L, 10.2, 10.3, 9.9, 10.0, 10.2, 10.0),
+                ohlc(2L, 10.0, 10.1, 9.2, 9.7, 9.8, 10.0),
+                ohlc(3L, 9.7, 10.0, 9.4, 9.9, 9.7, 9.9),
+                ohlc(4L, 9.9, 10.0, 9.3, 9.4, 9.6, 9.9),
+                ohlc(5L, 9.4, 9.5, 8.8, 9.0, 9.4, 9.8)
+        );
+        HourMaCrossBreakTools.Hit hit = HourMaCrossBreakTools.findShortHitOnBars(bars, parentBelowMa());
+        Assert.assertNotNull(hit);
+        Assert.assertTrue(hit.isShortSide());
+        Assert.assertEquals(MaCrossPointCore.CrossKind.DEATH, hit.getCrossKind());
+        Assert.assertEquals(9.2, hit.getBreakLine(), 1e-6);
+        Assert.assertEquals(Long.valueOf(2L), hit.getCrossBar().getOpenTime());
+    }
+
+    @Test
+    public void shortDeathYin_unfinishedUsesPrevCompleteBand() {
+        List<LongCandlestickMA> bars = Arrays.asList(
+                ohlc(1L, 10.2, 10.3, 9.6, 10.0, 10.2, 10.0),
+                ohlc(2L, 10.0, 10.3, 9.8, 10.2, 10.1, 10.0),
+                ohlc(3L, 10.1, 10.2, 9.7, 10.0, 9.8, 10.0),
+                ohlc(4L, 10.0, 10.1, 9.6, 9.7, 9.7, 9.9),
+                ohlc(5L, 9.7, 9.8, 9.3, 9.4, 9.5, 9.9)
+        );
+        HourMaCrossBreakTools.Hit hit = HourMaCrossBreakTools.findShortHitOnBars(bars, parentBelowMa());
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(9.6, hit.getBreakLine(), 1e-6);
+        Assert.assertEquals(Long.valueOf(3L), hit.getCrossBar().getOpenTime());
+    }
+
+    @Test
+    public void shortDeathYang_usesNearestCompleteBandBefore() {
+        List<LongCandlestickMA> bars = Arrays.asList(
+                ohlc(1L, 10.2, 10.3, 9.6, 10.0, 10.2, 10.0),
+                ohlc(2L, 10.0, 10.3, 9.8, 10.2, 10.1, 10.0),
+                ohlc(3L, 10.0, 10.3, 9.9, 10.2, 9.8, 10.0),
+                ohlc(4L, 10.2, 10.3, 9.7, 9.8, 9.7, 9.9),
+                ohlc(5L, 9.8, 9.9, 9.3, 9.4, 9.5, 9.9)
+        );
+        HourMaCrossBreakTools.Hit hit = HourMaCrossBreakTools.findShortHitOnBars(bars, parentBelowMa());
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(9.6, hit.getBreakLine(), 1e-6);
+        Assert.assertEquals(Long.valueOf(3L), hit.getCrossBar().getOpenTime());
+    }
+
+    @Test
+    public void shortDeath_missWhenSignalMa5NotBelowMa10() {
+        List<LongCandlestickMA> bars = Arrays.asList(
+                ohlc(1L, 10.2, 10.3, 9.9, 10.0, 10.2, 10.0),
+                ohlc(2L, 10.0, 10.1, 9.2, 9.7, 9.8, 10.0),
+                ohlc(3L, 9.7, 10.0, 9.4, 9.9, 9.7, 9.9),
+                ohlc(4L, 9.9, 10.0, 9.3, 9.4, 9.6, 9.9),
+                ohlc(5L, 9.4, 9.5, 8.8, 9.0, 10.2, 9.8)
+        );
+        Assert.assertNull(HourMaCrossBreakTools.findShortHitOnBars(bars, parentBelowMa()));
+    }
+
+    @Test
+    public void shortGolden_hitsCrossPointEdgeBreakDown() {
+        List<LongCandlestickMA> bars = Arrays.asList(
+                flat(1L, 9.8, 10.0, 9.9),
+                flat(2L, 9.9, 10.0, 9.95),
+                flat(3L, 10.2, 10.0, 10.1),
+                flat(4L, 10.1, 10.05, 10.15),
+                flat(5L, 9.9, 10.0, 9.95)
+        );
+        HourMaCrossBreakTools.Hit hit = HourMaCrossBreakTools.findShortHitOnBars(bars, parentBelowMa());
+        Assert.assertNotNull(hit);
+        Assert.assertTrue(hit.isShortSide());
+        Assert.assertEquals(MaCrossPointCore.CrossKind.GOLDEN, hit.getCrossKind());
+        Assert.assertEquals(10.0, hit.getBreakLine(), 1e-6);
+    }
+
+    @Test
+    public void short_missWhenParentNotBelowMa() {
+        List<LongCandlestickMA> bars = Arrays.asList(
+                ohlc(1L, 10.2, 10.3, 9.9, 10.0, 10.2, 10.0),
+                ohlc(2L, 10.0, 10.1, 9.2, 9.7, 9.8, 10.0),
+                ohlc(3L, 9.7, 10.0, 9.4, 9.9, 9.7, 9.9),
+                ohlc(4L, 9.9, 10.0, 9.3, 9.4, 9.6, 9.9),
+                ohlc(5L, 9.4, 9.5, 8.8, 9.0, 9.4, 9.8)
+        );
+        Assert.assertNull(HourMaCrossBreakTools.findShortHitOnBars(bars, parentAboveMa()));
+    }
+
+    @Test
+    public void passesBelowMa_requiresCloseBelowMinMa5Ma10() {
+        Assert.assertTrue(MaCrossPointCore.passesBelowMa(parentBelowMa()));
+        Assert.assertFalse(MaCrossPointCore.passesBelowMa(parentAboveMa()));
+    }
+
     private static LongCandlestickMA parentAboveMa() {
         return ohlc(99L, 10.0, 11.0, 9.8, 10.8, 10.0, 10.2);
+    }
+
+    private static LongCandlestickMA parentBelowMa() {
+        return ohlc(99L, 10.0, 10.2, 9.0, 9.5, 10.0, 10.2);
     }
 
     private static LongCandlestickMA flat(long openTime, double ma5, double ma10, double close) {

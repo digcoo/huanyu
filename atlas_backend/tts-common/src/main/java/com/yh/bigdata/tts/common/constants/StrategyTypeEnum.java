@@ -132,6 +132,10 @@ public enum StrategyTypeEnum {
     MA_GOLD_BREAK("magoldbreak", "MA金叉点突破", 78),
     /** MA死叉点突破（边沿破 MA5/MA10 死叉交叉点） */
     MA_DEATH_BREAK("madeathbreak", "MA死叉点突破", 79),
+    /** 多头趋势突破（边沿破金叉波段顶/死叉点/金叉点 + MA10≥MA60） */
+    MA_BULL_BREAK("mabullbreak", "多头趋势突破", 82),
+    /** 空头趋势启动（边沿破金叉波段顶/死叉点/金叉点 + MA10&lt;MA60） */
+    MA_BEAR_START("mabearstart", "空头趋势启动", 83),
     /** @deprecated 凹突破已下线 */
     CONCAVE_BREAK("concavebreak", "凹突破", 80),
     /** @deprecated 突破前波段High已下线 */
@@ -184,6 +188,7 @@ public enum StrategyTypeEnum {
     public boolean isActive() {
         return this == BOTTOM_BAND_HIGH || this == BOTTOM_PREV2_HIGH
                 || this == MA_GOLD_BREAK || this == MA_DEATH_BREAK
+                || this == MA_BULL_BREAK || this == MA_BEAR_START
                 || this == MA_BEAR_BREAK_MA || this == MA_BULL_4M;
     }
 

@@ -3,6 +3,8 @@
  */
 var STRATEGY_MA_GOLD_BREAK = 'magoldbreak';
 var STRATEGY_MA_DEATH_BREAK = 'madeathbreak';
+var STRATEGY_MA_BULL_BREAK = 'mabullbreak';
+var STRATEGY_MA_BEAR_START = 'mabearstart';
 
 var MGB_TIER_FLASH = 'magoldbreakFlash';
 var MGB_TIER_SHORT = 'magoldbreakShort';
@@ -16,11 +18,25 @@ var MDB_TIER_MEDIUM = 'madeathbreakMedium';
 var MDB_TIER_LONG = 'madeathbreakLong';
 var MDB_TIER_QUARTER = 'madeathbreakQuarter';
 
+var MTB_TIER_FLASH = 'mabullbreakFlash';
+var MTB_TIER_SHORT = 'mabullbreakShort';
+var MTB_TIER_MEDIUM = 'mabullbreakMedium';
+var MTB_TIER_LONG = 'mabullbreakLong';
+var MTB_TIER_QUARTER = 'mabullbreakQuarter';
+
+var MBS_TIER_FLASH = 'mabearstartFlash';
+var MBS_TIER_SHORT = 'mabearstartShort';
+var MBS_TIER_MEDIUM = 'mabearstartMedium';
+var MBS_TIER_LONG = 'mabearstartLong';
+var MBS_TIER_QUARTER = 'mabearstartQuarter';
+
 var DEFAULT_STRATEGY = MGB_TIER_FLASH;
 
 var STRATEGY_FAMILIES = [
   { id: STRATEGY_MA_GOLD_BREAK, name: 'MA金叉点', icon: '✦' },
-  { id: STRATEGY_MA_DEATH_BREAK, name: 'MA死叉点', icon: '✧' }
+  { id: STRATEGY_MA_DEATH_BREAK, name: 'MA死叉点', icon: '✧' },
+  { id: STRATEGY_MA_BULL_BREAK, name: '多头趋势', icon: '▲' },
+  { id: STRATEGY_MA_BEAR_START, name: '空头启动', icon: '▼' }
 ];
 
 var TIER_TABS_BY_FAMILY = {
@@ -37,6 +53,20 @@ var TIER_TABS_BY_FAMILY = {
     { id: MDB_TIER_MEDIUM, name: '周线' },
     { id: MDB_TIER_LONG, name: '月线' },
     { id: MDB_TIER_QUARTER, name: '季线' }
+  ],
+  mabullbreak: [
+    { id: MTB_TIER_FLASH, name: '30分' },
+    { id: MTB_TIER_SHORT, name: '日线' },
+    { id: MTB_TIER_MEDIUM, name: '周线' },
+    { id: MTB_TIER_LONG, name: '月线' },
+    { id: MTB_TIER_QUARTER, name: '季线' }
+  ],
+  mabearstart: [
+    { id: MBS_TIER_FLASH, name: '30分' },
+    { id: MBS_TIER_SHORT, name: '日线' },
+    { id: MBS_TIER_MEDIUM, name: '周线' },
+    { id: MBS_TIER_LONG, name: '月线' },
+    { id: MBS_TIER_QUARTER, name: '季线' }
   ]
 };
 
@@ -52,7 +82,19 @@ var STRATEGY_TITLES = {
   madeathbreakShort: 'MA死叉点突破 · 日',
   madeathbreakMedium: 'MA死叉点突破 · 周',
   madeathbreakLong: 'MA死叉点突破 · 月',
-  madeathbreakQuarter: 'MA死叉点突破 · 季'
+  madeathbreakQuarter: 'MA死叉点突破 · 季',
+  mabullbreak: '多头趋势突破',
+  mabullbreakFlash: '多头趋势突破 · 30分',
+  mabullbreakShort: '多头趋势突破 · 日',
+  mabullbreakMedium: '多头趋势突破 · 周',
+  mabullbreakLong: '多头趋势突破 · 月',
+  mabullbreakQuarter: '多头趋势突破 · 季',
+  mabearstart: '空头趋势启动',
+  mabearstartFlash: '空头趋势启动 · 30分',
+  mabearstartShort: '空头趋势启动 · 日',
+  mabearstartMedium: '空头趋势启动 · 周',
+  mabearstartLong: '空头趋势启动 · 月',
+  mabearstartQuarter: '空头趋势启动 · 季'
 };
 
 var ACTIVE_STRATEGY_IDS = {
@@ -65,7 +107,17 @@ var ACTIVE_STRATEGY_IDS = {
   madeathbreakShort: true,
   madeathbreakMedium: true,
   madeathbreakLong: true,
-  madeathbreakQuarter: true
+  madeathbreakQuarter: true,
+  mabullbreakFlash: true,
+  mabullbreakShort: true,
+  mabullbreakMedium: true,
+  mabullbreakLong: true,
+  mabullbreakQuarter: true,
+  mabearstartFlash: true,
+  mabearstartShort: true,
+  mabearstartMedium: true,
+  mabearstartLong: true,
+  mabearstartQuarter: true
 };
 
 var TIER_BY_STRATEGY = {
@@ -78,11 +130,27 @@ var TIER_BY_STRATEGY = {
   madeathbreakShort: 'day',
   madeathbreakMedium: 'week',
   madeathbreakLong: 'month',
-  madeathbreakQuarter: 'quarter'
+  madeathbreakQuarter: 'quarter',
+  mabullbreakFlash: 'min30',
+  mabullbreakShort: 'day',
+  mabullbreakMedium: 'week',
+  mabullbreakLong: 'month',
+  mabullbreakQuarter: 'quarter',
+  mabearstartFlash: 'min30',
+  mabearstartShort: 'day',
+  mabearstartMedium: 'week',
+  mabearstartLong: 'month',
+  mabearstartQuarter: 'quarter'
 };
 
 function familyForStrategyId(strategyId) {
   var id = String(strategyId || '');
+  if (id.indexOf('mabearstart') === 0) {
+    return STRATEGY_MA_BEAR_START;
+  }
+  if (id.indexOf('mabullbreak') === 0) {
+    return STRATEGY_MA_BULL_BREAK;
+  }
   if (id.indexOf('madeathbreak') === 0) {
     return STRATEGY_MA_DEATH_BREAK;
   }
@@ -95,6 +163,12 @@ function strategyIdFor(family, tier) {
   }
   if (family === STRATEGY_MA_DEATH_BREAK) {
     return MDB_TIER_FLASH;
+  }
+  if (family === STRATEGY_MA_BULL_BREAK) {
+    return MTB_TIER_FLASH;
+  }
+  if (family === STRATEGY_MA_BEAR_START) {
+    return MBS_TIER_FLASH;
   }
   return DEFAULT_STRATEGY;
 }
@@ -154,6 +228,8 @@ function tierForStrategyId(strategyId) {
 module.exports = {
   STRATEGY_MA_GOLD_BREAK: STRATEGY_MA_GOLD_BREAK,
   STRATEGY_MA_DEATH_BREAK: STRATEGY_MA_DEATH_BREAK,
+  STRATEGY_MA_BULL_BREAK: STRATEGY_MA_BULL_BREAK,
+  STRATEGY_MA_BEAR_START: STRATEGY_MA_BEAR_START,
   DEFAULT_STRATEGY: DEFAULT_STRATEGY,
   TIER_SHORT: DEFAULT_STRATEGY,
   TIER_MEDIUM: MGB_TIER_MEDIUM,

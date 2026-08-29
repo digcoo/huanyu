@@ -42,12 +42,14 @@ public final class MaCrossPointCore {
         return bar.getMa5() + EPS >= bar.getMa10();
     }
 
-    /** 从 lastIdx 往前找最近交叉 K（不含 lastIdx 本身，交叉须在末K之前） */
+    /**
+     * 从 lastIdx 往前找最近交叉 K（含 lastIdx：末 K 本身可以是最后一次金叉/死叉）。
+     */
     public static int findLatestCrossIndex(List<Trade> trades, int lastIdx, CrossKind kind) {
-        if (trades == null || lastIdx < 2 || kind == null) {
+        if (trades == null || lastIdx < 1 || kind == null) {
             return -1;
         }
-        for (int i = lastIdx - 1; i >= 1; i--) {
+        for (int i = lastIdx; i >= 1; i--) {
             if (kind == CrossKind.GOLDEN && isGoldenCrossAt(trades, i)) {
                 return i;
             }
@@ -87,17 +89,60 @@ public final class MaCrossPointCore {
         return a0 + t * (a1 - a0);
     }
 
-    /** 边沿突破：prev.close ≤ 基准价，signal.close &gt; 基准价 */
+    /**
+     * 边沿突破：（prev.close ≤ 基准价 且 signal.close &gt; 基准价）
+     * 或（signal.open ≤ 基准价 且 signal.close &gt; 基准价）。
+     */
     public static boolean passesEdgeBreak(Trade prevBar, Trade signalBar, double breakLine) {
-        if (prevBar == null || signalBar == null) {
+        if (signalBar == null || signalBar.getClose() == null) {
             return false;
         }
-        Double prevClose = prevBar.getClose();
-        Double signalClose = signalBar.getClose();
-        if (prevClose == null || signalClose == null) {
+        if (!(signalBar.getClose() > breakLine + EPS)) {
             return false;
         }
-        return prevClose <= breakLine + EPS && signalClose > breakLine + EPS;
+        boolean prevCloseCross = prevBar != null && prevBar.getClose() != null
+                && prevBar.getClose() <= breakLine + EPS;
+        boolean openCross = signalBar.getOpen() != null
+                && signalBar.getOpen() <= breakLine + EPS;
+        return prevCloseCross || openCross;
+    }
+
+    /** 本档：MA10 ≥ MA60（优先用 K 线收盘价现算，避免 dayk.ma60 未落库） */
+    public static boolean passesMa10GeMa60(Trade bar) {
+        Double ma10 = bar == null ? null : bar.getMa10();
+        Double ma60 = bar == null ? null : bar.getMa60();
+        if (ma10 == null || ma60 == null) {
+            return false;
+        }
+        return ma10 + EPS >= ma60;
+    }
+
+    public static boolean passesMa10GeMa60(List<Trade> trades) {
+        Double ma10 = smaClose(trades, 10);
+        Double ma60 = smaClose(trades, 60);
+        if (ma10 == null || ma60 == null) {
+            return false;
+        }
+        return ma10 + EPS >= ma60;
+    }
+
+    /** 本档：MA10 &lt; MA60 */
+    public static boolean passesMa10LtMa60(Trade bar) {
+        Double ma10 = bar == null ? null : bar.getMa10();
+        Double ma60 = bar == null ? null : bar.getMa60();
+        if (ma10 == null || ma60 == null) {
+            return false;
+        }
+        return ma10 < ma60 - EPS;
+    }
+
+    public static boolean passesMa10LtMa60(List<Trade> trades) {
+        Double ma10 = smaClose(trades, 10);
+        Double ma60 = smaClose(trades, 60);
+        if (ma10 == null || ma60 == null) {
+            return false;
+        }
+        return ma10 < ma60 - EPS;
     }
 
     /** 本档：MA5 &gt; MA10（严格大于） */
@@ -114,6 +159,34 @@ public final class MaCrossPointCore {
             return false;
         }
         return bar.getMa5() > bar.getMa60() + EPS;
+    }
+
+    public static boolean passesMaBull(List<Trade> trades) {
+        Double ma5 = smaClose(trades, 5);
+        Double ma60 = smaClose(trades, 60);
+        if (ma5 == null || ma60 == null) {
+            return false;
+        }
+        return ma5 > ma60 + EPS;
+    }
+
+    /**
+     * 末 K 的 N 日收盘简单均线；K 线不足 N 根时返回 null（不拿短窗口冒充 MA60）。
+     */
+    public static Double smaClose(List<Trade> trades, int period) {
+        if (trades == null || period <= 0 || trades.size() < period) {
+            return null;
+        }
+        int end = trades.size() - 1;
+        double sum = 0;
+        for (int i = end - period + 1; i <= end; i++) {
+            Trade bar = trades.get(i);
+            if (bar == null || bar.getClose() == null) {
+                return null;
+            }
+            sum += bar.getClose();
+        }
+        return sum / period;
     }
 
     /** @deprecated 使用 {@link #passesMaBull(Trade)} */

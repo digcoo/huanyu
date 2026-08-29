@@ -96,12 +96,30 @@ public final class MaCrossPointCore {
         return prevClose <= breakLine + EPS && signalClose > breakLine + EPS;
     }
 
+    /** 边沿跌破：prev.close ≥ 基准价，signal.close &lt; 基准价 */
+    public static boolean passesEdgeBreakDown(LongCandlestickMA prevBar, LongCandlestickMA signalBar, double breakLine) {
+        Double prevClose = closeOf(prevBar);
+        Double signalClose = closeOf(signalBar);
+        if (prevClose == null || signalClose == null) {
+            return false;
+        }
+        return prevClose >= breakLine - EPS && signalClose < breakLine - EPS;
+    }
+
     /** 本档：MA5 &gt; MA10 */
     public static boolean passesMa5AboveMa10(LongCandlestickMA bar) {
         if (bar == null || bar.getMa5() == null || bar.getMa10() == null) {
             return false;
         }
         return bar.getMa5().doubleValue() > bar.getMa10().doubleValue() + EPS;
+    }
+
+    /** 本档：MA5 &lt; MA10 */
+    public static boolean passesMa5BelowMa10(LongCandlestickMA bar) {
+        if (bar == null || bar.getMa5() == null || bar.getMa10() == null) {
+            return false;
+        }
+        return bar.getMa5().doubleValue() < bar.getMa10().doubleValue() - EPS;
     }
 
     /** 父级均价之上：close &gt; max(MA5, MA10) */
@@ -112,6 +130,16 @@ public final class MaCrossPointCore {
         }
         double maxMa = Math.max(bar.getMa5().doubleValue(), bar.getMa10().doubleValue());
         return close > maxMa + EPS;
+    }
+
+    /** 父级均价之下：close &lt; min(MA5, MA10) */
+    public static boolean passesBelowMa(LongCandlestickMA bar) {
+        Double close = closeOf(bar);
+        if (close == null || bar.getMa5() == null || bar.getMa10() == null) {
+            return false;
+        }
+        double minMa = Math.min(bar.getMa5().doubleValue(), bar.getMa10().doubleValue());
+        return close < minMa - EPS;
     }
 
     private static Double closeOf(LongCandlestickMA bar) {

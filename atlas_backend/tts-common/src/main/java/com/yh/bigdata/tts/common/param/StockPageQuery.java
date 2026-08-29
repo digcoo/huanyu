@@ -885,6 +885,28 @@ public class StockPageQuery extends PageQuery {
     private Boolean mdbRequireMonthMaBull;
     private Boolean mdbRequireQuarterMaBull;
     private Boolean mdbRequireYearMaBull;
+    /** 多头趋势突破 · 档位 */
+    private String mtbTier;
+    /** 多头趋势突破 · 启用成交额门 */
+    private Boolean mtbEnableMinAmountFilter;
+    /** 多头趋势突破 · 最低日均成交额（万） */
+    private Integer mtbMinAmountWan;
+    private Boolean mtbRequireDayMaBull;
+    private Boolean mtbRequireWeekMaBull;
+    private Boolean mtbRequireMonthMaBull;
+    private Boolean mtbRequireQuarterMaBull;
+    private Boolean mtbRequireYearMaBull;
+    /** 空头趋势启动 · 档位 */
+    private String mbsTier;
+    /** 空头趋势启动 · 启用成交额门 */
+    private Boolean mbsEnableMinAmountFilter;
+    /** 空头趋势启动 · 最低日均成交额（万） */
+    private Integer mbsMinAmountWan;
+    private Boolean mbsRequireDayMaBull;
+    private Boolean mbsRequireWeekMaBull;
+    private Boolean mbsRequireMonthMaBull;
+    private Boolean mbsRequireQuarterMaBull;
+    private Boolean mbsRequireYearMaBull;
     /** MA空头破MA · 启用成交额门 */
     private Boolean mbbmEnableMinAmountFilter;
     /** MA空头破MA · 最低日均成交额（万） */
@@ -2496,6 +2518,20 @@ public class StockPageQuery extends PageQuery {
                 mdbTier, mdbEnableMinAmountFilter, mdbMinAmountWan, mdbEnableRightTrend,
                 mdbRequireDayMaBull, mdbRequireWeekMaBull, mdbRequireMonthMaBull,
                 mdbRequireQuarterMaBull, mdbRequireYearMaBull);
+    }
+
+    public MaCrossPointStrategyParams toMaBullBreakParams() {
+        return toMaCrossPointParams(
+                mtbTier, mtbEnableMinAmountFilter, mtbMinAmountWan, null,
+                mtbRequireDayMaBull, mtbRequireWeekMaBull, mtbRequireMonthMaBull,
+                mtbRequireQuarterMaBull, mtbRequireYearMaBull);
+    }
+
+    public MaCrossPointStrategyParams toMaBearStartParams() {
+        return toMaCrossPointParams(
+                mbsTier, mbsEnableMinAmountFilter, mbsMinAmountWan, null,
+                mbsRequireDayMaBull, mbsRequireWeekMaBull, mbsRequireMonthMaBull,
+                mbsRequireQuarterMaBull, mbsRequireYearMaBull);
     }
 
     private MaCrossPointStrategyParams toMaCrossPointParams(String tier, Boolean enableMinAmountFilter,

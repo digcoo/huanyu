@@ -101,6 +101,17 @@ public final class MAIndicatorUtils {
         return map;
     }
 
+    public static void copyMaFields(Trade from, Trade to) {
+        if (from == null || to == null) {
+            return;
+        }
+        to.setMa5(from.getMa5());
+        to.setMa10(from.getMa10());
+        to.setMa20(from.getMa20());
+        to.setMa30(from.getMa30());
+        to.setMa60(from.getMa60());
+    }
+
     public static List<Double> calMAs(List<Trade> trades, int... MAs) {
         List<Double> maValues = new ArrayList<>(MAs.length);
         for (int ma: MAs) {

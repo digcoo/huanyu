@@ -20,6 +20,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.yh.bigdata.tts.common.dao.StockBaseMapper;
 import com.yh.bigdata.tts.common.dao.StockDayMapper;
+import com.yh.bigdata.tts.common.indicator.MAIndicatorUtils;
 import com.yh.bigdata.tts.common.model.StockBase;
 import com.yh.bigdata.tts.common.model.StockDay;
 import com.yh.bigdata.tts.common.param.StockPageQuery;
@@ -147,6 +148,10 @@ public class StockDayXueQiuCrawler {
 //		
 //		stockBaseMapper.updateByPrimaryKeySelective(stockBase);
 
+		if (CollectionUtils.isEmpty(days)) {
+			return;
+		}
+
         for (StockDay stockDay : days) {
 			try {
 
@@ -169,6 +174,26 @@ public class StockDayXueQiuCrawler {
 					e.printStackTrace();
 				}
 			}
+		}
+		refreshDayMas(stockBase);
+	}
+
+	/** 用库内全量日 K 重算均线（含 MA60）后回写最近 150 根，避免短窗口爬虫把 MA60 算短。 */
+	private void refreshDayMas(StockBase stockBase) {
+		List<StockDay> all = stockDayMapper.selectAll(Arrays.asList(stockBase.getCode()));
+		if (CollectionUtils.isEmpty(all)) {
+			return;
+		}
+		Map<String, Trade> maMap = MAIndicatorUtils.calAllMAsAndFill(stockBase, all);
+		int from = Math.max(0, all.size() - 150);
+		for (int i = from; i < all.size(); i++) {
+			StockDay bar = all.get(i);
+			Trade filled = maMap.get(bar.getDay());
+			if (filled == null) {
+				continue;
+			}
+			MAIndicatorUtils.copyMaFields(filled, bar);
+			stockDayMapper.updateByPrimaryKey(bar);
 		}
 	}
 

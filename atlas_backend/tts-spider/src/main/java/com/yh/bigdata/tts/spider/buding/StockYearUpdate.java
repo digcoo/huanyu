@@ -53,17 +53,13 @@ public class StockYearUpdate {
                         List<StockYear> stockDays = stockYearMapper.selectAll(Arrays.asList(stockBase.getCode()));
 
                         Map<String, Trade> maMap = MAIndicatorUtils.calAllMAsAndFill(stockBase, stockDays);
-                        for (int i = stockDays.size() -1; i >= 0; i--) {
+                        for (int i = 0; i < stockDays.size(); i++) {
                             StockYear stockDay = stockDays.get(i);
                             Trade trade = maMap.get(stockDay.getDay());
                             if (Objects.nonNull(trade)) {
-                                stockDay.setMa5(trade.getMa5());
-                                stockDay.setMa10(trade.getMa10());
-                                stockDay.setMa20(trade.getMa20());
-                                stockDay.setMa30(trade.getMa30());
+                                MAIndicatorUtils.copyMaFields(trade, stockDay);
                                 stockYearMapper.updateByPrimaryKey(stockDay);
                             }
-                            break;
                         }
 					}
 				}

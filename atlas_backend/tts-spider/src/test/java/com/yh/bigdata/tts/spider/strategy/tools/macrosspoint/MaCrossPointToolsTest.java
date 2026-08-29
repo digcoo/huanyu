@@ -126,6 +126,147 @@ public class MaCrossPointToolsTest {
     }
 
     @Test
+    public void findTrendBreakHit_hitsBandTopWhenMa5GeMa10() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.0, 10.5, 9.9, 10.2, 9.5, 10.0),
+                ohlc("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0),
+                ohlc("d3", 10.5, 10.6, 10.0, 10.1, 10.3, 10.1),
+                ohlc("d4", 10.1, 10.3, 9.8, 10.0, 10.4, 10.2),
+                ohlc("d5", 10.0, 11.0, 9.9, 10.9, 10.3, 10.3)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findTrendBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(MaCrossPointTools.BreakTarget.GOLDEN_BAND_TOP, hit.getBreakTarget());
+        Assert.assertEquals(10.8, hit.getBreakLine(), 1e-6);
+    }
+
+    @Test
+    public void findTrendBreakHit_skipsBandTopWhenMa5LtMa10() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.0, 10.5, 9.9, 10.2, 9.5, 10.0),
+                ohlc("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0),
+                ohlc("d3", 10.5, 10.6, 10.0, 10.1, 10.3, 10.1),
+                ohlc("d4", 10.1, 10.3, 9.8, 10.0, 10.4, 10.2),
+                ohlc("d5", 10.0, 11.0, 9.9, 10.9, 10.0, 10.3)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findTrendBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        if (hit != null) {
+            Assert.assertNotEquals(MaCrossPointTools.BreakTarget.GOLDEN_BAND_TOP, hit.getBreakTarget());
+            Assert.assertNotEquals(MaCrossPointTools.BreakTarget.GOLDEN_CROSS, hit.getBreakTarget());
+        }
+    }
+
+    @Test
+    public void findTrendBreakHit_prefersBandTopOverDeathAndGoldenCross() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.0, 10.5, 9.9, 10.2, 9.5, 10.0),
+                ohlc("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0),
+                ohlc("d3", 10.5, 10.6, 10.0, 10.1, 10.3, 10.1),
+                ohlc("d4", 10.1, 10.3, 9.8, 10.0, 10.4, 10.2),
+                ohlc("d5", 10.0, 11.0, 9.9, 10.9, 10.5, 10.3)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findTrendBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(MaCrossPointTools.BreakTarget.GOLDEN_BAND_TOP, hit.getBreakTarget());
+    }
+
+    @Test
+    public void findTrendBreakHit_fallsBackToDeathCrossWhenBandTopMisses() {
+        List<Trade> bars = Arrays.asList(
+                flat("d1", 10.2, 10.0, 10.1),
+                flat("d2", 10.1, 10.0, 10.05),
+                flat("d3", 9.8, 10.0, 9.9),
+                flat("d4", 9.9, 9.95, 9.85),
+                flat("d5", 10.1, 10.0, 10.05)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findTrendBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(MaCrossPointTools.BreakTarget.DEATH_CROSS, hit.getBreakTarget());
+        Assert.assertEquals(10.0, hit.getBreakLine(), 1e-6);
+    }
+
+    @Test
+    public void findTrendBreakHit_fallsBackToGoldenCrossWhenBandTopMisses() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.0, 10.5, 9.9, 10.2, 9.5, 10.0),
+                ohlc("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0),
+                ohlc("d3", 10.5, 10.6, 10.0, 10.1, 10.3, 10.1),
+                ohlc("d4", 10.1, 10.3, 9.8, 10.0, 10.4, 10.2),
+                ohlc("d5", 10.0, 10.5, 9.9, 10.3, 10.5, 10.3)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findTrendBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(MaCrossPointTools.BreakTarget.GOLDEN_CROSS, hit.getBreakTarget());
+        Assert.assertEquals(10.0, hit.getBreakLine(), 1e-6);
+    }
+
+    @Test
+    public void findTrendBreakHit_skipsGoldenCrossWhenMa5LtMa10() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.0, 10.5, 9.9, 10.2, 9.5, 10.0),
+                ohlc("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0),
+                ohlc("d3", 10.5, 10.6, 10.0, 10.1, 10.3, 10.1),
+                ohlc("d4", 10.1, 10.3, 9.8, 10.0, 10.4, 10.2),
+                ohlc("d5", 10.0, 10.5, 9.9, 10.3, 10.0, 10.3)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findTrendBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        if (hit != null) {
+            Assert.assertNotEquals(MaCrossPointTools.BreakTarget.GOLDEN_CROSS, hit.getBreakTarget());
+            Assert.assertNotEquals(MaCrossPointTools.BreakTarget.GOLDEN_BAND_TOP, hit.getBreakTarget());
+        }
+    }
+
+    @Test
+    public void passesEdgeBreak_allowsGapOpenCross() {
+        Trade prev = ohlc("d1", 11.0, 11.2, 10.9, 11.1, 10.5, 10.0);
+        Trade signal = ohlc("d2", 9.8, 11.0, 9.7, 10.5, 10.6, 10.1);
+        Assert.assertTrue(MaCrossPointCore.passesEdgeBreak(prev, signal, 10.0));
+        Trade noGap = ohlc("d2", 11.0, 11.2, 10.9, 11.1, 10.6, 10.1);
+        Assert.assertFalse(MaCrossPointCore.passesEdgeBreak(prev, noGap, 10.0));
+    }
+
+    @Test
+    public void passesMa10VsMa60() {
+        Trade ge = flat("d1", 10.5, 10.2, 10.3);
+        ge.setMa60(10.2);
+        Assert.assertTrue(MaCrossPointCore.passesMa10GeMa60(ge));
+        Assert.assertFalse(MaCrossPointCore.passesMa10LtMa60(ge));
+        Trade lt = flat("d1", 10.5, 10.0, 10.2);
+        lt.setMa60(10.2);
+        Assert.assertFalse(MaCrossPointCore.passesMa10GeMa60(lt));
+        Assert.assertTrue(MaCrossPointCore.passesMa10LtMa60(lt));
+    }
+
+    @Test
+    public void findLatestCrossIndex_includesLastBarWhenItIsTheCross() {
+        List<Trade> bars = Arrays.asList(
+                flat("d1", 9.5, 10.0, 9.8),
+                flat("d2", 9.6, 10.0, 9.9),
+                flat("d3", 10.2, 10.0, 10.3)
+        );
+        int last = bars.size() - 1;
+        Assert.assertEquals(last, MaCrossPointCore.findLatestCrossIndex(
+                bars, last, MaCrossPointCore.CrossKind.GOLDEN));
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findTrendBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(MaCrossPointTools.BreakTarget.GOLDEN_CROSS, hit.getBreakTarget());
+        Assert.assertEquals("d3", hit.getCrossBar().getDay());
+    }
+
+    @Test
+    public void passesMa10GeMa60_computesFromClosesWhenMa60Missing() {
+        List<Trade> bars = new java.util.ArrayList<>();
+        for (int i = 0; i < 60; i++) {
+            double close = i < 50 ? 10.0 : 12.0;
+            Trade t = ohlc("d" + i, close, close + 0.1, close - 0.1, close, close, close);
+            t.setMa60(null);
+            bars.add(t);
+        }
+        Assert.assertTrue(MaCrossPointCore.passesMa10GeMa60(bars));
+        Assert.assertFalse(MaCrossPointCore.passesMa10LtMa60(bars));
+    }
+
+    @Test
     public void resolveParentPeriod_followsDocPairs() {
         Assert.assertEquals(PeriodTypeEnum.DAY, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.MIN30));
         Assert.assertEquals(PeriodTypeEnum.WEEK, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.DAY));

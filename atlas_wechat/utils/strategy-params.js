@@ -1,5 +1,5 @@
 /**
- * 策略参数面板（MA金叉点 / MA死叉点）
+ * 策略参数面板（MA金叉点 / MA死叉点 / 多头趋势突破 / 空头趋势启动）
  */
 var strategyNav = require('./strategy-nav');
 
@@ -54,7 +54,7 @@ var MGB_SCHEMA = [
   {
     type: 'section',
     label: '命中条件',
-    hint: '边沿突破金叉波段顶：完结阳线取所在波段High；未完结阳线或阴线取前一完整波段High。本档MA5>MA10。父级均价之上：父周期收盘价>max(MA5,MA10)（30分→日，日→周，周→月，月→季，季→年）'
+    hint: '边沿突破金叉波段顶：完结阳线取所在波段High；未完结阳线或阴线取前一完整波段High。本档MA5>MA10。边沿含跳空开盘（末K开盘价≤基准且收盘价>基准）。父级均价之上：父周期收盘价>max(MA5,MA10)（30分→日，日→周，周→月，月→季，季→年）'
   }
 ].concat(AMOUNT_FIELDS, GATE_FIELDS);
 
@@ -62,7 +62,23 @@ var MDB_SCHEMA = [
   {
     type: 'section',
     label: '命中条件',
-    hint: '边沿突破最近死叉交叉点（MA5下穿MA10插值价）。父级均价之上：父周期收盘价>max(MA5,MA10)（30分→日，日→周，周→月，月→季，季→年）'
+    hint: '边沿突破最近死叉交叉点（MA5下穿MA10插值价）。边沿含跳空开盘（末K开盘价≤基准且收盘价>基准）。父级均价之上：父周期收盘价>max(MA5,MA10)（30分→日，日→周，周→月，月→季，季→年）'
+  }
+].concat(AMOUNT_FIELDS, GATE_FIELDS);
+
+var MTB_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '（边沿破金叉波段顶且MA5≥MA10）或边沿破死叉交叉点或（边沿破金叉交叉点且MA5≥MA10）。硬条件：本档MA10≥MA60。边沿含跳空开盘：末K开盘价≤基准且收盘价>基准。'
+  }
+].concat(AMOUNT_FIELDS, GATE_FIELDS);
+
+var MBS_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '（边沿破金叉波段顶且MA5≥MA10）或边沿破死叉交叉点或（边沿破金叉交叉点且MA5≥MA10）。硬条件：本档MA10<MA60。边沿含跳空开盘：末K开盘价≤基准且收盘价>基准。'
   }
 ].concat(AMOUNT_FIELDS, GATE_FIELDS);
 
@@ -70,6 +86,8 @@ var NRF_TIERS = [];
 
 function strategyKind(strategyId) {
   var id = String(strategyId || '');
+  if (/^mabearstart/.test(id)) return 'mbs';
+  if (/^mabullbreak/.test(id)) return 'mtb';
   if (/^madeathbreak/.test(id)) return 'mdb';
   return 'mgb';
 }
@@ -145,7 +163,10 @@ function reset(strategyId) {
 }
 
 function getSchema(strategyId) {
-  if (strategyKind(strategyId) === 'mdb') return MDB_SCHEMA.slice();
+  var kind = strategyKind(strategyId);
+  if (kind === 'mdb') return MDB_SCHEMA.slice();
+  if (kind === 'mtb') return MTB_SCHEMA.slice();
+  if (kind === 'mbs') return MBS_SCHEMA.slice();
   return MGB_SCHEMA.slice();
 }
 
@@ -158,7 +179,10 @@ function hasCustomParams() {
 }
 
 function resolveApiStrategyId(strategyId) {
-  if (strategyKind(strategyId) === 'mdb') return 'madeathbreak';
+  var kind = strategyKind(strategyId);
+  if (kind === 'mdb') return 'madeathbreak';
+  if (kind === 'mtb') return 'mabullbreak';
+  if (kind === 'mbs') return 'mabearstart';
   return 'magoldbreak';
 }
 
@@ -179,7 +203,8 @@ function gateApiParams(p, prefix) {
 function toApiParams(strategyId) {
   var p = load(strategyId);
   var tier = tierToApi(strategyId);
-  var prefix = strategyKind(strategyId) === 'mdb' ? 'mdb' : 'mgb';
+  var kind = strategyKind(strategyId);
+  var prefix = kind === 'mdb' ? 'mdb' : (kind === 'mtb' ? 'mtb' : (kind === 'mbs' ? 'mbs' : 'mgb'));
   var params = {
     EnableMinAmountFilter: p.mcpEnableMinAmountFilter !== false,
     MinAmountWan: p.mcpMinAmountWan != null ? p.mcpMinAmountWan : 3000
@@ -220,8 +245,13 @@ function formatSummary(strategyId) {
         : (tier === 'month' ? '月'
           : (tier === 'quarter' ? '季' : '日'))));
   var parts;
-  if (strategyKind(strategyId) === 'mdb') {
+  var kind = strategyKind(strategyId);
+  if (kind === 'mdb') {
     parts = [tierLabel + '线', '边沿破死叉点', '父级均价上'];
+  } else if (kind === 'mtb') {
+    parts = [tierLabel + '线', '破金叉顶/死叉点/金叉点', '金叉需MA5≥MA10', 'MA10≥MA60'];
+  } else if (kind === 'mbs') {
+    parts = [tierLabel + '线', '破金叉顶/死叉点/金叉点', '金叉需MA5≥MA10', 'MA10<MA60'];
   } else {
     parts = [tierLabel + '线', '边沿破金叉波段顶', 'MA5>MA10', '父级均价上'];
   }

@@ -768,6 +768,8 @@ public class StockBaseController {
                 .bottomPrev2High(stockPageQuery.toBottomPrev2HighParams())
                 .maGoldBreak(stockPageQuery.toMaGoldBreakParams())
                 .maDeathBreak(stockPageQuery.toMaDeathBreakParams())
+                .maBullBreak(stockPageQuery.toMaBullBreakParams())
+                .maBearStart(stockPageQuery.toMaBearStartParams())
                 .maBearBreakMa(stockPageQuery.toMaBearBreakMaParams())
                 .maBull4m(stockPageQuery.toMaBull4mParams())
                 .build();

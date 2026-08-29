@@ -261,5 +261,6 @@ public class RealtimeKlineUpdater {
         to.setMa10(from.getMa10());
         to.setMa20(from.getMa20());
         to.setMa30(from.getMa30());
+        to.setMa60(from.getMa60());
     }
 }

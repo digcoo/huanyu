@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 策略3：1H MA 金叉波段突破或死叉点突破，父级 4H 均价之上。
+ * 策略3：1H MA 金叉波段/死叉点突破（多），死叉波段/金叉点跌破（空），父级 4H。
  */
 @Slf4j
 public class StrategyCheckTask extends Thread {
@@ -39,7 +39,7 @@ public class StrategyCheckTask extends Thread {
 
     @Override
     public void run() {
-        log.info("开始执行1小时MA交叉突破策略（金叉波段或死叉点，父级4H）");
+        log.info("开始执行1小时MA交叉突破/跌破策略（金叉波段或死叉点，父级4H）");
         ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
         executorService.scheduleAtFixedRate(() -> {
             try {
@@ -110,14 +110,23 @@ public class StrategyCheckTask extends Thread {
         }
 
         Candlestick lastBar = hour1Bars.get(hour1Bars.size() - 1);
-        HourMaCrossBreakTools.Hit hit = HourMaCrossBreakTools.findHit(hour1Bars, hour4Bars);
-        if (hit != null) {
+        HourMaCrossBreakTools.Hit longHit = HourMaCrossBreakTools.findHit(hour1Bars, hour4Bars);
+        if (longHit != null) {
             longResult.setHit(true);
             longResult.setClose(lastBar.getClose());
             longResult.setChangeRate(lastBar.getChangeRate());
-            longResult.setMaCrossHit(hit);
-            longResult.setTrendMessage(HourMaCrossBreakTools.buildTrendMessage(hit));
-            longResult.setSignalMessage(HourMaCrossBreakTools.buildSignalMessage(hit));
+            longResult.setMaCrossHit(longHit);
+            longResult.setTrendMessage(HourMaCrossBreakTools.buildTrendMessage(longHit));
+            longResult.setSignalMessage(HourMaCrossBreakTools.buildSignalMessage(longHit));
+        }
+        HourMaCrossBreakTools.Hit shortHit = HourMaCrossBreakTools.findShortHit(hour1Bars, hour4Bars);
+        if (shortHit != null) {
+            shortResult.setHit(true);
+            shortResult.setClose(lastBar.getClose());
+            shortResult.setChangeRate(lastBar.getChangeRate());
+            shortResult.setMaCrossHit(shortHit);
+            shortResult.setTrendMessage(HourMaCrossBreakTools.buildTrendMessage(shortHit));
+            shortResult.setSignalMessage(HourMaCrossBreakTools.buildSignalMessage(shortHit));
         }
 
         return Arrays.asList(longResult, shortResult);

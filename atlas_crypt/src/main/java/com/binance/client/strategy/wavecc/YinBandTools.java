@@ -70,6 +70,55 @@ public final class YinBandTools {
         return bands;
     }
 
+    public static CompleteYinBand findBandContainingYinBar(List<Ticker> bars, int yinIdx) {
+        if (bars == null || yinIdx < 0 || yinIdx >= bars.size()) {
+            return null;
+        }
+        if (!isStrictYin(bars.get(yinIdx))) {
+            return null;
+        }
+        List<CompleteYinBand> bands = findCompleteBands(bars, bars.size());
+        for (CompleteYinBand band : bands) {
+            int from = indexOfBar(bars, band.getFirstYin());
+            int to = indexOfBar(bars, band.getLastYin());
+            if (from >= 0 && to >= from && yinIdx >= from && yinIdx <= to) {
+                return band;
+            }
+        }
+        return null;
+    }
+
+    /** 从 index 往前找最近一个完整阴波段（完结阳的下标 ≤ index）。 */
+    public static CompleteYinBand findNearestCompleteBandAtOrBefore(List<Ticker> bars, int index) {
+        if (bars == null || index < 0) {
+            return null;
+        }
+        List<CompleteYinBand> bands = findCompleteBands(bars, bars.size());
+        CompleteYinBand best = null;
+        int bestTerm = -1;
+        for (CompleteYinBand band : bands) {
+            int termIdx = indexOfBar(bars, band.getTerminatorBar());
+            if (termIdx >= 0 && termIdx <= index && termIdx > bestTerm) {
+                best = band;
+                bestTerm = termIdx;
+            }
+        }
+        return best;
+    }
+
+    private static int indexOfBar(List<Ticker> bars, Ticker target) {
+        if (target == null) {
+            return -1;
+        }
+        for (int i = 0; i < bars.size(); i++) {
+            Ticker bar = bars.get(i);
+            if (bar != null && bar.getTimestamp() == target.getTimestamp()) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     private static CompleteYinBand buildBand(List<Ticker> bars, int from, int to, int terminatorIdx) {
         Ticker first = bars.get(from);
         Ticker last = bars.get(to);
