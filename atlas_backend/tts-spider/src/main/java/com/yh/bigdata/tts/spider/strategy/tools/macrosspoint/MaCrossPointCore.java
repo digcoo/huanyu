@@ -20,6 +20,7 @@ public final class MaCrossPointCore {
     }
 
     public static final int[] DEATH_CROSS_SLOW_MAS = {10, 20, 30, 60};
+    public static final int[] GOLDEN_CROSS_SLOW_MAS = {10, 20, 30, 60};
 
     /** 金叉：i 满足 MA5≥MA10，且 i-1 不满足 */
     public static boolean isGoldenCrossAt(List<Trade> trades, int i) {
@@ -27,6 +28,21 @@ public final class MaCrossPointCore {
             return false;
         }
         return isMa5GeMa10(trades.get(i)) && !isMa5GeMa10(trades.get(i - 1));
+    }
+
+    /** 金叉：MA5 上穿 slowMa（10/20/30/60） */
+    public static boolean isGoldenCrossAt(List<Trade> trades, int i, int slowMa) {
+        if (trades == null || i < 1 || i >= trades.size()) {
+            return false;
+        }
+        Double ma5Cur = maAt(trades, i, 5);
+        Double slowCur = maAt(trades, i, slowMa);
+        Double ma5Prev = maAt(trades, i - 1, 5);
+        Double slowPrev = maAt(trades, i - 1, slowMa);
+        if (ma5Cur == null || slowCur == null || ma5Prev == null || slowPrev == null) {
+            return false;
+        }
+        return ma5Cur + EPS >= slowCur && ma5Prev < slowPrev - EPS;
     }
 
     /** 死叉：i 满足 MA5&lt;MA10，且 i-1 满足 MA5≥MA10 */
@@ -128,6 +144,18 @@ public final class MaCrossPointCore {
         }
         for (int i = lastIdx; i >= 1; i--) {
             if (isDeathCrossAt(trades, i, slowMa)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public static int findLatestGoldenCrossIndex(List<Trade> trades, int lastIdx, int slowMa) {
+        if (trades == null || lastIdx < 1) {
+            return -1;
+        }
+        for (int i = lastIdx; i >= 1; i--) {
+            if (isGoldenCrossAt(trades, i, slowMa)) {
                 return i;
             }
         }

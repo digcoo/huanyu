@@ -222,6 +222,94 @@ public class MaCrossPointToolsTest {
     }
 
     @Test
+    public void findAnyGoldenCrossBreak_hitsGc10First() {
+        List<Trade> bars = Arrays.asList(
+                dcBar("d1", 9.8, 10.0, 9.5, 9.4, 9.3, 9.9),
+                dcBar("d2", 9.9, 10.0, 9.5, 9.4, 9.3, 9.95),
+                dcBar("d3", 10.2, 10.0, 9.5, 9.4, 9.3, 10.1),
+                dcBar("d4", 10.1, 10.0, 9.5, 9.4, 9.3, 9.9),
+                dcBar("d5", 10.1, 10.0, 9.5, 9.4, 9.3, 10.15)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findAnyGoldenCrossBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(10, hit.getSlowMa());
+        Assert.assertEquals(MaCrossPointTools.BreakTarget.GOLDEN_CROSS, hit.getBreakTarget());
+        Assert.assertEquals(10.0, hit.getBreakLine(), 1e-6);
+    }
+
+    @Test
+    public void findAnyGoldenCrossBreak_fallsBackToGc20() {
+        List<Trade> bars = Arrays.asList(
+                dcBar("d1", 10.2, 9.5, 10.5, 10.6, 10.7, 10.1),
+                dcBar("d2", 10.3, 9.5, 10.5, 10.6, 10.7, 10.05),
+                dcBar("d3", 10.6, 9.5, 10.5, 10.6, 10.7, 10.0),
+                dcBar("d4", 10.5, 9.5, 10.5, 10.6, 10.7, 10.4),
+                dcBar("d5", 10.5, 9.5, 10.5, 10.6, 10.7, 10.6)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findAnyGoldenCrossBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(20, hit.getSlowMa());
+        Assert.assertEquals(10.5, hit.getBreakLine(), 1e-6);
+    }
+
+    @Test
+    public void findAnyGoldenCrossBreak_missWhenNoneEdgeBroken() {
+        List<Trade> bars = Arrays.asList(
+                dcBar("d1", 9.8, 10.0, 9.5, 9.4, 9.3, 10.3),
+                dcBar("d2", 9.9, 10.0, 9.5, 9.4, 9.3, 10.2),
+                dcBar("d3", 10.2, 10.0, 9.5, 9.4, 9.3, 10.15),
+                dcBar("d4", 10.1, 10.0, 9.5, 9.4, 9.3, 10.2),
+                dcBar("d5", 10.1, 10.0, 9.5, 9.4, 9.3, 10.3)
+        );
+        Assert.assertNull(MaCrossPointTools.findAnyGoldenCrossBreakHitOnBars(bars, PeriodTypeEnum.DAY));
+    }
+
+    @Test
+    public void findAnyGoldenHighBreak_hitsGh10First() {
+        List<Trade> bars = Arrays.asList(
+                ghBar("d1", 10.0, 10.5, 9.9, 10.2, 9.5, 10.0, 12.0),
+                ghBar("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0, 12.0),
+                ghBar("d3", 10.5, 10.6, 10.0, 10.1, 10.3, 10.1, 12.0),
+                ghBar("d4", 10.1, 10.3, 9.8, 10.0, 10.4, 10.2, 12.0),
+                ghBar("d5", 10.0, 11.0, 9.9, 10.9, 10.5, 10.3, 12.0)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findAnyGoldenHighBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(10, hit.getSlowMa());
+        Assert.assertEquals(MaCrossPointTools.BreakTarget.GOLDEN_BAND_TOP, hit.getBreakTarget());
+        Assert.assertEquals(10.8, hit.getBreakLine(), 1e-6);
+        Assert.assertEquals("d2", hit.getCrossBar().getDay());
+    }
+
+    @Test
+    public void findAnyGoldenHighBreak_fallsBackToGh20() {
+        List<Trade> bars = Arrays.asList(
+                ghBar("d1", 10.0, 10.5, 9.9, 10.2, 10.5, 10.0, 11.0),
+                ghBar("d2", 10.2, 10.8, 10.1, 10.5, 11.2, 10.0, 11.0),
+                ghBar("d3", 10.5, 10.6, 10.0, 10.1, 11.0, 10.1, 11.0),
+                ghBar("d4", 10.1, 10.3, 9.8, 10.0, 11.1, 10.2, 11.0),
+                ghBar("d5", 10.0, 11.0, 9.9, 10.9, 11.3, 10.3, 11.0)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findAnyGoldenHighBreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(20, hit.getSlowMa());
+        Assert.assertEquals(10.8, hit.getBreakLine(), 1e-6);
+        Assert.assertEquals("d2", hit.getCrossBar().getDay());
+    }
+
+    @Test
+    public void findAnyGoldenHighBreak_missWhenNoneEdgeBroken() {
+        List<Trade> bars = Arrays.asList(
+                ghBar("d1", 10.0, 10.5, 9.9, 10.2, 9.5, 10.0, 12.0),
+                ghBar("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0, 12.0),
+                ghBar("d3", 10.5, 10.6, 10.0, 10.1, 10.3, 10.1, 12.0),
+                ghBar("d4", 10.1, 10.3, 9.8, 10.0, 10.4, 10.2, 12.0),
+                ghBar("d5", 10.0, 10.7, 9.9, 10.6, 10.5, 10.3, 12.0)
+        );
+        Assert.assertNull(MaCrossPointTools.findAnyGoldenHighBreakHitOnBars(bars, PeriodTypeEnum.DAY));
+    }
+
+    @Test
     public void findAnyDeathCrossBreak_missWhenNoneEdgeBroken() {
         List<Trade> bars = Arrays.asList(
                 dcBar("d1", 10.2, 10.0, 10.1, 10.3, 10.4, 10.3),
@@ -299,6 +387,15 @@ public class MaCrossPointToolsTest {
         t.setMa20(ma20);
         t.setMa30(ma30);
         t.setMa60(ma60);
+        return t;
+    }
+
+    private static Trade ghBar(String day, double open, double high, double low, double close,
+                               double ma5, double ma10, double ma20) {
+        Trade t = ohlc(day, open, high, low, close, ma5, ma10);
+        t.setMa20(ma20);
+        t.setMa30(ma20 + 0.1);
+        t.setMa60(ma20 + 0.2);
         return t;
     }
 }

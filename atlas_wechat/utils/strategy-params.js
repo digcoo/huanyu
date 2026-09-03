@@ -1,5 +1,5 @@
 /**
- * 策略参数面板（MA金叉点 / MA死叉点 / 死叉交叉点突破）
+ * 策略参数面板（MA金叉点 / MA死叉点 / 死叉交叉点 / 金叉交叉点 / 金叉波段顶）
  */
 var strategyNav = require('./strategy-nav');
 
@@ -103,11 +103,29 @@ var MDX_SCHEMA = [
   }
 ].concat(AMOUNT_FIELDS, GATE_FIELDS_MA10, GATE_FIELDS_MA10_BEAR);
 
+var MGX_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '边沿突破任意金叉交叉点 GC10/GC20/GC30/GC60。父级：(MA10>MA60) 或 (MA10≤MA60且收盘价>max(MA5,MA10))。边沿含跳空开盘：末K开盘价≤基准且收盘价>基准。'
+  }
+].concat(AMOUNT_FIELDS, GATE_FIELDS_MA10, GATE_FIELDS_MA10_BEAR);
+
+var MGH_SCHEMA = [
+  {
+    type: 'section',
+    label: '命中条件',
+    hint: '边沿突破任意金叉波段顶 GH10/GH20/GH30/GH60。父级：(MA10>MA60) 或 (MA10≤MA60且收盘价>max(MA5,MA10))。边沿含跳空开盘：末K开盘价≤基准且收盘价>基准。'
+  }
+].concat(AMOUNT_FIELDS, GATE_FIELDS_MA10, GATE_FIELDS_MA10_BEAR);
+
 var NRF_TIERS = [];
 
 function strategyKind(strategyId) {
   var id = String(strategyId || '');
   if (/^madcbreak/.test(id)) return 'mdx';
+  if (/^magcbreak/.test(id)) return 'mgx';
+  if (/^maghbreak/.test(id)) return 'mgh';
   if (/^madeathbreak/.test(id)) return 'mdb';
   return 'mgb';
 }
@@ -186,6 +204,8 @@ function getSchema(strategyId) {
   var kind = strategyKind(strategyId);
   if (kind === 'mdb') return MDB_SCHEMA.slice();
   if (kind === 'mdx') return MDX_SCHEMA.slice();
+  if (kind === 'mgx') return MGX_SCHEMA.slice();
+  if (kind === 'mgh') return MGH_SCHEMA.slice();
   return MGB_SCHEMA.slice();
 }
 
@@ -201,6 +221,8 @@ function resolveApiStrategyId(strategyId) {
   var kind = strategyKind(strategyId);
   if (kind === 'mdb') return 'madeathbreak';
   if (kind === 'mdx') return 'madcbreak';
+  if (kind === 'mgx') return 'magcbreak';
+  if (kind === 'mgh') return 'maghbreak';
   return 'magoldbreak';
 }
 
@@ -215,7 +237,7 @@ function gateApiParams(p, prefix) {
   out[prefix + 'RequireMonthMaBull'] = !!p.mcpRequireMonthMaBull;
   out[prefix + 'RequireQuarterMaBull'] = !!p.mcpRequireQuarterMaBull;
   out[prefix + 'RequireYearMaBull'] = !!p.mcpRequireYearMaBull;
-  if (prefix === 'mdx') {
+  if (prefix === 'mdx' || prefix === 'mgx' || prefix === 'mgh') {
     out[prefix + 'RequireDayMaBear'] = !!p.mcpRequireDayMaBear;
     out[prefix + 'RequireWeekMaBear'] = !!p.mcpRequireWeekMaBear;
     out[prefix + 'RequireMonthMaBear'] = !!p.mcpRequireMonthMaBear;
@@ -230,7 +252,9 @@ function toApiParams(strategyId) {
   var tier = tierToApi(strategyId);
   var kind = strategyKind(strategyId);
   var prefix = kind === 'mdb' ? 'mdb'
-    : (kind === 'mdx' ? 'mdx' : 'mgb');
+    : (kind === 'mdx' ? 'mdx'
+      : (kind === 'mgx' ? 'mgx'
+        : (kind === 'mgh' ? 'mgh' : 'mgb')));
   var params = {
     EnableMinAmountFilter: p.mcpEnableMinAmountFilter !== false,
     MinAmountWan: p.mcpMinAmountWan != null ? p.mcpMinAmountWan : 3000
@@ -260,10 +284,10 @@ function appendGateSummary(p, parts, kind) {
   if (p.mcpRequireQuarterMaBull) bull.push('季');
   if (p.mcpRequireYearMaBull) bull.push('年');
   if (bull.length) {
-    var rule = kind === 'mdx' ? 'MA10≥MA60' : 'MA5>MA60';
+    var rule = (kind === 'mdx' || kind === 'mgx' || kind === 'mgh') ? 'MA10≥MA60' : 'MA5>MA60';
     parts.push('多头' + bull.join('/') + '(' + rule + ')');
   }
-  if (kind === 'mdx') {
+  if (kind === 'mdx' || kind === 'mgx' || kind === 'mgh') {
     var bear = [];
     if (p.mcpRequireDayMaBear) bear.push('日');
     if (p.mcpRequireWeekMaBear) bear.push('周');
@@ -288,6 +312,10 @@ function formatSummary(strategyId) {
     parts = [tierLabel + '线', '边沿破死叉点', '父级均价上'];
   } else if (kind === 'mdx') {
     parts = [tierLabel + '线', '边沿破DC10/20/30/60', '父级MA10>MA60或均价上'];
+  } else if (kind === 'mgx') {
+    parts = [tierLabel + '线', '边沿破GC10/20/30/60', '父级MA10>MA60或均价上'];
+  } else if (kind === 'mgh') {
+    parts = [tierLabel + '线', '边沿破GH10/20/30/60', '父级MA10>MA60或均价上'];
   } else {
     parts = [tierLabel + '线', '边沿破金叉波段顶', 'MA5>MA10', '父级均价上'];
   }

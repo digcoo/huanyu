@@ -670,6 +670,32 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getMdxRequireMonthMaBear()),
                 String.valueOf(pageQuery.getMdxRequireQuarterMaBear()),
                 String.valueOf(pageQuery.getMdxRequireYearMaBear()),
+                String.valueOf(pageQuery.getMgxTier()),
+                String.valueOf(pageQuery.getMgxEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMgxMinAmountWan()),
+                String.valueOf(pageQuery.getMgxRequireDayMaBull()),
+                String.valueOf(pageQuery.getMgxRequireWeekMaBull()),
+                String.valueOf(pageQuery.getMgxRequireMonthMaBull()),
+                String.valueOf(pageQuery.getMgxRequireQuarterMaBull()),
+                String.valueOf(pageQuery.getMgxRequireYearMaBull()),
+                String.valueOf(pageQuery.getMgxRequireDayMaBear()),
+                String.valueOf(pageQuery.getMgxRequireWeekMaBear()),
+                String.valueOf(pageQuery.getMgxRequireMonthMaBear()),
+                String.valueOf(pageQuery.getMgxRequireQuarterMaBear()),
+                String.valueOf(pageQuery.getMgxRequireYearMaBear()),
+                String.valueOf(pageQuery.getMghTier()),
+                String.valueOf(pageQuery.getMghEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMghMinAmountWan()),
+                String.valueOf(pageQuery.getMghRequireDayMaBull()),
+                String.valueOf(pageQuery.getMghRequireWeekMaBull()),
+                String.valueOf(pageQuery.getMghRequireMonthMaBull()),
+                String.valueOf(pageQuery.getMghRequireQuarterMaBull()),
+                String.valueOf(pageQuery.getMghRequireYearMaBull()),
+                String.valueOf(pageQuery.getMghRequireDayMaBear()),
+                String.valueOf(pageQuery.getMghRequireWeekMaBear()),
+                String.valueOf(pageQuery.getMghRequireMonthMaBear()),
+                String.valueOf(pageQuery.getMghRequireQuarterMaBear()),
+                String.valueOf(pageQuery.getMghRequireYearMaBear()),
                 String.valueOf(pageQuery.getMbbmEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getMbbmMinAmountWan()),
                 String.valueOf(pageQuery.getM4mTier()),
@@ -782,6 +808,8 @@ public class StockBaseController {
                 .maGoldBreak(stockPageQuery.toMaGoldBreakParams())
                 .maDeathBreak(stockPageQuery.toMaDeathBreakParams())
                 .maDeathCrossBreak(stockPageQuery.toMaDeathCrossBreakParams())
+                .maGoldenCrossBreak(stockPageQuery.toMaGoldenCrossBreakParams())
+                .maGoldenHighBreak(stockPageQuery.toMaGoldenHighBreakParams())
                 .maBearBreakMa(stockPageQuery.toMaBearBreakMaParams())
                 .maBull4m(stockPageQuery.toMaBull4mParams())
                 .build();

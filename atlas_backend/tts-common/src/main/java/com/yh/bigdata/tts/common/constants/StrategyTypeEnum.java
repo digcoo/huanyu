@@ -138,6 +138,10 @@ public enum StrategyTypeEnum {
     MA_BEAR_START("mabearstart", "空头趋势启动", 83),
     /** 死叉交叉点突破（边沿破 DC10/DC20/DC30/DC60 任一 + 父级 MA10&gt;MA60 或均价之上） */
     MA_DEATH_CROSS_BREAK("madcbreak", "死叉交叉点突破", 84),
+    /** 金叉交叉点突破（边沿破 GC10/GC20/GC30/GC60 任一 + 父级 MA10&gt;MA60 或均价之上） */
+    MA_GOLDEN_CROSS_BREAK("magcbreak", "金叉交叉点突破", 85),
+    /** 金叉波段顶突破（边沿破 GH10/GH20/GH30/GH60 任一 + 父级 MA10&gt;MA60 或均价之上） */
+    MA_GOLDEN_HIGH_BREAK("maghbreak", "金叉波段顶突破", 86),
     /** @deprecated 凹突破已下线 */
     CONCAVE_BREAK("concavebreak", "凹突破", 80),
     /** @deprecated 突破前波段High已下线 */
@@ -191,6 +195,7 @@ public enum StrategyTypeEnum {
         return this == BOTTOM_BAND_HIGH || this == BOTTOM_PREV2_HIGH
                 || this == MA_GOLD_BREAK || this == MA_DEATH_BREAK
                 || this == MA_DEATH_CROSS_BREAK
+                || this == MA_GOLDEN_CROSS_BREAK || this == MA_GOLDEN_HIGH_BREAK
                 || this == MA_BEAR_BREAK_MA || this == MA_BULL_4M;
     }
 

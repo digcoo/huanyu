@@ -22,7 +22,19 @@ const STRATEGY_API = {
   madcbreakShort: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
   madcbreakMedium: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
   madcbreakLong: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
-  madcbreakQuarter: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' }
+  madcbreakQuarter: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' },
+  magcbreak: { strategy: 'magcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  magcbreakFlash: { strategy: 'magcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
+  magcbreakShort: { strategy: 'magcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  magcbreakMedium: { strategy: 'magcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
+  magcbreakLong: { strategy: 'magcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
+  magcbreakQuarter: { strategy: 'magcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' },
+  maghbreak: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  maghbreakFlash: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
+  maghbreakShort: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  maghbreakMedium: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
+  maghbreakLong: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
+  maghbreakQuarter: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' }
 };
 
 function normalizeStrategyId(strategyId) {
@@ -30,11 +42,13 @@ function normalizeStrategyId(strategyId) {
   if (strategyId === 'magoldbreak') return 'magoldbreakFlash';
   if (strategyId === 'madeathbreak') return 'madeathbreakFlash';
   if (strategyId === 'madcbreak') return 'madcbreakFlash';
+  if (strategyId === 'magcbreak') return 'magcbreakFlash';
+  if (strategyId === 'maghbreak') return 'maghbreakFlash';
   // 旧下线策略本地缓存 → MA金叉点·30分
   if (/^bottombandhigh|^bottomprev2high|^maalignlift|^macrossbreak|^mabearbreakma|^mabull4m|^concavebreak|^trendretest(low|high)|^prevbandhigh|^mabreakma|^mabull3m|^mabullbreak|^mabearstart/.test(strategyId)) {
     return 'magoldbreakFlash';
   }
-  if (/^magoldbreak|^madeathbreak|^madcbreak/.test(strategyId)) {
+  if (/^magoldbreak|^madeathbreak|^madcbreak|^magcbreak|^maghbreak/.test(strategyId)) {
     return strategyId;
   }
   return 'magoldbreakFlash';
@@ -581,6 +595,24 @@ function mapRecommendation(item, strategyId) {
     else tags.push('日档');
     var dc = /target=DC(\d+)/.exec(item.signalMessage || '');
     if (dc) tags.push('破DC' + dc[1]);
+  } else if (/^magcbreak/.test(strategyId) || strategyId === 'magcbreak') {
+    tags.push('金叉交叉点突破');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else if (/period=quarter/.test(item.signalMessage || '')) tags.push('季档');
+    else tags.push('日档');
+    var gc = /target=GC(\d+)/.exec(item.signalMessage || '');
+    if (gc) tags.push('破GC' + gc[1]);
+  } else if (/^maghbreak/.test(strategyId) || strategyId === 'maghbreak') {
+    tags.push('金叉波段顶突破');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else if (/period=quarter/.test(item.signalMessage || '')) tags.push('季档');
+    else tags.push('日档');
+    var gh = /target=GH(\d+)/.exec(item.signalMessage || '');
+    if (gh) tags.push('破GH' + gh[1]);
   } else if (item.signalMessage) {
     tags.push('信号');
   } else if (item.trendMessage) {

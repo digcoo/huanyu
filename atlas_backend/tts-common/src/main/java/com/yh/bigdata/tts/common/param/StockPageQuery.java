@@ -899,6 +899,34 @@ public class StockPageQuery extends PageQuery {
     private Boolean mdxRequireMonthMaBear;
     private Boolean mdxRequireQuarterMaBear;
     private Boolean mdxRequireYearMaBear;
+    /** 金叉交叉点突破 · 档位 */
+    private String mgxTier;
+    private Boolean mgxEnableMinAmountFilter;
+    private Integer mgxMinAmountWan;
+    private Boolean mgxRequireDayMaBull;
+    private Boolean mgxRequireWeekMaBull;
+    private Boolean mgxRequireMonthMaBull;
+    private Boolean mgxRequireQuarterMaBull;
+    private Boolean mgxRequireYearMaBull;
+    private Boolean mgxRequireDayMaBear;
+    private Boolean mgxRequireWeekMaBear;
+    private Boolean mgxRequireMonthMaBear;
+    private Boolean mgxRequireQuarterMaBear;
+    private Boolean mgxRequireYearMaBear;
+    /** 金叉波段顶突破 · 档位 */
+    private String mghTier;
+    private Boolean mghEnableMinAmountFilter;
+    private Integer mghMinAmountWan;
+    private Boolean mghRequireDayMaBull;
+    private Boolean mghRequireWeekMaBull;
+    private Boolean mghRequireMonthMaBull;
+    private Boolean mghRequireQuarterMaBull;
+    private Boolean mghRequireYearMaBull;
+    private Boolean mghRequireDayMaBear;
+    private Boolean mghRequireWeekMaBear;
+    private Boolean mghRequireMonthMaBear;
+    private Boolean mghRequireQuarterMaBear;
+    private Boolean mghRequireYearMaBear;
     /** MA空头破MA · 启用成交额门 */
     private Boolean mbbmEnableMinAmountFilter;
     /** MA空头破MA · 最低日均成交额（万） */
@@ -2519,6 +2547,26 @@ public class StockPageQuery extends PageQuery {
                 mdxRequireQuarterMaBull, mdxRequireYearMaBull);
         applyMaBearGates(p, mdxRequireDayMaBear, mdxRequireWeekMaBear, mdxRequireMonthMaBear,
                 mdxRequireQuarterMaBear, mdxRequireYearMaBear);
+        return p;
+    }
+
+    public MaCrossPointStrategyParams toMaGoldenCrossBreakParams() {
+        MaCrossPointStrategyParams p = toMaCrossPointParams(
+                mgxTier, mgxEnableMinAmountFilter, mgxMinAmountWan, null,
+                mgxRequireDayMaBull, mgxRequireWeekMaBull, mgxRequireMonthMaBull,
+                mgxRequireQuarterMaBull, mgxRequireYearMaBull);
+        applyMaBearGates(p, mgxRequireDayMaBear, mgxRequireWeekMaBear, mgxRequireMonthMaBear,
+                mgxRequireQuarterMaBear, mgxRequireYearMaBear);
+        return p;
+    }
+
+    public MaCrossPointStrategyParams toMaGoldenHighBreakParams() {
+        MaCrossPointStrategyParams p = toMaCrossPointParams(
+                mghTier, mghEnableMinAmountFilter, mghMinAmountWan, null,
+                mghRequireDayMaBull, mghRequireWeekMaBull, mghRequireMonthMaBull,
+                mghRequireQuarterMaBull, mghRequireYearMaBull);
+        applyMaBearGates(p, mghRequireDayMaBear, mghRequireWeekMaBear, mghRequireMonthMaBear,
+                mghRequireQuarterMaBear, mghRequireYearMaBear);
         return p;
     }
 

@@ -129,7 +129,17 @@ const STRATEGIES = [
   { id: 'madcbreakShort', name: '死叉交叉点突破·日' },
   { id: 'madcbreakMedium', name: '死叉交叉点突破·周' },
   { id: 'madcbreakLong', name: '死叉交叉点突破·月' },
-  { id: 'madcbreakQuarter', name: '死叉交叉点突破·季' }
+  { id: 'madcbreakQuarter', name: '死叉交叉点突破·季' },
+  { id: 'magcbreakFlash', name: '金叉交叉点突破·30分' },
+  { id: 'magcbreakShort', name: '金叉交叉点突破·日' },
+  { id: 'magcbreakMedium', name: '金叉交叉点突破·周' },
+  { id: 'magcbreakLong', name: '金叉交叉点突破·月' },
+  { id: 'magcbreakQuarter', name: '金叉交叉点突破·季' },
+  { id: 'maghbreakFlash', name: '金叉波段顶突破·30分' },
+  { id: 'maghbreakShort', name: '金叉波段顶突破·日' },
+  { id: 'maghbreakMedium', name: '金叉波段顶突破·周' },
+  { id: 'maghbreakLong', name: '金叉波段顶突破·月' },
+  { id: 'maghbreakQuarter', name: '金叉波段顶突破·季' }
 ];
 
 const { formatDataUpdatedLabel, todayDayStr } = require('./time');
