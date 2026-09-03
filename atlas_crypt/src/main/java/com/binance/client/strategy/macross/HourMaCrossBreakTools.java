@@ -15,8 +15,8 @@ import java.util.List;
 /**
  * 策略3：1H MA 交叉突破（多）/ 跌破（空），父级 4H。
  * <ul>
- *   <li>多：边沿破金叉波段顶（且 MA5&gt;MA10）或死叉交叉点；4H close &gt; max(MA5, MA10)</li>
- *   <li>空：边沿破死叉波段底（且 MA5&lt;MA10）或金叉交叉点；4H close &lt; min(MA5, MA10)</li>
+ *   <li>多：边沿破金叉波段顶（且 MA5&gt;MA10）或死叉交叉点；4H close &gt; max(MA5, MA10)；4H MA10≥MA60</li>
+ *   <li>空：边沿破死叉波段底（且 MA5&lt;MA10）或金叉交叉点；4H close &lt; min(MA5, MA10)；4H MA10≥MA60</li>
  * </ul>
  */
 public final class HourMaCrossBreakTools {
@@ -79,7 +79,7 @@ public final class HourMaCrossBreakTools {
     }
 
     public static Hit findHit(List<Candlestick> hour1Bars, List<Candlestick> hour4Bars) {
-        if (hour1Bars == null || hour1Bars.size() < 12 || hour4Bars == null || hour4Bars.size() < 12) {
+        if (hour1Bars == null || hour1Bars.size() < 12 || hour4Bars == null || hour4Bars.size() < 60) {
             return null;
         }
         LongCandlestickDTO hour1 = LongStrategyUtil.buildLongCandlestickDTO(hour1Bars, PeriodTypeEnum.HOUR1);
@@ -91,7 +91,7 @@ public final class HourMaCrossBreakTools {
     }
 
     public static Hit findShortHit(List<Candlestick> hour1Bars, List<Candlestick> hour4Bars) {
-        if (hour1Bars == null || hour1Bars.size() < 12 || hour4Bars == null || hour4Bars.size() < 12) {
+        if (hour1Bars == null || hour1Bars.size() < 12 || hour4Bars == null || hour4Bars.size() < 60) {
             return null;
         }
         LongCandlestickDTO hour1 = LongStrategyUtil.buildLongCandlestickDTO(hour1Bars, PeriodTypeEnum.HOUR1);
@@ -106,7 +106,7 @@ public final class HourMaCrossBreakTools {
         if (hour1Bars == null || hour1Bars.size() < 3 || parent4h == null) {
             return null;
         }
-        if (!MaCrossPointCore.passesAboveMa(parent4h)) {
+        if (!passesParentGates(parent4h, true)) {
             return null;
         }
         Hit golden = findGoldenBandTopHit(hour1Bars);
@@ -120,7 +120,7 @@ public final class HourMaCrossBreakTools {
         if (hour1Bars == null || hour1Bars.size() < 3 || parent4h == null) {
             return null;
         }
-        if (!MaCrossPointCore.passesBelowMa(parent4h)) {
+        if (!passesParentGates(parent4h, false)) {
             return null;
         }
         Hit deathBand = findDeathBandLowHit(hour1Bars);
@@ -287,15 +287,25 @@ public final class HourMaCrossBreakTools {
             String tag = death ? "MDS" : "MGS";
             String target = death ? "死叉波段底" : "金叉交叉点";
             String maGate = death ? ",MA5<MA10" : "";
-            return String.format("[%s]%s|1H边沿破%s%s,4H父级均价之下|breakLine=%.8f,crossTime=%s",
+            return String.format("[%s]%s|1H边沿破%s%s,4H父级均价之下,4H父级多头之上|breakLine=%.8f,crossTime=%s",
                     tag, name, target, maGate, hit.getBreakLine(), timeOf(hit.getCrossBar()));
         }
         String name = death ? "MA死叉点突破" : "MA金叉波段突破";
         String tag = death ? "MDB" : "MGB";
         String target = death ? "死叉交叉点" : "金叉波段顶";
         String maGate = death ? "" : ",MA5>MA10";
-        return String.format("[%s]%s|1H边沿破%s%s,4H父级均价之上|breakLine=%.8f,crossTime=%s",
+        return String.format("[%s]%s|1H边沿破%s%s,4H父级均价之上,4H父级多头之上|breakLine=%.8f,crossTime=%s",
                 tag, name, target, maGate, hit.getBreakLine(), timeOf(hit.getCrossBar()));
+    }
+
+    /** 父级 4H：均价上/下 + MA10≥MA60（多头、空头都要） */
+    private static boolean passesParentGates(LongCandlestickMA parent4h, boolean longSide) {
+        if (!MaCrossPointCore.passesMa10GeMa60(parent4h)) {
+            return false;
+        }
+        return longSide
+                ? MaCrossPointCore.passesAboveMa(parent4h)
+                : MaCrossPointCore.passesBelowMa(parent4h);
     }
 
     static List<Ticker> toTickers(List<LongCandlestickMA> bars) {

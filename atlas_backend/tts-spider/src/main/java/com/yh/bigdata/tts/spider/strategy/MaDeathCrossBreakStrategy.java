@@ -10,7 +10,7 @@ import com.yh.bigdata.tts.common.param.QueryContextParam;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.macrosspoint.MaCrossPointEvaluator;
 import com.yh.bigdata.tts.spider.strategy.tools.macrosspoint.MaCrossPointTools;
-import com.yh.bigdata.tts.spider.strategy.tools.macrosspoint.MaTrendBreakEvaluator;
+import com.yh.bigdata.tts.spider.strategy.tools.macrosspoint.MaDeathCrossBreakEvaluator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,11 +19,11 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class MaBearStartStrategy extends AbstractStrategy {
+public class MaDeathCrossBreakStrategy extends AbstractStrategy {
 
     @Override
     public StrategyTypeEnum getStrategy() {
-        return StrategyTypeEnum.MA_BEAR_START;
+        return StrategyTypeEnum.MA_DEATH_CROSS_BREAK;
     }
 
     @Override
@@ -43,7 +43,7 @@ public class MaBearStartStrategy extends AbstractStrategy {
         try {
             MaCrossPointStrategyParams params = resolveParams(queryContextParam);
             MaCrossPointEvaluator.MaCrossPointEvaluation eval =
-                    MaTrendBreakEvaluator.evaluate(stockBase, checkResult, params, false);
+                    MaDeathCrossBreakEvaluator.evaluate(stockBase, checkResult, params);
             if (!eval.isHit()) {
                 return checkResult;
             }
@@ -64,10 +64,10 @@ public class MaBearStartStrategy extends AbstractStrategy {
     }
 
     private MaCrossPointStrategyParams resolveParams(QueryContextParam queryContextParam) {
-        if (queryContextParam == null || queryContextParam.getMaBearStart() == null) {
+        if (queryContextParam == null || queryContextParam.getMaDeathCrossBreak() == null) {
             return MaCrossPointStrategyParams.defaults();
         }
-        return MaCrossPointStrategyParams.merge(queryContextParam.getMaBearStart());
+        return MaCrossPointStrategyParams.merge(queryContextParam.getMaDeathCrossBreak());
     }
 
     private void applyFallbackSortValue(StockBase stockBase, CheckResult checkResult) {

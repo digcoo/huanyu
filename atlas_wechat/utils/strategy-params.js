@@ -1,5 +1,5 @@
 /**
- * 策略参数面板（MA金叉点 / MA死叉点 / 多头趋势突破 / 空头趋势启动）
+ * 策略参数面板（MA金叉点 / MA死叉点 / 死叉交叉点突破）
  */
 var strategyNav = require('./strategy-nav');
 
@@ -12,7 +12,12 @@ var MCP_DEFAULTS = {
   mcpRequireWeekMaBull: false,
   mcpRequireMonthMaBull: false,
   mcpRequireQuarterMaBull: false,
-  mcpRequireYearMaBull: false
+  mcpRequireYearMaBull: false,
+  mcpRequireDayMaBear: false,
+  mcpRequireWeekMaBear: false,
+  mcpRequireMonthMaBear: false,
+  mcpRequireQuarterMaBear: false,
+  mcpRequireYearMaBear: false
 };
 
 var GATE_BOOL_KEYS = [
@@ -20,17 +25,41 @@ var GATE_BOOL_KEYS = [
   'mcpRequireWeekMaBull',
   'mcpRequireMonthMaBull',
   'mcpRequireQuarterMaBull',
-  'mcpRequireYearMaBull'
+  'mcpRequireYearMaBull',
+  'mcpRequireDayMaBear',
+  'mcpRequireWeekMaBear',
+  'mcpRequireMonthMaBear',
+  'mcpRequireQuarterMaBear',
+  'mcpRequireYearMaBear'
 ];
 
-var GATE_FIELDS = [
-  { type: 'section', label: '均线多头', hint: '该周期末K MA5>MA60，可多选取交集' },
+var GATE_SWITCHES = [
   { key: 'mcpRequireDayMaBull', label: '日', type: 'switch' },
   { key: 'mcpRequireWeekMaBull', label: '周', type: 'switch' },
   { key: 'mcpRequireMonthMaBull', label: '月', type: 'switch' },
   { key: 'mcpRequireQuarterMaBull', label: '季', type: 'switch' },
   { key: 'mcpRequireYearMaBull', label: '年', type: 'switch' }
 ];
+
+var GATE_FIELDS = [
+  { type: 'section', label: '均线多头', hint: '该周期末K MA5>MA60，可多选取交集' }
+].concat(GATE_SWITCHES);
+
+var GATE_FIELDS_MA10 = [
+  { type: 'section', label: '均线多头', hint: '该周期末K MA10≥MA60，可多选取交集' }
+].concat(GATE_SWITCHES);
+
+var GATE_SWITCHES_BEAR = [
+  { key: 'mcpRequireDayMaBear', label: '日', type: 'switch' },
+  { key: 'mcpRequireWeekMaBear', label: '周', type: 'switch' },
+  { key: 'mcpRequireMonthMaBear', label: '月', type: 'switch' },
+  { key: 'mcpRequireQuarterMaBear', label: '季', type: 'switch' },
+  { key: 'mcpRequireYearMaBear', label: '年', type: 'switch' }
+];
+
+var GATE_FIELDS_MA10_BEAR = [
+  { type: 'section', label: '均线空头', hint: '该周期末K MA10<MA60，可多选取交集' }
+].concat(GATE_SWITCHES_BEAR);
 
 var AMOUNT_FIELDS = [
   {
@@ -66,28 +95,19 @@ var MDB_SCHEMA = [
   }
 ].concat(AMOUNT_FIELDS, GATE_FIELDS);
 
-var MTB_SCHEMA = [
+var MDX_SCHEMA = [
   {
     type: 'section',
     label: '命中条件',
-    hint: '（边沿破金叉波段顶且MA5≥MA10）或边沿破死叉交叉点或（边沿破金叉交叉点且MA5≥MA10）。硬条件：本档MA10≥MA60。边沿含跳空开盘：末K开盘价≤基准且收盘价>基准。'
+    hint: '边沿突破任意死叉交叉点 DC10/DC20/DC30/DC60。父级：(MA10>MA60) 或 (MA10≤MA60且收盘价>max(MA5,MA10))。边沿含跳空开盘：末K开盘价≤基准且收盘价>基准。'
   }
-].concat(AMOUNT_FIELDS, GATE_FIELDS);
-
-var MBS_SCHEMA = [
-  {
-    type: 'section',
-    label: '命中条件',
-    hint: '（边沿破金叉波段顶且MA5≥MA10）或边沿破死叉交叉点或（边沿破金叉交叉点且MA5≥MA10）。硬条件：本档MA10<MA60。边沿含跳空开盘：末K开盘价≤基准且收盘价>基准。'
-  }
-].concat(AMOUNT_FIELDS, GATE_FIELDS);
+].concat(AMOUNT_FIELDS, GATE_FIELDS_MA10, GATE_FIELDS_MA10_BEAR);
 
 var NRF_TIERS = [];
 
 function strategyKind(strategyId) {
   var id = String(strategyId || '');
-  if (/^mabearstart/.test(id)) return 'mbs';
-  if (/^mabullbreak/.test(id)) return 'mtb';
+  if (/^madcbreak/.test(id)) return 'mdx';
   if (/^madeathbreak/.test(id)) return 'mdb';
   return 'mgb';
 }
@@ -165,8 +185,7 @@ function reset(strategyId) {
 function getSchema(strategyId) {
   var kind = strategyKind(strategyId);
   if (kind === 'mdb') return MDB_SCHEMA.slice();
-  if (kind === 'mtb') return MTB_SCHEMA.slice();
-  if (kind === 'mbs') return MBS_SCHEMA.slice();
+  if (kind === 'mdx') return MDX_SCHEMA.slice();
   return MGB_SCHEMA.slice();
 }
 
@@ -181,8 +200,7 @@ function hasCustomParams() {
 function resolveApiStrategyId(strategyId) {
   var kind = strategyKind(strategyId);
   if (kind === 'mdb') return 'madeathbreak';
-  if (kind === 'mtb') return 'mabullbreak';
-  if (kind === 'mbs') return 'mabearstart';
+  if (kind === 'mdx') return 'madcbreak';
   return 'magoldbreak';
 }
 
@@ -197,6 +215,13 @@ function gateApiParams(p, prefix) {
   out[prefix + 'RequireMonthMaBull'] = !!p.mcpRequireMonthMaBull;
   out[prefix + 'RequireQuarterMaBull'] = !!p.mcpRequireQuarterMaBull;
   out[prefix + 'RequireYearMaBull'] = !!p.mcpRequireYearMaBull;
+  if (prefix === 'mdx') {
+    out[prefix + 'RequireDayMaBear'] = !!p.mcpRequireDayMaBear;
+    out[prefix + 'RequireWeekMaBear'] = !!p.mcpRequireWeekMaBear;
+    out[prefix + 'RequireMonthMaBear'] = !!p.mcpRequireMonthMaBear;
+    out[prefix + 'RequireQuarterMaBear'] = !!p.mcpRequireQuarterMaBear;
+    out[prefix + 'RequireYearMaBear'] = !!p.mcpRequireYearMaBear;
+  }
   return out;
 }
 
@@ -204,7 +229,8 @@ function toApiParams(strategyId) {
   var p = load(strategyId);
   var tier = tierToApi(strategyId);
   var kind = strategyKind(strategyId);
-  var prefix = kind === 'mdb' ? 'mdb' : (kind === 'mtb' ? 'mtb' : (kind === 'mbs' ? 'mbs' : 'mgb'));
+  var prefix = kind === 'mdb' ? 'mdb'
+    : (kind === 'mdx' ? 'mdx' : 'mgb');
   var params = {
     EnableMinAmountFilter: p.mcpEnableMinAmountFilter !== false,
     MinAmountWan: p.mcpMinAmountWan != null ? p.mcpMinAmountWan : 3000
@@ -226,14 +252,26 @@ function isCustomized(strategyId) {
   return JSON.stringify(p) !== JSON.stringify(d);
 }
 
-function appendGateSummary(p, parts) {
+function appendGateSummary(p, parts, kind) {
   var bull = [];
   if (p.mcpRequireDayMaBull) bull.push('日');
   if (p.mcpRequireWeekMaBull) bull.push('周');
   if (p.mcpRequireMonthMaBull) bull.push('月');
   if (p.mcpRequireQuarterMaBull) bull.push('季');
   if (p.mcpRequireYearMaBull) bull.push('年');
-  if (bull.length) parts.push('多头' + bull.join('/'));
+  if (bull.length) {
+    var rule = kind === 'mdx' ? 'MA10≥MA60' : 'MA5>MA60';
+    parts.push('多头' + bull.join('/') + '(' + rule + ')');
+  }
+  if (kind === 'mdx') {
+    var bear = [];
+    if (p.mcpRequireDayMaBear) bear.push('日');
+    if (p.mcpRequireWeekMaBear) bear.push('周');
+    if (p.mcpRequireMonthMaBear) bear.push('月');
+    if (p.mcpRequireQuarterMaBear) bear.push('季');
+    if (p.mcpRequireYearMaBear) bear.push('年');
+    if (bear.length) parts.push('空头' + bear.join('/') + '(MA10<MA60)');
+  }
 }
 
 function formatSummary(strategyId) {
@@ -248,14 +286,12 @@ function formatSummary(strategyId) {
   var kind = strategyKind(strategyId);
   if (kind === 'mdb') {
     parts = [tierLabel + '线', '边沿破死叉点', '父级均价上'];
-  } else if (kind === 'mtb') {
-    parts = [tierLabel + '线', '破金叉顶/死叉点/金叉点', '金叉需MA5≥MA10', 'MA10≥MA60'];
-  } else if (kind === 'mbs') {
-    parts = [tierLabel + '线', '破金叉顶/死叉点/金叉点', '金叉需MA5≥MA10', 'MA10<MA60'];
+  } else if (kind === 'mdx') {
+    parts = [tierLabel + '线', '边沿破DC10/20/30/60', '父级MA10>MA60或均价上'];
   } else {
     parts = [tierLabel + '线', '边沿破金叉波段顶', 'MA5>MA10', '父级均价上'];
   }
-  appendGateSummary(p, parts);
+  appendGateSummary(p, parts, kind);
   if (p.mcpEnableMinAmountFilter !== false) {
     parts.push((p.mcpMinAmountWan != null ? p.mcpMinAmountWan : 3000) + '万');
   }

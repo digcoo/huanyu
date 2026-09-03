@@ -17,31 +17,24 @@ const STRATEGY_API = {
   madeathbreakMedium: { strategy: 'madeathbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
   madeathbreakLong: { strategy: 'madeathbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
   madeathbreakQuarter: { strategy: 'madeathbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' },
-  mabullbreak: { strategy: 'mabullbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
-  mabullbreakFlash: { strategy: 'mabullbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
-  mabullbreakShort: { strategy: 'mabullbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
-  mabullbreakMedium: { strategy: 'mabullbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
-  mabullbreakLong: { strategy: 'mabullbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
-  mabullbreakQuarter: { strategy: 'mabullbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' },
-  mabearstart: { strategy: 'mabearstart', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
-  mabearstartFlash: { strategy: 'mabearstart', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
-  mabearstartShort: { strategy: 'mabearstart', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
-  mabearstartMedium: { strategy: 'mabearstart', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
-  mabearstartLong: { strategy: 'mabearstart', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
-  mabearstartQuarter: { strategy: 'mabearstart', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' }
+  madcbreak: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  madcbreakFlash: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
+  madcbreakShort: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  madcbreakMedium: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
+  madcbreakLong: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
+  madcbreakQuarter: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' }
 };
 
 function normalizeStrategyId(strategyId) {
   if (!strategyId) return 'magoldbreakFlash';
   if (strategyId === 'magoldbreak') return 'magoldbreakFlash';
   if (strategyId === 'madeathbreak') return 'madeathbreakFlash';
-  if (strategyId === 'mabullbreak') return 'mabullbreakFlash';
-  if (strategyId === 'mabearstart') return 'mabearstartFlash';
+  if (strategyId === 'madcbreak') return 'madcbreakFlash';
   // 旧下线策略本地缓存 → MA金叉点·30分
-  if (/^bottombandhigh|^bottomprev2high|^maalignlift|^macrossbreak|^mabearbreakma|^mabull4m|^concavebreak|^trendretest(low|high)|^prevbandhigh|^mabreakma|^mabull3m/.test(strategyId)) {
+  if (/^bottombandhigh|^bottomprev2high|^maalignlift|^macrossbreak|^mabearbreakma|^mabull4m|^concavebreak|^trendretest(low|high)|^prevbandhigh|^mabreakma|^mabull3m|^mabullbreak|^mabearstart/.test(strategyId)) {
     return 'magoldbreakFlash';
   }
-  if (/^magoldbreak|^madeathbreak|^mabullbreak|^mabearstart/.test(strategyId)) {
+  if (/^magoldbreak|^madeathbreak|^madcbreak/.test(strategyId)) {
     return strategyId;
   }
   return 'magoldbreakFlash';
@@ -559,18 +552,6 @@ function buildCascadeSummary(item) {
   return parseUnilateralTrendLabel(item.trendMessage) || '';
 }
 
-function appendMaTrendBreakTags(item, tags) {
-  var text = item.signalMessage || '';
-  if (/period=min30/.test(text)) tags.push('30分档');
-  else if (/period=week/.test(text)) tags.push('周档');
-  else if (/period=month/.test(text)) tags.push('月档');
-  else if (/period=quarter/.test(text)) tags.push('季档');
-  else tags.push('日档');
-  if (/target=BAND_TOP/.test(text)) tags.push('破金叉波段顶');
-  else if (/target=DEATH_CROSS/.test(text)) tags.push('破死叉交叉点');
-  else if (/target=GOLDEN_CROSS/.test(text)) tags.push('破金叉交叉点');
-}
-
 function mapRecommendation(item, strategyId) {
   strategyId = normalizeStrategyId(strategyId || 'magoldbreakFlash');
   var code = normalizeCode(item.code);
@@ -591,12 +572,15 @@ function mapRecommendation(item, strategyId) {
     else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
     else if (/period=quarter/.test(item.signalMessage || '')) tags.push('季档');
     else tags.push('日档');
-  } else if (/^mabullbreak/.test(strategyId) || strategyId === 'mabullbreak') {
-    tags.push('多头趋势突破');
-    appendMaTrendBreakTags(item, tags);
-  } else if (/^mabearstart/.test(strategyId) || strategyId === 'mabearstart') {
-    tags.push('空头趋势启动');
-    appendMaTrendBreakTags(item, tags);
+  } else if (/^madcbreak/.test(strategyId) || strategyId === 'madcbreak') {
+    tags.push('死叉交叉点突破');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else if (/period=quarter/.test(item.signalMessage || '')) tags.push('季档');
+    else tags.push('日档');
+    var dc = /target=DC(\d+)/.exec(item.signalMessage || '');
+    if (dc) tags.push('破DC' + dc[1]);
   } else if (item.signalMessage) {
     tags.push('信号');
   } else if (item.trendMessage) {

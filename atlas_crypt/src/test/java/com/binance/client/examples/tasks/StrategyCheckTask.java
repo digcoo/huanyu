@@ -105,7 +105,7 @@ public class StrategyCheckTask extends Thread {
 
         List<Candlestick> hour1Bars = data.get(PeriodTypeEnum.HOUR1);
         List<Candlestick> hour4Bars = data.get(PeriodTypeEnum.HOUR4);
-        if (hour1Bars == null || hour1Bars.size() < 12 || hour4Bars == null || hour4Bars.size() < 12) {
+        if (hour1Bars == null || hour1Bars.size() < 12 || hour4Bars == null || hour4Bars.size() < 60) {
             return Arrays.asList(longResult, shortResult);
         }
 

@@ -19,6 +19,8 @@ public final class MaCrossPointCore {
         DEATH
     }
 
+    public static final int[] DEATH_CROSS_SLOW_MAS = {10, 20, 30, 60};
+
     /** 金叉：i 满足 MA5≥MA10，且 i-1 不满足 */
     public static boolean isGoldenCrossAt(List<Trade> trades, int i) {
         if (trades == null || i < 1 || i >= trades.size()) {
@@ -29,10 +31,70 @@ public final class MaCrossPointCore {
 
     /** 死叉：i 满足 MA5&lt;MA10，且 i-1 满足 MA5≥MA10 */
     public static boolean isDeathCrossAt(List<Trade> trades, int i) {
+        return isDeathCrossAt(trades, i, 10);
+    }
+
+    /** 死叉：MA5 下穿 slowMa（10/20/30/60） */
+    public static boolean isDeathCrossAt(List<Trade> trades, int i, int slowMa) {
         if (trades == null || i < 1 || i >= trades.size()) {
             return false;
         }
-        return !isMa5GeMa10(trades.get(i)) && isMa5GeMa10(trades.get(i - 1));
+        Double ma5Cur = maAt(trades, i, 5);
+        Double slowCur = maAt(trades, i, slowMa);
+        Double ma5Prev = maAt(trades, i - 1, 5);
+        Double slowPrev = maAt(trades, i - 1, slowMa);
+        if (ma5Cur == null || slowCur == null || ma5Prev == null || slowPrev == null) {
+            return false;
+        }
+        return ma5Cur < slowCur - EPS && ma5Prev + EPS >= slowPrev;
+    }
+
+    public static Double maOf(Trade bar, int period) {
+        if (bar == null) {
+            return null;
+        }
+        if (period == 5) {
+            return bar.getMa5();
+        }
+        if (period == 10) {
+            return bar.getMa10();
+        }
+        if (period == 20) {
+            return bar.getMa20();
+        }
+        if (period == 30) {
+            return bar.getMa30();
+        }
+        if (period == 60) {
+            return bar.getMa60();
+        }
+        return null;
+    }
+
+    public static Double maAt(List<Trade> trades, int i, int period) {
+        if (trades == null || i < 0 || i >= trades.size()) {
+            return null;
+        }
+        Double stored = maOf(trades.get(i), period);
+        if (stored != null) {
+            return stored;
+        }
+        return smaAt(trades, i, period);
+    }
+
+    public static Double smaAt(List<Trade> trades, int i, int period) {
+        if (trades == null || period <= 0 || i < period - 1 || i >= trades.size()) {
+            return null;
+        }
+        double sum = 0;
+        for (int j = i - period + 1; j <= i; j++) {
+            Trade bar = trades.get(j);
+            if (bar == null || bar.getClose() == null) {
+                return null;
+            }
+            sum += bar.getClose();
+        }
+        return sum / period;
     }
 
     public static boolean isMa5GeMa10(Trade bar) {
@@ -60,24 +122,37 @@ public final class MaCrossPointCore {
         return -1;
     }
 
+    public static int findLatestDeathCrossIndex(List<Trade> trades, int lastIdx, int slowMa) {
+        if (trades == null || lastIdx < 1) {
+            return -1;
+        }
+        for (int i = lastIdx; i >= 1; i--) {
+            if (isDeathCrossAt(trades, i, slowMa)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     /**
      * 交叉点位：在交叉 K 与其前一根之间，对 MA5/MA10 线性插值求交点价格。
      */
     public static Double crossPriceAt(List<Trade> trades, int crossIdx) {
+        return crossPriceAt(trades, crossIdx, 10);
+    }
+
+    /** 交叉点位：MA5 与 slowMa 线性插值 */
+    public static Double crossPriceAt(List<Trade> trades, int crossIdx, int slowMa) {
         if (trades == null || crossIdx < 1 || crossIdx >= trades.size()) {
             return null;
         }
-        Trade prev = trades.get(crossIdx - 1);
-        Trade cur = trades.get(crossIdx);
-        if (prev == null || cur == null
-                || prev.getMa5() == null || prev.getMa10() == null
-                || cur.getMa5() == null || cur.getMa10() == null) {
+        Double a0 = maAt(trades, crossIdx - 1, 5);
+        Double a1 = maAt(trades, crossIdx, 5);
+        Double b0 = maAt(trades, crossIdx - 1, slowMa);
+        Double b1 = maAt(trades, crossIdx, slowMa);
+        if (a0 == null || a1 == null || b0 == null || b1 == null) {
             return null;
         }
-        double a0 = prev.getMa5();
-        double a1 = cur.getMa5();
-        double b0 = prev.getMa10();
-        double b1 = cur.getMa10();
         double denom = (a1 - a0) - (b1 - b0);
         if (Math.abs(denom) < EPS) {
             return (a0 + b0) / 2.0;
@@ -105,6 +180,41 @@ public final class MaCrossPointCore {
         boolean openCross = signalBar.getOpen() != null
                 && signalBar.getOpen() <= breakLine + EPS;
         return prevCloseCross || openCross;
+    }
+
+    /** 本档：MA10 &gt; MA60（严格大于） */
+    public static boolean passesMa10GtMa60(Trade bar) {
+        Double ma10 = bar == null ? null : bar.getMa10();
+        Double ma60 = bar == null ? null : bar.getMa60();
+        if (ma10 == null || ma60 == null) {
+            return false;
+        }
+        return ma10 > ma60 + EPS;
+    }
+
+    public static boolean passesMa10GtMa60(List<Trade> trades) {
+        Double ma10 = smaClose(trades, 10);
+        Double ma60 = smaClose(trades, 60);
+        if (ma10 == null || ma60 == null) {
+            return false;
+        }
+        return ma10 > ma60 + EPS;
+    }
+
+    /**
+     * 父级 MA10 vs MA60：1=MA10&gt;MA60，-1=MA10≤MA60，0=无法判定。
+     */
+    public static int compareMa10ToMa60(List<Trade> trades, Trade last) {
+        Double ma10 = smaClose(trades, 10);
+        Double ma60 = smaClose(trades, 60);
+        if (ma10 == null || ma60 == null) {
+            ma10 = last == null ? null : last.getMa10();
+            ma60 = last == null ? null : last.getMa60();
+        }
+        if (ma10 == null || ma60 == null) {
+            return 0;
+        }
+        return ma10 > ma60 + EPS ? 1 : -1;
     }
 
     /** 本档：MA10 ≥ MA60（优先用 K 线收盘价现算，避免 dayk.ma60 未落库） */

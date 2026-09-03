@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 /**
- * MA5/MA10 金叉/死叉交叉点价格，及边沿突破、父级均价之上判定。
+ * MA5/MA10 金叉/死叉交叉点价格，及边沿突破、父级均价之上、父级多头之上判定。
  */
 public final class MaCrossPointCore {
 
@@ -120,6 +120,14 @@ public final class MaCrossPointCore {
             return false;
         }
         return bar.getMa5().doubleValue() < bar.getMa10().doubleValue() - EPS;
+    }
+
+    /** 父级多头之上：MA10 ≥ MA60 */
+    public static boolean passesMa10GeMa60(LongCandlestickMA bar) {
+        if (bar == null || bar.getMa10() == null || bar.getMa60() == null) {
+            return false;
+        }
+        return bar.getMa10().doubleValue() + EPS >= bar.getMa60().doubleValue();
     }
 
     /** 父级均价之上：close &gt; max(MA5, MA10) */

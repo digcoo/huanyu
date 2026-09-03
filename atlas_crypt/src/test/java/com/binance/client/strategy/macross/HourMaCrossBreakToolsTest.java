@@ -84,6 +84,18 @@ public class HourMaCrossBreakToolsTest {
     }
 
     @Test
+    public void missWhenParentMa10BelowMa60() {
+        List<LongCandlestickMA> bars = Arrays.asList(
+                ohlc(1L, 10.0, 10.5, 9.9, 10.2, 9.5, 10.0),
+                ohlc(2L, 10.2, 10.8, 10.1, 10.5, 10.2, 10.0),
+                ohlc(3L, 10.5, 10.6, 10.0, 10.1, 10.3, 10.1),
+                ohlc(4L, 10.1, 10.3, 9.8, 10.0, 10.4, 10.2),
+                ohlc(5L, 10.0, 11.0, 9.9, 10.9, 10.5, 10.3)
+        );
+        Assert.assertNull(HourMaCrossBreakTools.findHitOnBars(bars, parentAboveMaButNotBull()));
+    }
+
+    @Test
     public void missWhenParentNotAboveMa() {
         List<LongCandlestickMA> bars = Arrays.asList(
                 ohlc(1L, 10.0, 10.5, 9.9, 10.2, 9.5, 10.0),
@@ -178,6 +190,18 @@ public class HourMaCrossBreakToolsTest {
     }
 
     @Test
+    public void short_missWhenParentMa10BelowMa60() {
+        List<LongCandlestickMA> bars = Arrays.asList(
+                ohlc(1L, 10.2, 10.3, 9.9, 10.0, 10.2, 10.0),
+                ohlc(2L, 10.0, 10.1, 9.2, 9.7, 9.8, 10.0),
+                ohlc(3L, 9.7, 10.0, 9.4, 9.9, 9.7, 9.9),
+                ohlc(4L, 9.9, 10.0, 9.3, 9.4, 9.6, 9.9),
+                ohlc(5L, 9.4, 9.5, 8.8, 9.0, 9.4, 9.8)
+        );
+        Assert.assertNull(HourMaCrossBreakTools.findShortHitOnBars(bars, parentBelowMaButNotBull()));
+    }
+
+    @Test
     public void short_missWhenParentNotBelowMa() {
         List<LongCandlestickMA> bars = Arrays.asList(
                 ohlc(1L, 10.2, 10.3, 9.9, 10.0, 10.2, 10.0),
@@ -195,12 +219,29 @@ public class HourMaCrossBreakToolsTest {
         Assert.assertFalse(MaCrossPointCore.passesBelowMa(parentAboveMa()));
     }
 
+    @Test
+    public void passesMa10GeMa60_allowsEqual() {
+        Assert.assertTrue(MaCrossPointCore.passesMa10GeMa60(parentAboveMa()));
+        Assert.assertFalse(MaCrossPointCore.passesMa10GeMa60(parentAboveMaButNotBull()));
+        LongCandlestickMA eq = parentAboveMa();
+        eq.setMa60(eq.getMa10());
+        Assert.assertTrue(MaCrossPointCore.passesMa10GeMa60(eq));
+    }
+
     private static LongCandlestickMA parentAboveMa() {
-        return ohlc(99L, 10.0, 11.0, 9.8, 10.8, 10.0, 10.2);
+        return ohlc(99L, 10.0, 11.0, 9.8, 10.8, 10.0, 10.2, 10.0);
     }
 
     private static LongCandlestickMA parentBelowMa() {
-        return ohlc(99L, 10.0, 10.2, 9.0, 9.5, 10.0, 10.2);
+        return ohlc(99L, 10.0, 10.2, 9.0, 9.5, 10.0, 10.2, 10.0);
+    }
+
+    private static LongCandlestickMA parentAboveMaButNotBull() {
+        return ohlc(99L, 10.0, 11.0, 9.8, 10.8, 10.0, 10.2, 10.5);
+    }
+
+    private static LongCandlestickMA parentBelowMaButNotBull() {
+        return ohlc(99L, 10.0, 10.2, 9.0, 9.5, 10.0, 10.2, 10.5);
     }
 
     private static LongCandlestickMA flat(long openTime, double ma5, double ma10, double close) {
@@ -209,6 +250,11 @@ public class HourMaCrossBreakToolsTest {
 
     private static LongCandlestickMA ohlc(long openTime, double open, double high, double low, double close,
                                           double ma5, double ma10) {
+        return ohlc(openTime, open, high, low, close, ma5, ma10, ma10);
+    }
+
+    private static LongCandlestickMA ohlc(long openTime, double open, double high, double low, double close,
+                                          double ma5, double ma10, double ma60) {
         return LongCandlestickMA.builder()
                 .openTime(openTime)
                 .open(BigDecimal.valueOf(open))
@@ -217,6 +263,7 @@ public class HourMaCrossBreakToolsTest {
                 .close(BigDecimal.valueOf(close))
                 .ma5(BigDecimal.valueOf(ma5))
                 .ma10(BigDecimal.valueOf(ma10))
+                .ma60(BigDecimal.valueOf(ma60))
                 .build();
     }
 }

@@ -32,7 +32,7 @@ public class PeriodSpiderTask extends Thread {
 
     int KLINE_LIMIT = 150;
 
-    int SYMBOL_TOP_N = 50;
+    int SYMBOL_TOP_N = 30;
 
 
     public PeriodSpiderTask(SymbolCacheData symbolData) {

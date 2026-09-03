@@ -125,16 +125,11 @@ const STRATEGIES = [
   { id: 'madeathbreakMedium', name: 'MA死叉点突破·周' },
   { id: 'madeathbreakLong', name: 'MA死叉点突破·月' },
   { id: 'madeathbreakQuarter', name: 'MA死叉点突破·季' },
-  { id: 'mabullbreakFlash', name: '多头趋势突破·30分' },
-  { id: 'mabullbreakShort', name: '多头趋势突破·日' },
-  { id: 'mabullbreakMedium', name: '多头趋势突破·周' },
-  { id: 'mabullbreakLong', name: '多头趋势突破·月' },
-  { id: 'mabullbreakQuarter', name: '多头趋势突破·季' },
-  { id: 'mabearstartFlash', name: '空头趋势启动·30分' },
-  { id: 'mabearstartShort', name: '空头趋势启动·日' },
-  { id: 'mabearstartMedium', name: '空头趋势启动·周' },
-  { id: 'mabearstartLong', name: '空头趋势启动·月' },
-  { id: 'mabearstartQuarter', name: '空头趋势启动·季' }
+  { id: 'madcbreakFlash', name: '死叉交叉点突破·30分' },
+  { id: 'madcbreakShort', name: '死叉交叉点突破·日' },
+  { id: 'madcbreakMedium', name: '死叉交叉点突破·周' },
+  { id: 'madcbreakLong', name: '死叉交叉点突破·月' },
+  { id: 'madcbreakQuarter', name: '死叉交叉点突破·季' }
 ];
 
 const { formatDataUpdatedLabel, todayDayStr } = require('./time');

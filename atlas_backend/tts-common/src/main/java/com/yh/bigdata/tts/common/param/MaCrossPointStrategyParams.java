@@ -6,8 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * MA 金叉/死叉点突破、多头趋势突破、空头趋势启动共用参数
- * （magoldbreak / madeathbreak / mabullbreak / mabearstart）。
+ * MA 金叉/死叉点突破、死叉交叉点突破共用参数
+ * （magoldbreak / madeathbreak / madcbreak）。
  */
 @Data
 @Builder
@@ -50,7 +50,7 @@ public class MaCrossPointStrategyParams {
     @Builder.Default
     private double minAvgAmount = DEFAULT_MIN_AVG_AMOUNT;
 
-    /** 可选：日/周/月/季/年末 K 满足 MA5 &gt; MA60，多选取交集 */
+    /** 可选均线多头（多选取交集）：策略1/2 为 MA5&gt;MA60；策略3/4 为 MA10≥MA60 */
     @Builder.Default
     private boolean requireDayMaBull = false;
     @Builder.Default
@@ -61,6 +61,18 @@ public class MaCrossPointStrategyParams {
     private boolean requireQuarterMaBull = false;
     @Builder.Default
     private boolean requireYearMaBull = false;
+
+    /** 可选均线空头（多选取交集，仅策略3/4）：该周期 MA10&lt;MA60 */
+    @Builder.Default
+    private boolean requireDayMaBear = false;
+    @Builder.Default
+    private boolean requireWeekMaBear = false;
+    @Builder.Default
+    private boolean requireMonthMaBear = false;
+    @Builder.Default
+    private boolean requireQuarterMaBear = false;
+    @Builder.Default
+    private boolean requireYearMaBear = false;
 
     public static MaCrossPointStrategyParams defaults() {
         return MaCrossPointStrategyParams.builder().build();
@@ -98,6 +110,11 @@ public class MaCrossPointStrategyParams {
         d.requireMonthMaBull = incoming.requireMonthMaBull;
         d.requireQuarterMaBull = incoming.requireQuarterMaBull;
         d.requireYearMaBull = incoming.requireYearMaBull;
+        d.requireDayMaBear = incoming.requireDayMaBear;
+        d.requireWeekMaBear = incoming.requireWeekMaBear;
+        d.requireMonthMaBear = incoming.requireMonthMaBear;
+        d.requireQuarterMaBear = incoming.requireQuarterMaBear;
+        d.requireYearMaBear = incoming.requireYearMaBear;
         return d;
     }
 
