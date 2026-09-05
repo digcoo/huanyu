@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * MA 金叉/死叉点突破、交叉点/波段顶突破共用参数
- * （magoldbreak / madeathbreak / madcbreak / magcbreak / maghbreak）。
+ * （madcbreak / magcbreak / maghbreak / mayangpierce）。
  */
 @Data
 @Builder

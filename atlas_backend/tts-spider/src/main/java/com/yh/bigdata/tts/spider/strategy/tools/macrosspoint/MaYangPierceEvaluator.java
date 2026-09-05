@@ -7,23 +7,23 @@ import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.macrosspoint.MaCrossPointEvaluator.MaCrossPointEvaluation;
 
 /**
- * 策略3：边沿破任意金叉波段顶 GH10/GH20/GH60；
+ * 策略4：一阳穿多线（阳线 + low≤min(MA5,MA10) + close≥max(MA5,MA10)）；
  * 本档 MACD&gt;0 或 MA5&gt;MA10；收盘价≥max(MA5,MA10)。
  */
-public final class MaGoldenHighBreakEvaluator {
+public final class MaYangPierceEvaluator {
 
-    private static final String TAG = "MGH";
+    private static final String TAG = "MYP";
 
-    private MaGoldenHighBreakEvaluator() {
+    private MaYangPierceEvaluator() {
     }
 
     public static MaCrossPointEvaluation evaluate(StockBase stock, CheckResult checkResult,
                                                   MaCrossPointStrategyParams params) {
         MaCrossPointStrategyParams p = params != null ? params : MaCrossPointStrategyParams.defaults();
         PeriodTypeEnum period = MaCrossPointTools.resolvePeriod(p.getTier());
-        String miss = "未满足边沿破GH10/GH20/GH60";
+        String miss = "未满足一阳穿多线(MA5,MA10)";
 
-        MaCrossPointTools.Hit hit = MaCrossPointTools.findAnyGoldenHighBreakHit(stock, p);
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findYangPierceHit(stock, p);
         if (hit == null) {
             if (checkResult != null) {
                 checkResult.addTrendPeriod(period, "[" + TAG + "]" + miss);
@@ -36,8 +36,8 @@ public final class MaGoldenHighBreakEvaluator {
         }
 
         if (checkResult != null) {
-            checkResult.addTrendPeriod(period, MaCrossPointTools.buildGoldenHighBreakTrendMessage(hit));
-            checkResult.addSignal(period, MaCrossPointTools.buildGoldenHighBreakSignalMessage(hit));
+            checkResult.addTrendPeriod(period, MaCrossPointTools.buildYangPierceTrendMessage(hit));
+            checkResult.addSignal(period, MaCrossPointTools.buildYangPierceSignalMessage(hit));
         }
         return MaCrossPointEvaluation.hit(period);
     }

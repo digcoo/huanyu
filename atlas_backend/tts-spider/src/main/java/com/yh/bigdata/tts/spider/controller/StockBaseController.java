@@ -696,6 +696,19 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getMghRequireMonthMaBear()),
                 String.valueOf(pageQuery.getMghRequireQuarterMaBear()),
                 String.valueOf(pageQuery.getMghRequireYearMaBear()),
+                String.valueOf(pageQuery.getMypTier()),
+                String.valueOf(pageQuery.getMypEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMypMinAmountWan()),
+                String.valueOf(pageQuery.getMypRequireDayMaBull()),
+                String.valueOf(pageQuery.getMypRequireWeekMaBull()),
+                String.valueOf(pageQuery.getMypRequireMonthMaBull()),
+                String.valueOf(pageQuery.getMypRequireQuarterMaBull()),
+                String.valueOf(pageQuery.getMypRequireYearMaBull()),
+                String.valueOf(pageQuery.getMypRequireDayMaBear()),
+                String.valueOf(pageQuery.getMypRequireWeekMaBear()),
+                String.valueOf(pageQuery.getMypRequireMonthMaBear()),
+                String.valueOf(pageQuery.getMypRequireQuarterMaBear()),
+                String.valueOf(pageQuery.getMypRequireYearMaBear()),
                 String.valueOf(pageQuery.getMbbmEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getMbbmMinAmountWan()),
                 String.valueOf(pageQuery.getM4mTier()),
@@ -810,6 +823,7 @@ public class StockBaseController {
                 .maDeathCrossBreak(stockPageQuery.toMaDeathCrossBreakParams())
                 .maGoldenCrossBreak(stockPageQuery.toMaGoldenCrossBreakParams())
                 .maGoldenHighBreak(stockPageQuery.toMaGoldenHighBreakParams())
+                .maYangPierce(stockPageQuery.toMaYangPierceParams())
                 .maBearBreakMa(stockPageQuery.toMaBearBreakMaParams())
                 .maBull4m(stockPageQuery.toMaBull4mParams())
                 .build();

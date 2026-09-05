@@ -8,7 +8,7 @@ Component({
     },
     strategyId: {
       type: String,
-      value: 'magoldbreakFlash'
+      value: 'madcbreakFlash'
     },
     strategyTitle: {
       type: String,

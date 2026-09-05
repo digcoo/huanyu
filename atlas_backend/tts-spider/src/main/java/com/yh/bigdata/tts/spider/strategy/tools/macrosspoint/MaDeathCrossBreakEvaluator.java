@@ -7,9 +7,8 @@ import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.macrosspoint.MaCrossPointEvaluator.MaCrossPointEvaluation;
 
 /**
- * 策略5：边沿破任意死叉交叉点 DC10/DC20/DC30/DC60；
- * 父级 (MA10&gt;MA60) or (MA10≤MA60 且 close&gt;max(MA5,MA10))。
- * 可选均线多头为各周期 MA10≥MA60，可选均线空头为各周期 MA10&lt;MA60。
+ * 策略1：边沿破任意死叉交叉点 DC10/DC20/DC60；
+ * 本档 MACD&gt;0 或 MA5&gt;MA10；收盘价≥max(MA5,MA10)。
  */
 public final class MaDeathCrossBreakEvaluator {
 
@@ -22,7 +21,7 @@ public final class MaDeathCrossBreakEvaluator {
                                                   MaCrossPointStrategyParams params) {
         MaCrossPointStrategyParams p = params != null ? params : MaCrossPointStrategyParams.defaults();
         PeriodTypeEnum period = MaCrossPointTools.resolvePeriod(p.getTier());
-        String miss = "未满足边沿破DC10/DC20/DC30/DC60";
+        String miss = "未满足边沿破DC10/DC20/DC60";
 
         MaCrossPointTools.Hit hit = MaCrossPointTools.findAnyDeathCrossBreakHit(stock, p);
         if (hit == null) {
@@ -32,11 +31,7 @@ public final class MaDeathCrossBreakEvaluator {
             return MaCrossPointEvaluation.miss();
         }
 
-        if (!MaCrossPointTools.passesParentMdxGate(stock, checkResult, TAG, period)) {
-            return MaCrossPointEvaluation.miss();
-        }
-
-        if (!MaCrossPointTools.passesOptionalGates(stock, checkResult, p, hit, TAG, true)) {
+        if (!MaCrossPointTools.passesCurrentScanGates(stock, checkResult, p, hit, TAG, period)) {
             return MaCrossPointEvaluation.miss();
         }
 

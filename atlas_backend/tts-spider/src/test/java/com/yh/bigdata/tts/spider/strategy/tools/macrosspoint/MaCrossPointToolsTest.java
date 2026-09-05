@@ -356,6 +356,61 @@ public class MaCrossPointToolsTest {
     }
 
     @Test
+    public void findAnyDeathCrossBreak_ignoresDc30Only() {
+        List<Trade> bars = Arrays.asList(
+                dcBar("d1", 10.2, 11.0, 9.5, 10.0, 9.0, 10.1),
+                dcBar("d2", 10.1, 11.0, 9.5, 10.0, 9.0, 10.05),
+                dcBar("d3", 9.8, 11.0, 9.5, 10.0, 9.0, 9.9),
+                dcBar("d4", 9.7, 11.0, 9.5, 10.0, 9.0, 9.85),
+                dcBar("d5", 9.7, 11.0, 9.5, 10.0, 9.0, 10.1)
+        );
+        Assert.assertNull(MaCrossPointTools.findAnyDeathCrossBreakHitOnBars(bars, PeriodTypeEnum.DAY));
+    }
+
+    @Test
+    public void passesCloseGeMaxMa_allowsEqual() {
+        Trade eq = flat("d1", 10.0, 10.2, 10.2);
+        Assert.assertTrue(MaCrossPointCore.passesCloseGeMaxMa(eq));
+        Trade below = flat("d1", 10.0, 10.2, 10.1);
+        Assert.assertFalse(MaCrossPointCore.passesCloseGeMaxMa(below));
+    }
+
+    @Test
+    public void passesMacdOrMa5_acceptsMa5AboveOrMacdPositive() {
+        Trade byMa = flat("d1", 10.5, 10.0, 10.2);
+        byMa.setMacd(0);
+        Assert.assertTrue(MaCrossPointCore.passesMacdOrMa5(byMa));
+        Trade byMacd = flat("d1", 9.5, 10.0, 10.2);
+        byMacd.setMacd(0.05);
+        Assert.assertTrue(MaCrossPointCore.passesMacdOrMa5(byMacd));
+        Trade miss = flat("d1", 9.5, 10.0, 10.2);
+        miss.setMacd(0);
+        Assert.assertFalse(MaCrossPointCore.passesMacdOrMa5(miss));
+    }
+
+    @Test
+    public void findYangPierce_hitsWhenYangSpansMa5Ma10() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.2, 10.4, 10.0, 10.1, 10.0, 10.2),
+                ohlc("d2", 10.0, 10.6, 9.8, 10.5, 10.0, 10.2)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findYangPierceHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(MaCrossPointTools.BreakTarget.YANG_PIERCE, hit.getBreakTarget());
+        Assert.assertEquals(10.2, hit.getBreakLine(), 1e-6);
+    }
+
+    @Test
+    public void findYangPierce_missWhenNotYangOrLowAboveMinMa() {
+        Assert.assertNull(MaCrossPointTools.findYangPierceHitOnBars(Arrays.asList(
+                ohlc("d1", 10.5, 10.6, 9.8, 10.0, 10.0, 10.2)
+        ), PeriodTypeEnum.DAY));
+        Assert.assertNull(MaCrossPointTools.findYangPierceHitOnBars(Arrays.asList(
+                ohlc("d1", 10.0, 10.6, 10.1, 10.5, 10.0, 10.2)
+        ), PeriodTypeEnum.DAY));
+    }
+
+    @Test
     public void resolveParentPeriod_followsDocPairs() {
         Assert.assertEquals(PeriodTypeEnum.DAY, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.MIN30));
         Assert.assertEquals(PeriodTypeEnum.WEEK, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.DAY));

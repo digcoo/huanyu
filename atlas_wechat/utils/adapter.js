@@ -5,18 +5,6 @@ const { MARKETS } = require('./mock');
 const { formatDataUpdatedLabel } = require('./time');
 
 const STRATEGY_API = {
-  magoldbreak: { strategy: 'magoldbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
-  magoldbreakFlash: { strategy: 'magoldbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
-  magoldbreakShort: { strategy: 'magoldbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
-  magoldbreakMedium: { strategy: 'magoldbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
-  magoldbreakLong: { strategy: 'magoldbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
-  magoldbreakQuarter: { strategy: 'magoldbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' },
-  madeathbreak: { strategy: 'madeathbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
-  madeathbreakFlash: { strategy: 'madeathbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
-  madeathbreakShort: { strategy: 'madeathbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
-  madeathbreakMedium: { strategy: 'madeathbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
-  madeathbreakLong: { strategy: 'madeathbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
-  madeathbreakQuarter: { strategy: 'madeathbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' },
   madcbreak: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
   madcbreakFlash: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
   madcbreakShort: { strategy: 'madcbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
@@ -34,24 +22,33 @@ const STRATEGY_API = {
   maghbreakShort: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
   maghbreakMedium: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
   maghbreakLong: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
-  maghbreakQuarter: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' }
+  maghbreakQuarter: { strategy: 'maghbreak', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' },
+  mayangpierce: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  mayangpierceFlash: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
+  mayangpierceShort: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  mayangpierceMedium: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
+  mayangpierceLong: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
+  mayangpierceQuarter: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' }
 };
 
 function normalizeStrategyId(strategyId) {
-  if (!strategyId) return 'magoldbreakFlash';
-  if (strategyId === 'magoldbreak') return 'magoldbreakFlash';
-  if (strategyId === 'madeathbreak') return 'madeathbreakFlash';
+  if (!strategyId) return 'madcbreakFlash';
+  if (strategyId.indexOf('magoldbreak') === 0) {
+    strategyId = strategyId.replace('magoldbreak', 'maghbreak');
+  } else if (strategyId.indexOf('madeathbreak') === 0) {
+    strategyId = strategyId.replace('madeathbreak', 'madcbreak');
+  }
   if (strategyId === 'madcbreak') return 'madcbreakFlash';
   if (strategyId === 'magcbreak') return 'magcbreakFlash';
   if (strategyId === 'maghbreak') return 'maghbreakFlash';
-  // 旧下线策略本地缓存 → MA金叉点·30分
+  if (strategyId === 'mayangpierce') return 'mayangpierceFlash';
   if (/^bottombandhigh|^bottomprev2high|^maalignlift|^macrossbreak|^mabearbreakma|^mabull4m|^concavebreak|^trendretest(low|high)|^prevbandhigh|^mabreakma|^mabull3m|^mabullbreak|^mabearstart/.test(strategyId)) {
-    return 'magoldbreakFlash';
+    return 'madcbreakFlash';
   }
-  if (/^magoldbreak|^madeathbreak|^madcbreak|^magcbreak|^maghbreak/.test(strategyId)) {
+  if (/^madcbreak|^magcbreak|^maghbreak|^mayangpierce/.test(strategyId)) {
     return strategyId;
   }
-  return 'magoldbreakFlash';
+  return 'madcbreakFlash';
 }
 
 function normalizeCode(code) {
@@ -86,8 +83,8 @@ function extractCode(idOrCode) {
 }
 
 function extractStrategy(id) {
-  if (!id || id.indexOf('-') < 0) return 'magoldbreakFlash';
-  return normalizeStrategyId(id.split('-')[0] || 'magoldbreakFlash');
+  if (!id || id.indexOf('-') < 0) return 'madcbreakFlash';
+  return normalizeStrategyId(id.split('-')[0] || 'madcbreakFlash');
 }
 
 function findMarketLabel(marketId) {
@@ -567,26 +564,12 @@ function buildCascadeSummary(item) {
 }
 
 function mapRecommendation(item, strategyId) {
-  strategyId = normalizeStrategyId(strategyId || 'magoldbreakFlash');
+  strategyId = normalizeStrategyId(strategyId || 'madcbreakFlash');
   var code = normalizeCode(item.code);
   var changePct = normalizeChangePct(item);
   var tags = [];
   if (item.newFlag) tags.push('今日新推');
-  if (/^magoldbreak/.test(strategyId) || strategyId === 'magoldbreak') {
-    tags.push('MA金叉点突破');
-    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
-    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
-    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
-    else if (/period=quarter/.test(item.signalMessage || '')) tags.push('季档');
-    else tags.push('日档');
-  } else if (/^madeathbreak/.test(strategyId) || strategyId === 'madeathbreak') {
-    tags.push('MA死叉点突破');
-    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
-    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
-    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
-    else if (/period=quarter/.test(item.signalMessage || '')) tags.push('季档');
-    else tags.push('日档');
-  } else if (/^madcbreak/.test(strategyId) || strategyId === 'madcbreak') {
+  if (/^madcbreak/.test(strategyId) || strategyId === 'madcbreak') {
     tags.push('死叉交叉点突破');
     if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
     else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
@@ -613,6 +596,13 @@ function mapRecommendation(item, strategyId) {
     else tags.push('日档');
     var gh = /target=GH(\d+)/.exec(item.signalMessage || '');
     if (gh) tags.push('破GH' + gh[1]);
+  } else if (/^mayangpierce/.test(strategyId) || strategyId === 'mayangpierce') {
+    tags.push('一阳穿多线');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else if (/period=quarter/.test(item.signalMessage || '')) tags.push('季档');
+    else tags.push('日档');
   } else if (item.signalMessage) {
     tags.push('信号');
   } else if (item.trendMessage) {
@@ -751,7 +741,7 @@ function mapMarketIndices(list, period) {
 }
 
 function getStrategyApiParams(strategyId) {
-  return STRATEGY_API[normalizeStrategyId(strategyId)] || STRATEGY_API.magoldbreakFlash;
+  return STRATEGY_API[normalizeStrategyId(strategyId)] || STRATEGY_API.madcbreakFlash;
 }
 
 module.exports = {

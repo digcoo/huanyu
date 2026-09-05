@@ -259,7 +259,7 @@ Page({
 
     markets: buildMarketsForUI(),
     activeStrategy: DEFAULT_STRATEGY,
-    activeStrategyFamily: strategyNav.STRATEGY_MA_GOLD_BREAK,
+    activeStrategyFamily: strategyNav.STRATEGY_MA_DC_BREAK,
     activeCascadeTier: strategyNav.DEFAULT_STRATEGY,
     showCascadeTierRow: false,
     allowedPeriods: listViewCtx.allowedPeriods(),

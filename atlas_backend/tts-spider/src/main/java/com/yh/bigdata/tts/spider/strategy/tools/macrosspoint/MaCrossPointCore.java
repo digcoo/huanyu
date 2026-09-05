@@ -19,8 +19,8 @@ public final class MaCrossPointCore {
         DEATH
     }
 
-    public static final int[] DEATH_CROSS_SLOW_MAS = {10, 20, 30, 60};
-    public static final int[] GOLDEN_CROSS_SLOW_MAS = {10, 20, 30, 60};
+    public static final int[] DEATH_CROSS_SLOW_MAS = {10, 20, 60};
+    public static final int[] GOLDEN_CROSS_SLOW_MAS = {10, 20, 60};
 
     /** 金叉：i 满足 MA5≥MA10，且 i-1 不满足 */
     public static boolean isGoldenCrossAt(List<Trade> trades, int i) {
@@ -289,6 +289,41 @@ public final class MaCrossPointCore {
             return false;
         }
         return bar.getMa5() > bar.getMa10() + EPS;
+    }
+
+    /** 本档：MACD &gt; 0 或 MA5 &gt; MA10（优先看已落库 macd，供单测/无 Stock 路径） */
+    public static boolean passesMacdOrMa5(Trade bar) {
+        if (passesMa5AboveMa10(bar)) {
+            return true;
+        }
+        return bar != null && bar.getMacd() > EPS;
+    }
+
+    /**
+     * 本档：close &gt;= max(MA5, MA10)。
+     * 文档写成 (MA10&gt;MA60 且 close&gt;=max) or (MA10≤MA60 且 close&gt;=max)，等价于此。
+     */
+    public static boolean passesCloseGeMaxMa(Trade bar) {
+        if (bar == null || bar.getClose() == null || bar.getMa5() == null || bar.getMa10() == null) {
+            return false;
+        }
+        return bar.getClose() + EPS >= Math.max(bar.getMa5(), bar.getMa10());
+    }
+
+    /**
+     * 一阳穿多线：末K收阳，且 low ≤ min(MA5, MA10)，且 close ≥ max(MA5, MA10)。
+     */
+    public static boolean isYangPierceMa5Ma10(Trade bar) {
+        if (bar == null || bar.getOpen() == null || bar.getClose() == null
+                || bar.getLow() == null || bar.getMa5() == null || bar.getMa10() == null) {
+            return false;
+        }
+        if (!(bar.getClose() > bar.getOpen() + EPS)) {
+            return false;
+        }
+        double minMa = Math.min(bar.getMa5(), bar.getMa10());
+        double maxMa = Math.max(bar.getMa5(), bar.getMa10());
+        return bar.getLow() <= minMa + EPS && bar.getClose() + EPS >= maxMa;
     }
 
     /** 均线多头：MA5 &gt; MA60（60 周期支撑均线） */

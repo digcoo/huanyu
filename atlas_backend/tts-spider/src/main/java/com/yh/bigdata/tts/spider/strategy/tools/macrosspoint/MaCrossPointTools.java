@@ -7,6 +7,7 @@ import com.yh.bigdata.tts.common.model.Trade;
 import com.yh.bigdata.tts.common.param.MaCrossPointStrategyParams;
 import com.yh.bigdata.tts.spider.response.CheckResult;
 import com.yh.bigdata.tts.spider.strategy.tools.MinAvgAmountFilterTools;
+import com.yh.bigdata.tts.spider.strategy.tools.unilateral.UnilateralMacdTools;
 import com.yh.bigdata.tts.spider.strategy.tools.wavecc.YangBandTools;
 import lombok.Getter;
 import org.springframework.util.CollectionUtils;
@@ -16,11 +17,11 @@ import java.util.List;
 /**
  * MA 金叉波段顶 / 死叉交叉点 边沿突破。
  * <ul>
- *   <li>策略1 金叉：边沿破金叉波段顶，且末K MA5&gt;MA10</li>
- *   <li>策略2 死叉：边沿破死叉交叉点价（MA5/MA10 插值）</li>
- *   <li>策略5：边沿破任意死叉交叉点 DC10/DC20/DC30/DC60；父级 (MA10&gt;MA60) 或均价之上</li>
- *   <li>策略6：边沿破任意金叉交叉点 GC10/GC20/GC30/GC60；同一父级门</li>
- *   <li>策略7：边沿破任意金叉波段顶 GH10/GH20/GH30/GH60；同一父级门</li>
+ *   <li>策略1：边沿破 DC10/DC20/DC60</li>
+ *   <li>策略2：边沿破 GC10/GC20/GC60</li>
+ *   <li>策略3：边沿破 GH10/GH20/GH60</li>
+ *   <li>策略4：一阳穿多线（阳线 + low≤min(MA5,MA10) + close≥max(MA5,MA10)）</li>
+ *   <li>本档硬门：MACD&gt;0 或 MA5&gt;MA10；收盘价≥max(MA5,MA10)</li>
  * </ul>
  */
 public final class MaCrossPointTools {
@@ -31,7 +32,8 @@ public final class MaCrossPointTools {
     public enum BreakTarget {
         GOLDEN_BAND_TOP,
         GOLDEN_CROSS,
-        DEATH_CROSS
+        DEATH_CROSS,
+        YANG_PIERCE
     }
 
     @Getter
@@ -98,7 +100,7 @@ public final class MaCrossPointTools {
         return findDeathCrossPointHit(trades, period);
     }
 
-    /** 策略5：边沿破 DC10/DC20/DC30/DC60 任一 */
+    /** 策略1：边沿破 DC10/DC20/DC60 任一 */
     public static Hit findAnyDeathCrossBreakHit(StockBase stock, MaCrossPointStrategyParams params) {
         MaCrossPointStrategyParams p = params != null ? params : MaCrossPointStrategyParams.defaults();
         PeriodTypeEnum period = resolvePeriod(p.getTier());
@@ -109,7 +111,7 @@ public final class MaCrossPointTools {
         return findAnyDeathCrossBreakHitOnBars(trades, period);
     }
 
-    /** 策略6：边沿破 GC10/GC20/GC30/GC60 任一 */
+    /** 策略2：边沿破 GC10/GC20/GC60 任一 */
     public static Hit findAnyGoldenCrossBreakHit(StockBase stock, MaCrossPointStrategyParams params) {
         MaCrossPointStrategyParams p = params != null ? params : MaCrossPointStrategyParams.defaults();
         PeriodTypeEnum period = resolvePeriod(p.getTier());
@@ -133,7 +135,7 @@ public final class MaCrossPointTools {
         return null;
     }
 
-    /** 策略7：边沿破 GH10/GH20/GH30/GH60 任一 */
+    /** 策略3：边沿破 GH10/GH20/GH60 任一 */
     public static Hit findAnyGoldenHighBreakHit(StockBase stock, MaCrossPointStrategyParams params) {
         MaCrossPointStrategyParams p = params != null ? params : MaCrossPointStrategyParams.defaults();
         PeriodTypeEnum period = resolvePeriod(p.getTier());
@@ -262,6 +264,62 @@ public final class MaCrossPointTools {
         }
         return new Hit(period, MaCrossPointCore.CrossKind.GOLDEN, BreakTarget.GOLDEN_CROSS,
                 signalBar, prevBar, trades.get(crossIdx), breakLine, null, slowMa);
+    }
+
+    /** 策略4：一阳穿多线 */
+    public static Hit findYangPierceHit(StockBase stock, MaCrossPointStrategyParams params) {
+        MaCrossPointStrategyParams p = params != null ? params : MaCrossPointStrategyParams.defaults();
+        PeriodTypeEnum period = resolvePeriod(p.getTier());
+        if (stock == null || period == null) {
+            return null;
+        }
+        List<Trade> trades = RealtimeStockCache.getLastTrades(stock, period, Math.max(resolveLookback(p), 40));
+        return findYangPierceHitOnBars(trades, period);
+    }
+
+    static Hit findYangPierceHitOnBars(List<Trade> trades, PeriodTypeEnum period) {
+        if (CollectionUtils.isEmpty(trades) || period == null) {
+            return null;
+        }
+        int lastIdx = trades.size() - 1;
+        Trade signalBar = trades.get(lastIdx);
+        if (!MaCrossPointCore.isYangPierceMa5Ma10(signalBar)) {
+            return null;
+        }
+        Trade prevBar = lastIdx >= 1 ? trades.get(lastIdx - 1) : null;
+        double breakLine = Math.max(signalBar.getMa5(), signalBar.getMa10());
+        return new Hit(period, MaCrossPointCore.CrossKind.GOLDEN, BreakTarget.YANG_PIERCE,
+                signalBar, prevBar, signalBar, breakLine, signalBar, 0);
+    }
+
+    /**
+     * 本档扫描硬门：MACD&gt;0 或 MA5&gt;MA10；收盘价≥max(MA5,MA10)；再过可选成交额/多空头。
+     */
+    public static boolean passesCurrentScanGates(StockBase stock, CheckResult checkResult,
+                                                 MaCrossPointStrategyParams params, Hit hit,
+                                                 String tag, PeriodTypeEnum period) {
+        Trade last = hit != null ? hit.getSignalBar() : lastBarOf(stock, period);
+        PeriodTypeEnum msgPeriod = period != null ? period : PeriodTypeEnum.DAY;
+        String gateTag = tag != null ? tag : "MCP";
+        if (!passesMacdOrMa5Gate(stock, msgPeriod, last)) {
+            appendMessage(checkResult, msgPeriod, gateTag, "未满足MACD>0或MA5>MA10");
+            return false;
+        }
+        if (!MaCrossPointCore.passesCloseGeMaxMa(last)) {
+            appendMessage(checkResult, msgPeriod, gateTag, "未满足收盘价>=max(MA5,MA10)");
+            return false;
+        }
+        return passesOptionalGates(stock, checkResult, params, hit, gateTag, true);
+    }
+
+    static boolean passesMacdOrMa5Gate(StockBase stock, PeriodTypeEnum period, Trade last) {
+        if (MaCrossPointCore.passesMa5AboveMa10(last)) {
+            return true;
+        }
+        if (stock != null && UnilateralMacdTools.isMacdPositive(stock, period)) {
+            return true;
+        }
+        return MaCrossPointCore.passesMacdOrMa5(last);
     }
 
     public static boolean passesOptionalGates(StockBase stock, CheckResult checkResult,
@@ -481,7 +539,7 @@ public final class MaCrossPointTools {
         if (hit == null) {
             return "";
         }
-        return String.format("[MDX]死叉交叉点突破|%s边沿破DC%d,父级MA10>MA60或均价之上|breakLine=%.2f,crossDay=%s",
+        return String.format("[MDX]死叉交叉点突破|%s边沿破DC%d,MACD>0或MA5>MA10,收盘>=max(MA5,MA10)|breakLine=%.2f,crossDay=%s",
                 periodLabel(hit.getPeriod()), hit.getSlowMa(),
                 hit.getBreakLine(), dayOf(hit.getCrossBar()));
     }
@@ -505,7 +563,7 @@ public final class MaCrossPointTools {
         if (hit == null) {
             return "";
         }
-        return String.format("[MGX]金叉交叉点突破|%s边沿破GC%d,父级MA10>MA60或均价之上|breakLine=%.2f,crossDay=%s",
+        return String.format("[MGX]金叉交叉点突破|%s边沿破GC%d,MACD>0或MA5>MA10,收盘>=max(MA5,MA10)|breakLine=%.2f,crossDay=%s",
                 periodLabel(hit.getPeriod()), hit.getSlowMa(),
                 hit.getBreakLine(), dayOf(hit.getCrossBar()));
     }
@@ -529,7 +587,7 @@ public final class MaCrossPointTools {
         if (hit == null) {
             return "";
         }
-        return String.format("[MGH]金叉波段顶突破|%s边沿破GH%d,父级MA10>MA60或均价之上|breakLine=%.2f,crossDay=%s",
+        return String.format("[MGH]金叉波段顶突破|%s边沿破GH%d,MACD>0或MA5>MA10,收盘>=max(MA5,MA10)|breakLine=%.2f,crossDay=%s",
                 periodLabel(hit.getPeriod()), hit.getSlowMa(),
                 hit.getBreakLine(), dayOf(hit.getCrossBar()));
     }
@@ -548,6 +606,33 @@ public final class MaCrossPointTools {
                 hit.getBreakLine(),
                 dayOf(hit.getCrossBar()),
                 dayOf(hit.getBandHighBar()));
+    }
+
+    public static String buildYangPierceTrendMessage(Hit hit) {
+        if (hit == null) {
+            return "";
+        }
+        return String.format("[MYP]一阳穿多线|%s阳线穿MA5/MA10,MACD>0或MA5>MA10|close=%.2f,minMa=%.2f,maxMa=%.2f",
+                periodLabel(hit.getPeriod()),
+                hit.getSignalBar() != null && hit.getSignalBar().getClose() != null
+                        ? hit.getSignalBar().getClose() : 0,
+                hit.getSignalBar() != null && hit.getSignalBar().getMa5() != null
+                        && hit.getSignalBar().getMa10() != null
+                        ? Math.min(hit.getSignalBar().getMa5(), hit.getSignalBar().getMa10()) : 0,
+                hit.getBreakLine());
+    }
+
+    public static String buildYangPierceSignalMessage(Hit hit) {
+        if (hit == null) {
+            return "";
+        }
+        Trade signalBar = hit.getSignalBar();
+        return String.format(
+                "一阳穿多线,strategyTag=MYP,period=%s,target=YANG_PIERCE,sigDay=%s,sigClose=%.2f,breakLine=%.2f",
+                hit.getPeriod() != null ? hit.getPeriod().getCode() : "day",
+                dayOf(signalBar),
+                signalBar != null && signalBar.getClose() != null ? signalBar.getClose() : 0,
+                hit.getBreakLine());
     }
 
     public static PeriodTypeEnum resolvePeriod(MaCrossPointStrategyParams.Tier tier) {

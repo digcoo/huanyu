@@ -115,16 +115,6 @@ const MARKET_SENTIMENT = {
 };
 
 const STRATEGIES = [
-  { id: 'magoldbreakFlash', name: 'MA金叉点突破·30分' },
-  { id: 'magoldbreakShort', name: 'MA金叉点突破·日' },
-  { id: 'magoldbreakMedium', name: 'MA金叉点突破·周' },
-  { id: 'magoldbreakLong', name: 'MA金叉点突破·月' },
-  { id: 'magoldbreakQuarter', name: 'MA金叉点突破·季' },
-  { id: 'madeathbreakFlash', name: 'MA死叉点突破·30分' },
-  { id: 'madeathbreakShort', name: 'MA死叉点突破·日' },
-  { id: 'madeathbreakMedium', name: 'MA死叉点突破·周' },
-  { id: 'madeathbreakLong', name: 'MA死叉点突破·月' },
-  { id: 'madeathbreakQuarter', name: 'MA死叉点突破·季' },
   { id: 'madcbreakFlash', name: '死叉交叉点突破·30分' },
   { id: 'madcbreakShort', name: '死叉交叉点突破·日' },
   { id: 'madcbreakMedium', name: '死叉交叉点突破·周' },
@@ -139,7 +129,12 @@ const STRATEGIES = [
   { id: 'maghbreakShort', name: '金叉波段顶突破·日' },
   { id: 'maghbreakMedium', name: '金叉波段顶突破·周' },
   { id: 'maghbreakLong', name: '金叉波段顶突破·月' },
-  { id: 'maghbreakQuarter', name: '金叉波段顶突破·季' }
+  { id: 'maghbreakQuarter', name: '金叉波段顶突破·季' },
+  { id: 'mayangpierceFlash', name: '一阳穿多线·30分' },
+  { id: 'mayangpierceShort', name: '一阳穿多线·日' },
+  { id: 'mayangpierceMedium', name: '一阳穿多线·周' },
+  { id: 'mayangpierceLong', name: '一阳穿多线·月' },
+  { id: 'mayangpierceQuarter', name: '一阳穿多线·季' }
 ];
 
 const { formatDataUpdatedLabel, todayDayStr } = require('./time');

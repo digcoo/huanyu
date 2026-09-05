@@ -128,20 +128,22 @@ public enum StrategyTypeEnum {
     MA_BULL_3M("mabull3m", "MA多头3M突破", 73),
     /** @deprecated MA多头破MA已下线（MaBreakMaTools 仍供 mabearbreakma 复用） */
     MA_BREAK_MA("mabreakma", "MA多头破MA", 76),
-    /** MA金叉点突破（边沿破 MA5/MA10 金叉交叉点） */
+    /** @deprecated MA金叉点突破已并入 maghbreak */
     MA_GOLD_BREAK("magoldbreak", "MA金叉点突破", 78),
-    /** MA死叉点突破（边沿破 MA5/MA10 死叉交叉点） */
+    /** @deprecated MA死叉点突破已并入 madcbreak */
     MA_DEATH_BREAK("madeathbreak", "MA死叉点突破", 79),
     /** @deprecated 多头趋势突破已下线 */
     MA_BULL_BREAK("mabullbreak", "多头趋势突破", 82),
     /** @deprecated 空头趋势启动已下线 */
     MA_BEAR_START("mabearstart", "空头趋势启动", 83),
-    /** 死叉交叉点突破（边沿破 DC10/DC20/DC30/DC60 任一 + 父级 MA10&gt;MA60 或均价之上） */
+    /** 死叉交叉点突破（边沿破 DC10/DC20/DC60 + 本档 MACD&gt;0或MA5&gt;MA10 + 收盘≥max(MA5,MA10)） */
     MA_DEATH_CROSS_BREAK("madcbreak", "死叉交叉点突破", 84),
-    /** 金叉交叉点突破（边沿破 GC10/GC20/GC30/GC60 任一 + 父级 MA10&gt;MA60 或均价之上） */
+    /** 金叉交叉点突破（边沿破 GC10/GC20/GC60 + 本档 MACD&gt;0或MA5&gt;MA10 + 收盘≥max(MA5,MA10)） */
     MA_GOLDEN_CROSS_BREAK("magcbreak", "金叉交叉点突破", 85),
-    /** 金叉波段顶突破（边沿破 GH10/GH20/GH30/GH60 任一 + 父级 MA10&gt;MA60 或均价之上） */
+    /** 金叉波段顶突破（边沿破 GH10/GH20/GH60 + 本档 MACD&gt;0或MA5&gt;MA10 + 收盘≥max(MA5,MA10)） */
     MA_GOLDEN_HIGH_BREAK("maghbreak", "金叉波段顶突破", 86),
+    /** 一阳穿多线（阳线穿 MA5/MA10 + 本档 MACD&gt;0或MA5&gt;MA10） */
+    MA_YANG_PIERCE("mayangpierce", "一阳穿多线", 87),
     /** @deprecated 凹突破已下线 */
     CONCAVE_BREAK("concavebreak", "凹突破", 80),
     /** @deprecated 突破前波段High已下线 */
@@ -193,9 +195,9 @@ public enum StrategyTypeEnum {
 
     public boolean isActive() {
         return this == BOTTOM_BAND_HIGH || this == BOTTOM_PREV2_HIGH
-                || this == MA_GOLD_BREAK || this == MA_DEATH_BREAK
                 || this == MA_DEATH_CROSS_BREAK
                 || this == MA_GOLDEN_CROSS_BREAK || this == MA_GOLDEN_HIGH_BREAK
+                || this == MA_YANG_PIERCE
                 || this == MA_BEAR_BREAK_MA || this == MA_BULL_4M;
     }
 
