@@ -21,6 +21,8 @@ import java.util.List;
  *   <li>策略2：边沿破 GC10/GC20/GC60</li>
  *   <li>策略3：边沿破 GH10/GH20/GH60</li>
  *   <li>策略4：一阳穿多线（阳线 + low≤min(MA5,MA10) + close≥max(MA5,MA10)）</li>
+ *   <li>策略5：边沿破前1完整阳波段顶，且本档 MA5&lt;MA60；父级 close≥MA5</li>
+ *   <li>策略6：边沿破 max(MA5,MA10)，且 max(涨幅率,实体率)≥2%；父级 close≥MA5</li>
  *   <li>本档硬门：MACD&gt;0 或 MA5&gt;MA10；收盘价≥max(MA5,MA10)</li>
  * </ul>
  */
@@ -33,7 +35,9 @@ public final class MaCrossPointTools {
         GOLDEN_BAND_TOP,
         GOLDEN_CROSS,
         DEATH_CROSS,
-        YANG_PIERCE
+        YANG_PIERCE,
+        PREV_BAND_HIGH,
+        MAX_MA
     }
 
     @Getter
@@ -292,6 +296,68 @@ public final class MaCrossPointTools {
                 signalBar, prevBar, signalBar, breakLine, signalBar, 0);
     }
 
+    /** 策略5：边沿破最近一根完整阳波段顶（前1波段顶） */
+    public static Hit findPrevBandHighHit(StockBase stock, MaCrossPointStrategyParams params) {
+        MaCrossPointStrategyParams p = params != null ? params : MaCrossPointStrategyParams.defaults();
+        PeriodTypeEnum period = resolvePeriod(p.getTier());
+        if (stock == null || period == null) {
+            return null;
+        }
+        List<Trade> trades = RealtimeStockCache.getLastTrades(stock, period, Math.max(resolveLookback(p), 80));
+        return findPrevBandHighHitOnBars(trades, period);
+    }
+
+    static Hit findPrevBandHighHitOnBars(List<Trade> trades, PeriodTypeEnum period) {
+        if (CollectionUtils.isEmpty(trades) || trades.size() < 3 || period == null) {
+            return null;
+        }
+        YangBandTools.CompleteYangBand band = YangBandTools.findLastCompleteBand(trades, trades.size());
+        if (band == null || Double.isNaN(band.getBandHigh())) {
+            return null;
+        }
+        int lastIdx = trades.size() - 1;
+        Trade signalBar = trades.get(lastIdx);
+        Trade prevBar = trades.get(lastIdx - 1);
+        double breakLine = band.getBandHigh();
+        if (!MaCrossPointCore.passesEdgeBreak(prevBar, signalBar, breakLine)) {
+            return null;
+        }
+        return new Hit(period, MaCrossPointCore.CrossKind.GOLDEN, BreakTarget.PREV_BAND_HIGH,
+                signalBar, prevBar, band.getBandHighBar(), breakLine, band.getBandHighBar(), 0);
+    }
+
+    /** 策略6：边沿破 max(MA5,MA10)，且 max(涨幅率,实体率)≥2% */
+    public static Hit findMa5BreakHit(StockBase stock, MaCrossPointStrategyParams params) {
+        MaCrossPointStrategyParams p = params != null ? params : MaCrossPointStrategyParams.defaults();
+        PeriodTypeEnum period = resolvePeriod(p.getTier());
+        if (stock == null || period == null) {
+            return null;
+        }
+        List<Trade> trades = RealtimeStockCache.getLastTrades(stock, period, Math.max(resolveLookback(p), 40));
+        return findMa5BreakHitOnBars(trades, period);
+    }
+
+    static Hit findMa5BreakHitOnBars(List<Trade> trades, PeriodTypeEnum period) {
+        if (CollectionUtils.isEmpty(trades) || trades.size() < 2 || period == null) {
+            return null;
+        }
+        Double breakLine = MaCrossPointCore.maxMa5Ma10(trades);
+        if (breakLine == null) {
+            return null;
+        }
+        int lastIdx = trades.size() - 1;
+        Trade signalBar = trades.get(lastIdx);
+        Trade prevBar = trades.get(lastIdx - 1);
+        if (!MaCrossPointCore.passesEdgeBreak(prevBar, signalBar, breakLine)) {
+            return null;
+        }
+        if (!MaCrossPointCore.passesStrength2Pct(prevBar, signalBar)) {
+            return null;
+        }
+        return new Hit(period, MaCrossPointCore.CrossKind.GOLDEN, BreakTarget.MAX_MA,
+                signalBar, prevBar, signalBar, breakLine, signalBar, 0);
+    }
+
     /**
      * 本档扫描硬门：MACD&gt;0 或 MA5&gt;MA10；收盘价≥max(MA5,MA10)；再过可选成交额/多空头。
      */
@@ -310,6 +376,21 @@ public final class MaCrossPointTools {
             return false;
         }
         return passesOptionalGates(stock, checkResult, params, hit, gateTag, true);
+    }
+
+    static boolean passesCurrentMa5LtMa60(StockBase stock, CheckResult checkResult,
+                                          Hit hit, String tag, PeriodTypeEnum period) {
+        Trade last = hit != null ? hit.getSignalBar() : lastBarOf(stock, period);
+        PeriodTypeEnum msgPeriod = period != null ? period : PeriodTypeEnum.DAY;
+        boolean ok = MaCrossPointCore.passesMa5LtMa60(last);
+        if (!ok && stock != null && period != null) {
+            ok = MaCrossPointCore.passesMa5LtMa60(RealtimeStockCache.getLastTrades(stock, period, 80));
+        }
+        if (!ok) {
+            appendMessage(checkResult, msgPeriod, tag != null ? tag : "MCP", "未满足MA5<MA60");
+            return false;
+        }
+        return true;
     }
 
     static boolean passesMacdOrMa5Gate(StockBase stock, PeriodTypeEnum period, Trade last) {
@@ -459,9 +540,23 @@ public final class MaCrossPointTools {
         return true;
     }
 
-    /**
-     * 策略5 父级：(MA10&gt;MA60) or (MA10≤MA60 且 close&gt;max(MA5,MA10))。
-     */
+    /** 策略5 父级：收盘价 ≥ 父级 MA5 */
+    public static boolean passesParentCloseGeMa5(StockBase stock, CheckResult checkResult,
+                                                 String tag, PeriodTypeEnum period) {
+        PeriodTypeEnum parent = resolveParentPeriod(period);
+        PeriodTypeEnum msgPeriod = period != null ? period : PeriodTypeEnum.DAY;
+        if (parent == null) {
+            appendMessage(checkResult, msgPeriod, tag, "未满足父级收盘>=MA5");
+            return false;
+        }
+        if (!MaCrossPointCore.passesCloseGeMa5(lastBarOf(stock, parent))) {
+            appendMessage(checkResult, msgPeriod, tag,
+                    "未满足父级" + periodLabel(parent) + "收盘>=MA5");
+            return false;
+        }
+        return true;
+    }
+
     public static boolean passesParentMdxGate(StockBase stock, CheckResult checkResult,
                                              String tag, PeriodTypeEnum period) {
         PeriodTypeEnum parent = resolveParentPeriod(period);
@@ -629,6 +724,51 @@ public final class MaCrossPointTools {
         Trade signalBar = hit.getSignalBar();
         return String.format(
                 "一阳穿多线,strategyTag=MYP,period=%s,target=YANG_PIERCE,sigDay=%s,sigClose=%.2f,breakLine=%.2f",
+                hit.getPeriod() != null ? hit.getPeriod().getCode() : "day",
+                dayOf(signalBar),
+                signalBar != null && signalBar.getClose() != null ? signalBar.getClose() : 0,
+                hit.getBreakLine());
+    }
+
+    public static String buildPrevBandHighTrendMessage(Hit hit) {
+        if (hit == null) {
+            return "";
+        }
+        return String.format("[MPH]突破前波段顶|%s边沿破前1波段顶,MA5<MA60,父级收盘>=MA5|breakLine=%.2f,bandHighDay=%s",
+                periodLabel(hit.getPeriod()),
+                hit.getBreakLine(), dayOf(hit.getBandHighBar()));
+    }
+
+    public static String buildPrevBandHighSignalMessage(Hit hit) {
+        if (hit == null) {
+            return "";
+        }
+        Trade signalBar = hit.getSignalBar();
+        return String.format(
+                "突破前波段顶,strategyTag=MPH,period=%s,target=PREV_BAND_HIGH,sigDay=%s,sigClose=%.2f,breakLine=%.2f,bandHighDay=%s",
+                hit.getPeriod() != null ? hit.getPeriod().getCode() : "day",
+                dayOf(signalBar),
+                signalBar != null && signalBar.getClose() != null ? signalBar.getClose() : 0,
+                hit.getBreakLine(),
+                dayOf(hit.getBandHighBar()));
+    }
+
+    public static String buildMa5BreakTrendMessage(Hit hit) {
+        if (hit == null) {
+            return "";
+        }
+        return String.format("[MB5]突破MA5|%s边沿破max(MA5,MA10),涨幅或实体>=2%%,父级收盘>=MA5|breakLine=%.2f,sigDay=%s",
+                periodLabel(hit.getPeriod()),
+                hit.getBreakLine(), dayOf(hit.getSignalBar()));
+    }
+
+    public static String buildMa5BreakSignalMessage(Hit hit) {
+        if (hit == null) {
+            return "";
+        }
+        Trade signalBar = hit.getSignalBar();
+        return String.format(
+                "突破MA5,strategyTag=MB5,period=%s,target=MAX_MA5_MA10,sigDay=%s,sigClose=%.2f,breakLine=%.2f",
                 hit.getPeriod() != null ? hit.getPeriod().getCode() : "day",
                 dayOf(signalBar),
                 signalBar != null && signalBar.getClose() != null ? signalBar.getClose() : 0,

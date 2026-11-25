@@ -310,6 +310,34 @@ public final class MaCrossPointCore {
         return bar.getClose() + EPS >= Math.max(bar.getMa5(), bar.getMa10());
     }
 
+    /** 本档：MA5 &lt; MA60（严格小于） */
+    public static boolean passesMa5LtMa60(Trade bar) {
+        if (bar == null || bar.getMa5() == null || bar.getMa60() == null) {
+            return false;
+        }
+        return bar.getMa5() < bar.getMa60() - EPS;
+    }
+
+    public static boolean passesMa5LtMa60(List<Trade> trades) {
+        Double ma5 = smaClose(trades, 5);
+        Double ma60 = smaClose(trades, 60);
+        if (ma5 == null || ma60 == null) {
+            if (trades == null || trades.isEmpty()) {
+                return false;
+            }
+            return passesMa5LtMa60(trades.get(trades.size() - 1));
+        }
+        return ma5 < ma60 - EPS;
+    }
+
+    /** 收盘价 ≥ MA5 */
+    public static boolean passesCloseGeMa5(Trade bar) {
+        if (bar == null || bar.getClose() == null || bar.getMa5() == null) {
+            return false;
+        }
+        return bar.getClose() + EPS >= bar.getMa5();
+    }
+
     /**
      * 一阳穿多线：末K收阳，且 low ≤ min(MA5, MA10)，且 close ≥ max(MA5, MA10)。
      */
@@ -365,6 +393,68 @@ public final class MaCrossPointCore {
     /** @deprecated 使用 {@link #passesMaBull(Trade)} */
     public static boolean passesRightTrend(Trade bar) {
         return passesMaBull(bar);
+    }
+
+    /** 末 K 的 max(MA5, MA10)；缺任一则 null */
+    public static Double maxMa5Ma10(Trade bar) {
+        if (bar == null || bar.getMa5() == null || bar.getMa10() == null) {
+            return null;
+        }
+        return Math.max(bar.getMa5(), bar.getMa10());
+    }
+
+    /** 优先用末 K 落库 MA；否则用收盘 SMA */
+    public static Double maxMa5Ma10(List<Trade> trades) {
+        if (trades == null || trades.isEmpty()) {
+            return null;
+        }
+        Double stored = maxMa5Ma10(trades.get(trades.size() - 1));
+        if (stored != null) {
+            return stored;
+        }
+        Double ma5 = smaClose(trades, 5);
+        Double ma10 = smaClose(trades, 10);
+        if (ma5 == null || ma10 == null) {
+            return null;
+        }
+        return Math.max(ma5, ma10);
+    }
+
+    /** 实体率：(close - open) / open */
+    public static double bodyRate(Trade bar) {
+        if (bar == null || bar.getOpen() == null || bar.getClose() == null || bar.getOpen() <= EPS) {
+            return Double.NaN;
+        }
+        return (bar.getClose() - bar.getOpen()) / bar.getOpen();
+    }
+
+    /** 涨幅率：(close - prevClose) / prevClose */
+    public static double changeRate(Trade prevBar, Trade signalBar) {
+        if (signalBar == null || signalBar.getClose() == null) {
+            return Double.NaN;
+        }
+        Double prevClose = prevBar != null ? prevBar.getClose() : null;
+        if (prevClose == null) {
+            prevClose = signalBar.getPrevClose();
+        }
+        if (prevClose == null || prevClose <= EPS) {
+            return Double.NaN;
+        }
+        return (signalBar.getClose() - prevClose) / prevClose;
+    }
+
+    /** max(涨幅率, 实体率) ≥ 2% */
+    public static boolean passesStrength2Pct(Trade prevBar, Trade signalBar) {
+        double body = bodyRate(signalBar);
+        double chg = changeRate(prevBar, signalBar);
+        double max = Double.NEGATIVE_INFINITY;
+        if (!Double.isNaN(body)) {
+            max = Math.max(max, body);
+        }
+        if (!Double.isNaN(chg)) {
+            max = Math.max(max, chg);
+        }
+        return max + EPS >= 0.02;
     }
 
     /** 均价之上：close &gt; max(MA5, MA10) */

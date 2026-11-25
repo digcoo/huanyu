@@ -12,7 +12,7 @@ function normalizeId(strategyId) {
 function isMarkedStrategy(strategyId) {
   var id = normalizeId(strategyId);
   return /^madcbreak/.test(id) || /^magcbreak/.test(id) || /^maghbreak/.test(id)
-    || /^mayangpierce/.test(id);
+    || /^mayangpierce/.test(id) || /^maprevhigh/.test(id) || /^mama5break/.test(id);
 }
 
 function chartPeriodForStrategy(strategyId) {

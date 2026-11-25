@@ -28,7 +28,19 @@ const STRATEGY_API = {
   mayangpierceShort: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
   mayangpierceMedium: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
   mayangpierceLong: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
-  mayangpierceQuarter: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' }
+  mayangpierceQuarter: { strategy: 'mayangpierce', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' },
+  maprevhigh: { strategy: 'maprevhigh', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  maprevhighFlash: { strategy: 'maprevhigh', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
+  maprevhighShort: { strategy: 'maprevhigh', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  maprevhighMedium: { strategy: 'maprevhigh', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
+  maprevhighLong: { strategy: 'maprevhigh', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
+  maprevhighQuarter: { strategy: 'maprevhigh', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' },
+  mama5break: { strategy: 'mama5break', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  mama5breakFlash: { strategy: 'mama5break', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'min30' },
+  mama5breakShort: { strategy: 'mama5break', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'day' },
+  mama5breakMedium: { strategy: 'mama5break', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'week' },
+  mama5breakLong: { strategy: 'mama5break', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'month' },
+  mama5breakQuarter: { strategy: 'mama5break', trendPeriodTypes: 'year,quarter,month,week,day,min30', opPeriodType: 'quarter' }
 };
 
 function normalizeStrategyId(strategyId) {
@@ -42,10 +54,15 @@ function normalizeStrategyId(strategyId) {
   if (strategyId === 'magcbreak') return 'magcbreakFlash';
   if (strategyId === 'maghbreak') return 'maghbreakFlash';
   if (strategyId === 'mayangpierce') return 'mayangpierceFlash';
-  if (/^bottombandhigh|^bottomprev2high|^maalignlift|^macrossbreak|^mabearbreakma|^mabull4m|^concavebreak|^trendretest(low|high)|^prevbandhigh|^mabreakma|^mabull3m|^mabullbreak|^mabearstart/.test(strategyId)) {
+  if (strategyId === 'maprevhigh') return 'maprevhighFlash';
+  if (strategyId === 'mama5break') return 'mama5breakFlash';
+  if (/^bottombandhigh|^bottomprev2high|^maalignlift|^macrossbreak|^mabearbreakma|^mabull4m|^concavebreak|^trendretest(low|high)|^mabreakma|^mabull3m|^mabullbreak|^mabearstart/.test(strategyId)) {
     return 'madcbreakFlash';
   }
-  if (/^madcbreak|^magcbreak|^maghbreak|^mayangpierce/.test(strategyId)) {
+  if (strategyId.indexOf('prevbandhigh') === 0) {
+    return 'maprevhighFlash';
+  }
+  if (/^madcbreak|^magcbreak|^maghbreak|^mayangpierce|^maprevhigh|^mama5break/.test(strategyId)) {
     return strategyId;
   }
   return 'madcbreakFlash';
@@ -598,6 +615,20 @@ function mapRecommendation(item, strategyId) {
     if (gh) tags.push('破GH' + gh[1]);
   } else if (/^mayangpierce/.test(strategyId) || strategyId === 'mayangpierce') {
     tags.push('一阳穿多线');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else if (/period=quarter/.test(item.signalMessage || '')) tags.push('季档');
+    else tags.push('日档');
+  } else if (/^maprevhigh/.test(strategyId) || strategyId === 'maprevhigh') {
+    tags.push('突破前波段顶');
+    if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
+    else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
+    else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');
+    else if (/period=quarter/.test(item.signalMessage || '')) tags.push('季档');
+    else tags.push('日档');
+  } else if (/^mama5break/.test(strategyId) || strategyId === 'mama5break') {
+    tags.push('突破MA5');
     if (/period=min30/.test(item.signalMessage || '')) tags.push('30分档');
     else if (/period=week/.test(item.signalMessage || '')) tags.push('周档');
     else if (/period=month/.test(item.signalMessage || '')) tags.push('月档');

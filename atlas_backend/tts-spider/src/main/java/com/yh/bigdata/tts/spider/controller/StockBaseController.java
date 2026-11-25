@@ -709,6 +709,32 @@ public class StockBaseController {
                 String.valueOf(pageQuery.getMypRequireMonthMaBear()),
                 String.valueOf(pageQuery.getMypRequireQuarterMaBear()),
                 String.valueOf(pageQuery.getMypRequireYearMaBear()),
+                String.valueOf(pageQuery.getMphTier()),
+                String.valueOf(pageQuery.getMphEnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMphMinAmountWan()),
+                String.valueOf(pageQuery.getMphRequireDayMaBull()),
+                String.valueOf(pageQuery.getMphRequireWeekMaBull()),
+                String.valueOf(pageQuery.getMphRequireMonthMaBull()),
+                String.valueOf(pageQuery.getMphRequireQuarterMaBull()),
+                String.valueOf(pageQuery.getMphRequireYearMaBull()),
+                String.valueOf(pageQuery.getMphRequireDayMaBear()),
+                String.valueOf(pageQuery.getMphRequireWeekMaBear()),
+                String.valueOf(pageQuery.getMphRequireMonthMaBear()),
+                String.valueOf(pageQuery.getMphRequireQuarterMaBear()),
+                String.valueOf(pageQuery.getMphRequireYearMaBear()),
+                String.valueOf(pageQuery.getMb5Tier()),
+                String.valueOf(pageQuery.getMb5EnableMinAmountFilter()),
+                String.valueOf(pageQuery.getMb5MinAmountWan()),
+                String.valueOf(pageQuery.getMb5RequireDayMaBull()),
+                String.valueOf(pageQuery.getMb5RequireWeekMaBull()),
+                String.valueOf(pageQuery.getMb5RequireMonthMaBull()),
+                String.valueOf(pageQuery.getMb5RequireQuarterMaBull()),
+                String.valueOf(pageQuery.getMb5RequireYearMaBull()),
+                String.valueOf(pageQuery.getMb5RequireDayMaBear()),
+                String.valueOf(pageQuery.getMb5RequireWeekMaBear()),
+                String.valueOf(pageQuery.getMb5RequireMonthMaBear()),
+                String.valueOf(pageQuery.getMb5RequireQuarterMaBear()),
+                String.valueOf(pageQuery.getMb5RequireYearMaBear()),
                 String.valueOf(pageQuery.getMbbmEnableMinAmountFilter()),
                 String.valueOf(pageQuery.getMbbmMinAmountWan()),
                 String.valueOf(pageQuery.getM4mTier()),
@@ -824,6 +850,8 @@ public class StockBaseController {
                 .maGoldenCrossBreak(stockPageQuery.toMaGoldenCrossBreakParams())
                 .maGoldenHighBreak(stockPageQuery.toMaGoldenHighBreakParams())
                 .maYangPierce(stockPageQuery.toMaYangPierceParams())
+                .maPrevHighBreak(stockPageQuery.toMaPrevHighBreakParams())
+                .ma5Break(stockPageQuery.toMa5BreakParams())
                 .maBearBreakMa(stockPageQuery.toMaBearBreakMaParams())
                 .maBull4m(stockPageQuery.toMaBull4mParams())
                 .build();

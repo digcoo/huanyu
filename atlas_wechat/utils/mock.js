@@ -134,7 +134,17 @@ const STRATEGIES = [
   { id: 'mayangpierceShort', name: '一阳穿多线·日' },
   { id: 'mayangpierceMedium', name: '一阳穿多线·周' },
   { id: 'mayangpierceLong', name: '一阳穿多线·月' },
-  { id: 'mayangpierceQuarter', name: '一阳穿多线·季' }
+  { id: 'mayangpierceQuarter', name: '一阳穿多线·季' },
+  { id: 'maprevhighFlash', name: '突破前波段顶·30分' },
+  { id: 'maprevhighShort', name: '突破前波段顶·日' },
+  { id: 'maprevhighMedium', name: '突破前波段顶·周' },
+  { id: 'maprevhighLong', name: '突破前波段顶·月' },
+  { id: 'maprevhighQuarter', name: '突破前波段顶·季' },
+  { id: 'mama5breakFlash', name: '突破MA5·30分' },
+  { id: 'mama5breakShort', name: '突破MA5·日' },
+  { id: 'mama5breakMedium', name: '突破MA5·周' },
+  { id: 'mama5breakLong', name: '突破MA5·月' },
+  { id: 'mama5breakQuarter', name: '突破MA5·季' }
 ];
 
 const { formatDataUpdatedLabel, todayDayStr } = require('./time');

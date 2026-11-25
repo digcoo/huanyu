@@ -411,6 +411,92 @@ public class MaCrossPointToolsTest {
     }
 
     @Test
+    public void findPrevBandHigh_hitsLastCompleteBandHigh() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.0, 10.5, 9.9, 10.2, 9.5, 10.0),
+                ohlc("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0),
+                ohlc("d3", 10.5, 10.6, 10.0, 10.1, 10.3, 10.1),
+                ohlc("d4", 10.1, 10.3, 9.8, 10.0, 10.4, 10.2),
+                ohlc("d5", 10.0, 11.0, 9.9, 10.9, 10.5, 10.3)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findPrevBandHighHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(MaCrossPointTools.BreakTarget.PREV_BAND_HIGH, hit.getBreakTarget());
+        Assert.assertEquals(10.8, hit.getBreakLine(), 1e-6);
+    }
+
+    @Test
+    public void findPrevBandHigh_missWhenNoneEdgeBroken() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.0, 10.5, 9.9, 10.2, 9.5, 10.0),
+                ohlc("d2", 10.2, 10.8, 10.1, 10.5, 10.2, 10.0),
+                ohlc("d3", 10.5, 10.6, 10.0, 10.1, 10.3, 10.1),
+                ohlc("d4", 10.1, 10.3, 9.8, 10.0, 10.4, 10.2),
+                ohlc("d5", 10.0, 10.7, 9.9, 10.6, 10.5, 10.3)
+        );
+        Assert.assertNull(MaCrossPointTools.findPrevBandHighHitOnBars(bars, PeriodTypeEnum.DAY));
+    }
+
+    @Test
+    public void passesMa5LtMa60_requiresStrictBelow() {
+        Trade below = flat("d1", 10.0, 10.2, 10.5);
+        below.setMa60(10.5);
+        Assert.assertTrue(MaCrossPointCore.passesMa5LtMa60(below));
+        Trade eq = flat("d1", 10.5, 10.2, 10.5);
+        eq.setMa60(10.5);
+        Assert.assertFalse(MaCrossPointCore.passesMa5LtMa60(eq));
+    }
+
+    @Test
+    public void passesCloseGeMa5_allowsEqual() {
+        Trade eq = flat("d1", 10.0, 10.2, 10.0);
+        Assert.assertTrue(MaCrossPointCore.passesCloseGeMa5(eq));
+        Trade below = flat("d1", 10.5, 10.2, 10.3);
+        Assert.assertFalse(MaCrossPointCore.passesCloseGeMa5(below));
+    }
+
+    @Test
+    public void findMa5Break_hitsWhenEdgeAndStrength() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.0, 10.1, 9.9, 10.0, 10.05, 10.08),
+                ohlc("d2", 10.0, 10.4, 9.95, 10.25, 10.10, 10.12)
+        );
+        MaCrossPointTools.Hit hit = MaCrossPointTools.findMa5BreakHitOnBars(bars, PeriodTypeEnum.DAY);
+        Assert.assertNotNull(hit);
+        Assert.assertEquals(MaCrossPointTools.BreakTarget.MAX_MA, hit.getBreakTarget());
+        Assert.assertEquals(10.12, hit.getBreakLine(), 1e-6);
+    }
+
+    @Test
+    public void findMa5Break_missWhenStrengthBelow2Pct() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.0, 10.1, 9.9, 10.0, 10.05, 10.08),
+                ohlc("d2", 10.0, 10.2, 9.95, 10.15, 10.10, 10.12)
+        );
+        Assert.assertNull(MaCrossPointTools.findMa5BreakHitOnBars(bars, PeriodTypeEnum.DAY));
+    }
+
+    @Test
+    public void findMa5Break_missWhenNoEdgeBreak() {
+        List<Trade> bars = Arrays.asList(
+                ohlc("d1", 10.2, 10.3, 10.1, 10.25, 10.05, 10.08),
+                ohlc("d2", 10.3, 10.6, 10.2, 10.56, 10.10, 10.12)
+        );
+        Assert.assertNull(MaCrossPointTools.findMa5BreakHitOnBars(bars, PeriodTypeEnum.DAY));
+    }
+
+    @Test
+    public void passesStrength2Pct_usesMaxOfChangeAndBody() {
+        Trade prev = ohlc("d1", 10.0, 10.1, 9.9, 10.0, 10.0, 10.0);
+        Trade bodyOnly = ohlc("d2", 10.0, 10.3, 9.95, 10.25, 10.0, 10.0);
+        Assert.assertTrue(MaCrossPointCore.passesStrength2Pct(prev, bodyOnly));
+        Trade changeOnly = ohlc("d2", 10.24, 10.26, 10.20, 10.25, 10.0, 10.0);
+        Assert.assertTrue(MaCrossPointCore.passesStrength2Pct(prev, changeOnly));
+        Trade weak = ohlc("d2", 10.0, 10.2, 9.95, 10.15, 10.0, 10.0);
+        Assert.assertFalse(MaCrossPointCore.passesStrength2Pct(prev, weak));
+    }
+
+    @Test
     public void resolveParentPeriod_followsDocPairs() {
         Assert.assertEquals(PeriodTypeEnum.DAY, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.MIN30));
         Assert.assertEquals(PeriodTypeEnum.WEEK, MaCrossPointTools.resolveParentPeriod(PeriodTypeEnum.DAY));

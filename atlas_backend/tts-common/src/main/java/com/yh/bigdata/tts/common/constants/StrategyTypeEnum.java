@@ -144,6 +144,10 @@ public enum StrategyTypeEnum {
     MA_GOLDEN_HIGH_BREAK("maghbreak", "金叉波段顶突破", 86),
     /** 一阳穿多线（阳线穿 MA5/MA10 + 本档 MACD&gt;0或MA5&gt;MA10） */
     MA_YANG_PIERCE("mayangpierce", "一阳穿多线", 87),
+    /** 突破前波段顶（边沿破前1完整阳波段顶 + 本档 MA5&lt;MA60 + 父级收盘≥MA5） */
+    MA_PREV_HIGH_BREAK("maprevhigh", "突破前波段顶", 88),
+    /** 突破MA5（边沿破 max(MA5,MA10) + 涨幅或实体≥2% + 父级收盘≥MA5） */
+    MA5_BREAK("mama5break", "突破MA5", 89),
     /** @deprecated 凹突破已下线 */
     CONCAVE_BREAK("concavebreak", "凹突破", 80),
     /** @deprecated 突破前波段High已下线 */
@@ -197,7 +201,8 @@ public enum StrategyTypeEnum {
         return this == BOTTOM_BAND_HIGH || this == BOTTOM_PREV2_HIGH
                 || this == MA_DEATH_CROSS_BREAK
                 || this == MA_GOLDEN_CROSS_BREAK || this == MA_GOLDEN_HIGH_BREAK
-                || this == MA_YANG_PIERCE
+                || this == MA_YANG_PIERCE || this == MA_PREV_HIGH_BREAK
+                || this == MA5_BREAK
                 || this == MA_BEAR_BREAK_MA || this == MA_BULL_4M;
     }
 

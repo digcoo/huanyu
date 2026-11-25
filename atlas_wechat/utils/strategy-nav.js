@@ -1,10 +1,12 @@
 /**
- * 小程序策略导航（my4：死叉交叉点 / 金叉交叉点 / 金叉波段顶 / 一阳穿多线）
+ * 小程序策略导航（my4：死叉交叉点 / 金叉交叉点 / 金叉波段顶 / 一阳穿多线 / 前波段顶 / 突破MA5）
  */
 var STRATEGY_MA_DC_BREAK = 'madcbreak';
 var STRATEGY_MA_GC_BREAK = 'magcbreak';
 var STRATEGY_MA_GH_BREAK = 'maghbreak';
 var STRATEGY_MA_YANG_PIERCE = 'mayangpierce';
+var STRATEGY_MA_PREV_HIGH = 'maprevhigh';
+var STRATEGY_MA5_BREAK = 'mama5break';
 
 var MDX_TIER_FLASH = 'madcbreakFlash';
 var MDX_TIER_SHORT = 'madcbreakShort';
@@ -30,13 +32,27 @@ var MYP_TIER_MEDIUM = 'mayangpierceMedium';
 var MYP_TIER_LONG = 'mayangpierceLong';
 var MYP_TIER_QUARTER = 'mayangpierceQuarter';
 
+var MPH_TIER_FLASH = 'maprevhighFlash';
+var MPH_TIER_SHORT = 'maprevhighShort';
+var MPH_TIER_MEDIUM = 'maprevhighMedium';
+var MPH_TIER_LONG = 'maprevhighLong';
+var MPH_TIER_QUARTER = 'maprevhighQuarter';
+
+var MB5_TIER_FLASH = 'mama5breakFlash';
+var MB5_TIER_SHORT = 'mama5breakShort';
+var MB5_TIER_MEDIUM = 'mama5breakMedium';
+var MB5_TIER_LONG = 'mama5breakLong';
+var MB5_TIER_QUARTER = 'mama5breakQuarter';
+
 var DEFAULT_STRATEGY = MDX_TIER_FLASH;
 
 var STRATEGY_FAMILIES = [
   { id: STRATEGY_MA_DC_BREAK, name: '死叉交叉点', icon: '✕' },
   { id: STRATEGY_MA_GC_BREAK, name: '金叉交叉点', icon: '✚' },
   { id: STRATEGY_MA_GH_BREAK, name: '金叉波段顶', icon: '▲' },
-  { id: STRATEGY_MA_YANG_PIERCE, name: '一阳穿多线', icon: '│' }
+  { id: STRATEGY_MA_YANG_PIERCE, name: '一阳穿多线', icon: '│' },
+  { id: STRATEGY_MA_PREV_HIGH, name: '前波段顶', icon: '▀' },
+  { id: STRATEGY_MA5_BREAK, name: '突破MA5', icon: '5' }
 ];
 
 var TIER_TABS_BY_FAMILY = {
@@ -67,6 +83,20 @@ var TIER_TABS_BY_FAMILY = {
     { id: MYP_TIER_MEDIUM, name: '周线' },
     { id: MYP_TIER_LONG, name: '月线' },
     { id: MYP_TIER_QUARTER, name: '季线' }
+  ],
+  maprevhigh: [
+    { id: MPH_TIER_FLASH, name: '30分' },
+    { id: MPH_TIER_SHORT, name: '日线' },
+    { id: MPH_TIER_MEDIUM, name: '周线' },
+    { id: MPH_TIER_LONG, name: '月线' },
+    { id: MPH_TIER_QUARTER, name: '季线' }
+  ],
+  mama5break: [
+    { id: MB5_TIER_FLASH, name: '30分' },
+    { id: MB5_TIER_SHORT, name: '日线' },
+    { id: MB5_TIER_MEDIUM, name: '周线' },
+    { id: MB5_TIER_LONG, name: '月线' },
+    { id: MB5_TIER_QUARTER, name: '季线' }
   ]
 };
 
@@ -94,7 +124,19 @@ var STRATEGY_TITLES = {
   mayangpierceShort: '一阳穿多线 · 日',
   mayangpierceMedium: '一阳穿多线 · 周',
   mayangpierceLong: '一阳穿多线 · 月',
-  mayangpierceQuarter: '一阳穿多线 · 季'
+  mayangpierceQuarter: '一阳穿多线 · 季',
+  maprevhigh: '突破前波段顶',
+  maprevhighFlash: '突破前波段顶 · 30分',
+  maprevhighShort: '突破前波段顶 · 日',
+  maprevhighMedium: '突破前波段顶 · 周',
+  maprevhighLong: '突破前波段顶 · 月',
+  maprevhighQuarter: '突破前波段顶 · 季',
+  mama5break: '突破MA5',
+  mama5breakFlash: '突破MA5 · 30分',
+  mama5breakShort: '突破MA5 · 日',
+  mama5breakMedium: '突破MA5 · 周',
+  mama5breakLong: '突破MA5 · 月',
+  mama5breakQuarter: '突破MA5 · 季'
 };
 
 var ACTIVE_STRATEGY_IDS = {
@@ -117,7 +159,17 @@ var ACTIVE_STRATEGY_IDS = {
   mayangpierceShort: true,
   mayangpierceMedium: true,
   mayangpierceLong: true,
-  mayangpierceQuarter: true
+  mayangpierceQuarter: true,
+  maprevhighFlash: true,
+  maprevhighShort: true,
+  maprevhighMedium: true,
+  maprevhighLong: true,
+  maprevhighQuarter: true,
+  mama5breakFlash: true,
+  mama5breakShort: true,
+  mama5breakMedium: true,
+  mama5breakLong: true,
+  mama5breakQuarter: true
 };
 
 var TIER_BY_STRATEGY = {
@@ -140,11 +192,27 @@ var TIER_BY_STRATEGY = {
   mayangpierceShort: 'day',
   mayangpierceMedium: 'week',
   mayangpierceLong: 'month',
-  mayangpierceQuarter: 'quarter'
+  mayangpierceQuarter: 'quarter',
+  maprevhighFlash: 'min30',
+  maprevhighShort: 'day',
+  maprevhighMedium: 'week',
+  maprevhighLong: 'month',
+  maprevhighQuarter: 'quarter',
+  mama5breakFlash: 'min30',
+  mama5breakShort: 'day',
+  mama5breakMedium: 'week',
+  mama5breakLong: 'month',
+  mama5breakQuarter: 'quarter'
 };
 
 function familyForStrategyId(strategyId) {
   var id = String(strategyId || '');
+  if (id.indexOf('mama5break') === 0) {
+    return STRATEGY_MA5_BREAK;
+  }
+  if (id.indexOf('maprevhigh') === 0) {
+    return STRATEGY_MA_PREV_HIGH;
+  }
   if (id.indexOf('mayangpierce') === 0) {
     return STRATEGY_MA_YANG_PIERCE;
   }
@@ -169,6 +237,12 @@ function strategyIdFor(family, tier) {
   }
   if (family === STRATEGY_MA_YANG_PIERCE) {
     return MYP_TIER_FLASH;
+  }
+  if (family === STRATEGY_MA_PREV_HIGH) {
+    return MPH_TIER_FLASH;
+  }
+  if (family === STRATEGY_MA5_BREAK) {
+    return MB5_TIER_FLASH;
   }
   return DEFAULT_STRATEGY;
 }
@@ -207,6 +281,9 @@ function migrateLegacyMaId(id) {
 
 function migrateSavedStrategy(strategyId) {
   var id = migrateLegacyMaId(strategyId || DEFAULT_STRATEGY);
+  if (id.indexOf('prevbandhigh') === 0) {
+    return { strategy: MPH_TIER_FLASH };
+  }
   if (id.indexOf('bottombandhigh') === 0
       || id.indexOf('bottomprev2high') === 0
       || id.indexOf('maalignlift') === 0
@@ -216,7 +293,6 @@ function migrateSavedStrategy(strategyId) {
       || id.indexOf('concavebreak') === 0
       || id.indexOf('trendretestlow') === 0
       || id.indexOf('trendretesthigh') === 0
-      || id.indexOf('prevbandhigh') === 0
       || id.indexOf('mabreakma') === 0
       || id.indexOf('mabullbreak') === 0
       || id.indexOf('mabearstart') === 0
@@ -242,6 +318,8 @@ module.exports = {
   STRATEGY_MA_GC_BREAK: STRATEGY_MA_GC_BREAK,
   STRATEGY_MA_GH_BREAK: STRATEGY_MA_GH_BREAK,
   STRATEGY_MA_YANG_PIERCE: STRATEGY_MA_YANG_PIERCE,
+  STRATEGY_MA_PREV_HIGH: STRATEGY_MA_PREV_HIGH,
+  STRATEGY_MA5_BREAK: STRATEGY_MA5_BREAK,
   DEFAULT_STRATEGY: DEFAULT_STRATEGY,
   TIER_SHORT: DEFAULT_STRATEGY,
   TIER_MEDIUM: MDX_TIER_MEDIUM,

@@ -65,15 +65,15 @@ public class DayAllSpiderScheduler {
 //			if (!SinaHttpUtils.isTradeOfCurrentDay()) {
 //				return;
 //			}
-            String code = "sz002768";
-            int days = 5;
+            String code = "";
+            int days = 80;
             if (StringUtils.isEmpty(code)) {
                 stockBaseCrawler.run();
                 stockDayCrawler.run(null, days);
-                stockMin30Crawler.run(null, days * 8);
-//                stockMin60Crawler.run(null, days * 4);
+//                stockMin30Crawler.run(null, days * 8);
+                stockMin60Crawler.run(null, days * 4);
                 stockWeekCrawler.run(null, days / 5 + 1);
-                stockMonthCrawler.run(null, 2);
+                stockMonthCrawler.run(null, 3);
                 stockQuarterCrawler.run(null, 2);
                 stockYearCrawler.run(null, 2);
             }else {
